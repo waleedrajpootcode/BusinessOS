@@ -22,9 +22,15 @@ function Login() {
 
           <label>Password</label>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Enter your password"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? "Hide Password" : "Show Password"}
+          </button>
 
           <a href="#">Forgot Password?</a>
 
