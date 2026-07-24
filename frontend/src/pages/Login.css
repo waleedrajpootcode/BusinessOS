@@ -76,3 +76,8 @@
 .login-card button:hover {
   background: #222;
 }
+.error {
+  color: #d32f2f;
+  font-size: 14px;
+  font-weight: 600;
+}
