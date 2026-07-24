@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { supabase } from "../lib/supabase";
 import './Login.css'
 
 function Login() {
@@ -6,7 +7,7 @@ function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault()
 
     if (!email) {
@@ -25,8 +26,17 @@ function Login() {
     }
 
     setError("")
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      setError(error.message);
+      return;
+    }
 
-    alert("Validation Passed ✅")
+    alert("Login Successful ✅");
+
   }
   return (
     <div className="login-page">
