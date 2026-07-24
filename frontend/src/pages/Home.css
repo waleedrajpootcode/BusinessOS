@@ -1,0 +1,33 @@
+.home {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.home h1 {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.home p {
+  font-size: 1.2rem;
+  margin-bottom: 24px;
+}
+.home button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 8px;
+  border: none;
+  background-color: #000;
+color: #FFD700;
+font-weight: 600;
+transition: 0.3s;
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.home button:hover {
+  transform: translateY(-2px);
+  background-color: #222;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+}
