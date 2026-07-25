@@ -1,5 +1,12 @@
+import Layout from "../components/dashboard/Layout";
+import DashboardCards from "../components/dashboard/DashboardCards";
+
 function Dashboard() {
-  return <h1>Dashboard</h1>
+  return (
+    <Layout>
+      <DashboardCards />
+    </Layout>
+  );
 }
 
-export default Dashboard
+export default Dashboard;

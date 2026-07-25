@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom'
 function Home() {
      return (
   <div className="home">
-    <h1>BusinessOS</h1>
+    <h1 className="text-5xl font-bold text-blue-600">
+  BusinessOS
+</h1>
     <p>AI Powered Business Management SaaS</p>
     <Link to="/login">
   <button>Get Started</button>
