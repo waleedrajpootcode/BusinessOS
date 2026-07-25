@@ -1,27 +1,40 @@
+import { useEffect, useState } from "react";
 import StatsCard from "./cards/StatsCard";
+import { getProductsCount } from "../../services/products";
 
 function DashboardCards() {
+  const [productsCount, setProductsCount] = useState(0);
+
+  useEffect(() => {
+    async function loadData() {
+      const count = await getProductsCount();
+      setProductsCount(count);
+    }
+
+    loadData();
+  }, []);
+
   return (
     <div className="grid grid-cols-4 gap-6">
 
       <StatsCard
         title="Revenue"
-        value="$12,450"
+        value="$0"
       />
 
       <StatsCard
         title="Products"
-        value="128"
+        value={productsCount}
       />
 
       <StatsCard
         title="Customers"
-        value="56"
+        value="0"
       />
 
       <StatsCard
         title="Sales"
-        value="324"
+        value="0"
       />
 
     </div>
