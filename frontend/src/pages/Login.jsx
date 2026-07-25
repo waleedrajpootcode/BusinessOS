@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useState } from 'react'
 import { supabase } from "../lib/supabase";
 import './Login.css'
@@ -7,6 +8,7 @@ function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const navigate = useNavigate();
   async function handleLogin(e) {
     e.preventDefault()
 
@@ -35,7 +37,7 @@ function Login() {
       return;
     }
 
-    alert("Login Successful ✅");
+    navigate("/dashboard");
 
   }
   return (
