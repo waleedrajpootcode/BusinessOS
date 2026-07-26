@@ -15,3 +15,15 @@ export async function getProductsCount() {
 
   return count;
 }
+export async function addProduct(product) {
+  const { data, error } = await supabase
+    .from("products")
+    .insert([product]);
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+
+  return data;
+}
