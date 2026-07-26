@@ -8,6 +8,7 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 function Sidebar() {
   return (
@@ -30,17 +31,21 @@ function Sidebar() {
         <ul className="space-y-2">
 
           <li>
-            <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition">
-              <LayoutDashboard size={20} />
-              Dashboard
-            </button>
+            <Link to="/dashboard">
+              <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition">
+                <LayoutDashboard size={20} />
+                Dashboard
+              </button>
+            </Link>
           </li>
 
           <li>
-            <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-              <Package size={20} />
-              Products
-            </button>
+            <Link to="/products">
+              <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
+                <Package size={20} />
+                Products
+              </button>
+            </Link>
           </li>
 
           <li>
