@@ -1,3 +1,4 @@
+import Button from "../components/ui/Button";
 function Products() {
   return (
     <div className="p-6">
@@ -14,11 +15,9 @@ function Products() {
           </p>
         </div>
 
-        <button
-          className="bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700"
-        >
+        <Button>
           + Add Product
-        </button>
+        </Button>
         <div className="mt-8">
 
           <input
