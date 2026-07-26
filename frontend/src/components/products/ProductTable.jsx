@@ -1,4 +1,9 @@
-function ProductTable({ products }) {
+import { Pencil, Trash2 } from "lucide-react";
+
+function ProductTable({
+  products,
+  onDelete,
+}) {
   return (
     <div className="mt-8 bg-white rounded-xl shadow border overflow-hidden">
 
@@ -11,6 +16,9 @@ function ProductTable({ products }) {
             <th className="p-4 text-left">Category</th>
             <th className="p-4 text-left">Price</th>
             <th className="p-4 text-left">Stock</th>
+            <th className="p-4 text-left">
+              Actions
+            </th>
           </tr>
         </thead>
 
@@ -19,7 +27,7 @@ function ProductTable({ products }) {
           {products.length === 0 ? (
             <tr>
               <td
-                colSpan="5"
+                colSpan="6"
                 className="text-center p-10 text-gray-500"
               >
                 No Products Found
@@ -34,8 +42,28 @@ function ProductTable({ products }) {
                 <td className="p-4">{product.product_name}</td>
                 <td className="p-4">{product.sku}</td>
                 <td className="p-4">{product.category}</td>
-                <td className="p-4">${product.price}</td>
+                <td className="p-4">
+                  PKR {product.price}
+                </td>
                 <td className="p-4">{product.stock}</td>
+               <td className="p-4">
+  <div className="flex gap-2">
+
+    <button
+      className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
+    >
+      <Pencil size={18} />
+    </button>
+
+    <button
+      onClick={() => onDelete(product.id)}
+      className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
+    >
+      <Trash2 size={18} />
+    </button>
+
+  </div>
+</td>
               </tr>
             ))
           )}
