@@ -1,0 +1,51 @@
+function ProductTable({ products }) {
+  return (
+    <div className="mt-8 bg-white rounded-xl shadow border overflow-hidden">
+
+      <table className="w-full">
+
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="p-4 text-left">Product</th>
+            <th className="p-4 text-left">SKU</th>
+            <th className="p-4 text-left">Category</th>
+            <th className="p-4 text-left">Price</th>
+            <th className="p-4 text-left">Stock</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          {products.length === 0 ? (
+            <tr>
+              <td
+                colSpan="5"
+                className="text-center p-10 text-gray-500"
+              >
+                No Products Found
+              </td>
+            </tr>
+          ) : (
+            products.map((product) => (
+              <tr
+                key={product.id}
+                className="border-t"
+              >
+                <td className="p-4">{product.product_name}</td>
+                <td className="p-4">{product.sku}</td>
+                <td className="p-4">{product.category}</td>
+                <td className="p-4">${product.price}</td>
+                <td className="p-4">{product.stock}</td>
+              </tr>
+            ))
+          )}
+
+        </tbody>
+
+      </table>
+
+    </div>
+  );
+}
+
+export default ProductTable;
