@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "../ui/Button";
 import { addProduct } from "../../services/products";
 
-function ProductForm() {
+function ProductForm({ onSuccess }) {
   const [productName, setProductName] = useState("");
   const [sku, setSku] = useState("");
   const [barcode, setBarcode] = useState("");
@@ -29,6 +29,9 @@ function ProductForm() {
     });
 
     alert("Product Added Successfully ✅");
+    if (onSuccess) {
+  onSuccess();
+}
 
     setProductName("");
     setSku("");
