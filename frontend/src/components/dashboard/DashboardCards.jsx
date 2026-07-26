@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import StatsCard from "./cards/StatsCard";
 import { getProductsCount } from "../../services/products";
+import { getCustomersCount } from "../../services/customers";
 
 function DashboardCards() {
   const [productsCount, setProductsCount] = useState(0);
+  const [customersCount, setCustomersCount] = useState(0);
 
   useEffect(() => {
     async function loadData() {
-      const count = await getProductsCount();
-      setProductsCount(count);
+      const products = await getProductsCount();
+      const customers = await getCustomersCount();
+
+      setProductsCount(products);
+      setCustomersCount(customers);
     }
 
     loadData();
@@ -16,7 +21,6 @@ function DashboardCards() {
 
   return (
     <div className="grid grid-cols-4 gap-6">
-
       <StatsCard
         title="Revenue"
         value="$0"
@@ -29,14 +33,13 @@ function DashboardCards() {
 
       <StatsCard
         title="Customers"
-        value="0"
+        value={customersCount}
       />
 
       <StatsCard
         title="Sales"
         value="0"
       />
-
     </div>
   );
 }
