@@ -1,11 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "../components/ui/Button";
 import Modal from "../components/ui/Modal";
 import ProductForm from "../components/products/ProductForm";
+import ProductTable from "../components/products/ProductTable";
+import { getProducts } from "../services/products";
 
 function Products() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  const [products, setProducts] = useState([]);
+  async function loadProducts() {
+  const data = await getProducts();
+  setProducts(data);
+}
+  useEffect(() => {
+  loadProducts();
+}, []);
+
   return (
     <div className="p-6">
 
@@ -40,40 +50,7 @@ function Products() {
       </div>
 
       {/* Table */}
-      <div className="mt-8 bg-white rounded-xl shadow border">
-
-        <table className="w-full">
-
-          <thead className="bg-gray-100">
-
-            <tr>
-              <th className="p-4 text-left">Product</th>
-              <th className="p-4 text-left">SKU</th>
-              <th className="p-4 text-left">Category</th>
-              <th className="p-4 text-left">Price</th>
-              <th className="p-4 text-left">Stock</th>
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            <tr>
-
-              <td
-                colSpan="5"
-                className="text-center p-10 text-gray-500"
-              >
-                No Products Found
-              </td>
-
-            </tr>
-
-          </tbody>
-
-        </table>
-
-      </div>
+<ProductTable products={products} />
 
       {/* Modal */}
     <Modal
