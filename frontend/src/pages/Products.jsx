@@ -12,6 +12,7 @@ function Products() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   async function loadProducts() {
     const data = await getProducts();
@@ -22,6 +23,7 @@ function Products() {
     const confirmed = window.confirm(
       "Are you sure you want to delete this product?"
     );
+
 
     if (!confirmed) return;
 
@@ -35,6 +37,10 @@ function Products() {
     } catch (error) {
       alert(error.message);
     }
+  }
+  function handleEdit(product) {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
   }
 
   useEffect(() => {
@@ -72,7 +78,12 @@ function Products() {
           </p>
         </div>
 
-        <Button onClick={() => setIsModalOpen(true)}>
+        <Button
+          onClick={() => {
+            setSelectedProduct(null);
+            setIsModalOpen(true);
+          }}
+        >
           + Add Product
         </Button>
 
@@ -93,16 +104,20 @@ function Products() {
       <ProductTable
         products={filteredProducts}
         onDelete={handleDelete}
+        onEdit={handleEdit}
       />
+
       {/* Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Add Product"
+        title={selectedProduct ? "Edit Product" : "Add Product"}
       >
         <ProductForm
+          product={selectedProduct}
           onSuccess={() => {
             setIsModalOpen(false);
+            setSelectedProduct(null);
             loadProducts();
           }}
         />

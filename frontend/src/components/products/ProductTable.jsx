@@ -3,6 +3,7 @@ import { Pencil, Trash2 } from "lucide-react";
 function ProductTable({
   products,
   onDelete,
+  onEdit,
 }) {
   return (
     <div className="mt-8 bg-white rounded-xl shadow border overflow-hidden">
@@ -46,15 +47,18 @@ function ProductTable({
                   PKR {product.price}
                 </td>
                 <td className="p-4">{product.stock}</td>
-               <td className="p-4">
+        <td className="p-4">
   <div className="flex gap-2">
 
+    {/* Edit */}
     <button
+      onClick={() => onEdit(product)}
       className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
     >
       <Pencil size={18} />
     </button>
 
+    {/* Delete */}
     <button
       onClick={() => onDelete(product.id)}
       className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"

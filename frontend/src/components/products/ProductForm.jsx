@@ -1,14 +1,17 @@
 import { useState } from "react";
 import Button from "../ui/Button";
-import { addProduct } from "../../services/products";
+import { addProduct, updateProduct } from "../../services/products";
 
-function ProductForm({ onSuccess }) {
-  const [productName, setProductName] = useState("");
-  const [sku, setSku] = useState("");
-  const [barcode, setBarcode] = useState("");
-  const [category, setCategory] = useState("");
-  const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("");
+function ProductForm({
+  product = null,
+  onSuccess,
+}) {
+const [productName, setProductName] = useState(product?.product_name || "");
+const [sku, setSku] = useState(product?.sku || "");
+const [barcode, setBarcode] = useState(product?.barcode || "");
+const [category, setCategory] = useState(product?.category || "");
+const [price, setPrice] = useState(product?.price || "");
+const [stock, setStock] = useState(product?.stock || "");
 
  async function handleSubmit(e) {
   e.preventDefault();
@@ -18,31 +21,40 @@ function ProductForm({ onSuccess }) {
     return;
   }
 
-  try {
-    await addProduct({
-      product_name: productName,
-      sku,
-      barcode,
-      category,
-      price: Number(price),
-      stock: Number(stock),
-    });
+try {
+  const productData = {
+    product_name: productName,
+    sku,
+    barcode,
+    category,
+    price: Number(price),
+    stock: Number(stock),
+  };
+
+  if (product) {
+    await updateProduct(product.id, productData);
+
+    alert("Product Updated Successfully ✅");
+  } else {
+    await addProduct(productData);
 
     alert("Product Added Successfully ✅");
-    if (onSuccess) {
-  onSuccess();
-}
-
-    setProductName("");
-    setSku("");
-    setBarcode("");
-    setCategory("");
-    setPrice("");
-    setStock("");
-
-  } catch (error) {
-    alert(error.message);
   }
+
+  setProductName("");
+  setSku("");
+  setBarcode("");
+  setCategory("");
+  setPrice("");
+  setStock("");
+
+  if (onSuccess) {
+    onSuccess();
+  }
+
+} catch (error) {
+  alert(error.message);
+}
 }
 
   return (
@@ -98,8 +110,8 @@ function ProductForm({ onSuccess }) {
 
       <div className="flex justify-end">
         <Button type="submit">
-          Save Product
-        </Button>
+  {product ? "Update Product" : "Save Product"}
+</Button>
       </div>
 
     </form>

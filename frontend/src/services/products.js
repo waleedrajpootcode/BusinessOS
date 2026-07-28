@@ -27,6 +27,24 @@ export async function addProduct(product) {
 
   return data;
 }
+export async function updateProduct(id, product) {
+  const { data, error } = await supabase
+    .from("products")
+    .update(product)
+    .eq("id", id)
+    .select();
+
+  console.log("Updated Data:", data);
+  console.log("Update Error:", error);
+
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+
+  return data;
+}
+
 export async function getProducts() {
   const { data, error } = await supabase
     .from("products")
