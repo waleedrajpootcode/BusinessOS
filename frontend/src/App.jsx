@@ -5,6 +5,8 @@ import Dashboard from './pages/Dashboard'
 import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from "./components/ProtectedRoute";
 import Products from "./pages/Products";
+import Customers from "./pages/Customers";
+
 function App() {
 
 
@@ -28,6 +30,10 @@ function App() {
               <Products />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/customers"
+          element={<Customers />}
         />
       </Routes>
     </>

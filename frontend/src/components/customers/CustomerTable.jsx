@@ -1,0 +1,79 @@
+import { Pencil, Trash2 } from "lucide-react";
+
+function CustomerTable({
+  customers,
+  onEdit,
+  onDelete,
+}) {
+  return (
+    <div className="mt-8 bg-white rounded-xl shadow border overflow-hidden">
+
+      <table className="w-full">
+
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="p-4 text-left">Name</th>
+            <th className="p-4 text-left">Phone</th>
+            <th className="p-4 text-left">Email</th>
+            <th className="p-4 text-left">Address</th>
+            <th className="p-4 text-left">
+              Actions
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          {customers.length === 0 ? (
+            <tr>
+              <td
+                colSpan="5"
+                className="text-center p-10 text-gray-500"
+              >
+                No Customers Found
+              </td>
+            </tr>
+          ) : (
+            customers.map((customer) => (
+              <tr key={customer.id} className="border-t">
+
+                <td className="p-4">{customer.full_name}</td>
+                <td className="p-4">{customer.phone}</td>
+                <td className="p-4">{customer.email}</td>
+                <td className="p-4">{customer.address}</td>
+                <td className="p-4">
+
+                  <div className="flex gap-2">
+
+                    <button
+                      onClick={() => onEdit(customer)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
+                    >
+                      <Pencil size={18} />
+                    </button>
+
+
+                    <button
+                      onClick={() => onDelete(customer.id)}
+                      className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+            ))
+          )}
+
+        </tbody>
+
+      </table>
+
+    </div>
+  );
+}
+
+export default CustomerTable;
