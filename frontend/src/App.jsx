@@ -6,6 +6,7 @@ import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from "./components/ProtectedRoute";
 import Products from "./pages/Products";
 import Customers from "./pages/Customers";
+import Sales from "./pages/Sales";
 
 function App() {
 
@@ -22,6 +23,7 @@ function App() {
               <Dashboard />
             </ProtectedRoute>
           }
+
         />
         <Route
           path="/products"
@@ -35,6 +37,11 @@ function App() {
           path="/customers"
           element={<Customers />}
         />
+        <Route
+          path="/sales"
+          element={<Sales />}
+        />
+
       </Routes>
     </>
   )

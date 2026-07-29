@@ -58,10 +58,14 @@ function Sidebar() {
           </li>
 
           <li>
-            <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-              <ShoppingCart size={20} />
-              Sales
-            </button>
+            <Link to="/sales">
+              <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
+
+                <ShoppingCart size={20} />
+                Sales
+
+              </button>
+            </Link>
           </li>
 
           <li>
