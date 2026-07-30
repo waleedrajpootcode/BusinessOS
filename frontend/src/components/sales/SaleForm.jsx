@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import Button from "../ui/Button";
 import {
-    getProductsForSale,
-    getCustomersForSale,
+  getProductsForSale,
+  getCustomersForSale,
+  generateInvoiceNumber,
+  saveSale,
+  saveSaleItems,
+  updateProductStock,
 } from "../../services/sales";
 
-function SaleForm() {
+function SaleForm({ onSuccess }) {
     const [customers, setCustomers] = useState([]);
     const [products, setProducts] = useState([]);
     const [quantity, setQuantity] = useState(1);
@@ -31,8 +35,77 @@ const total =
 
         loadData();
     }, []);
+async function handleSubmit(e) {
+  e.preventDefault();
+
+  if (!selectedCustomer) {
+    alert("Please select a customer.");
+    return;
+  }
+
+  if (!selectedProduct) {
+    alert("Please select a product.");
+    return;
+  }
+
+  if (quantity <= 0) {
+    alert("Quantity must be greater than zero.");
+    return;
+  }
+
+  try {
+    const invoiceNo = await generateInvoiceNumber();
+
+const sale = await saveSale({
+  invoice_no: invoiceNo,
+  customer_id: Number(selectedCustomer),
+  subtotal: subtotal,
+  discount: discount,
+  tax: tax,
+  total: total,
+  payment_method: "Cash",
+  status: "Pending",
+});
+
+console.log("Saved Sale:", sale);
+await saveSaleItems([
+  {
+    sale_id: sale.id,
+    product_id: Number(selectedProduct),
+    quantity: quantity,
+    price: price,
+    total: subtotal,
+  },
+]);
+
+console.log("Sale Item Saved ✅");
+await updateProductStock(
+  Number(selectedProduct),
+  quantity
+);
+
+console.log("Stock Updated ✅");
+alert("Sale Saved Successfully ✅");
+
+setSelectedCustomer("");
+setSelectedProduct("");
+setQuantity(1);
+setPrice(0);
+setDiscount(0);
+setTax(0);
+
+if (onSuccess) {
+  onSuccess();
+}
+
+
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
     return (
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
 
             <select
                 value={selectedCustomer}

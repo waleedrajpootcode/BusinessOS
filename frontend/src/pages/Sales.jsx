@@ -1,11 +1,29 @@
+import { useState, useEffect } from "react";
 import Button from "../components/ui/Button";
-import { useState } from "react";
 import Modal from "../components/ui/Modal";
 import SaleForm from "../components/sales/SaleForm";
+import SalesTable from "../components/sales/SalesTable";
 
+import {
+    getSales,
+} from "../services/sales";
 
 function Sales() {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [sales, setSales] = useState([]);
+    async function loadSales() {
+
+        const data = await getSales();
+
+        setSales(data);
+
+    }
+    useEffect(() => {
+
+        loadSales();
+
+    }, []);
+
     return (
         <div className="p-6">
 
@@ -40,47 +58,23 @@ function Sales() {
             </div>
 
             {/* Table */}
-            <div className="mt-8 bg-white rounded-xl shadow border overflow-hidden">
-
-                <table className="w-full">
-
-                    <thead className="bg-gray-100">
-
-                        <tr>
-                            <th className="p-4 text-left">Invoice</th>
-                            <th className="p-4 text-left">Customer</th>
-                            <th className="p-4 text-left">Date</th>
-                            <th className="p-4 text-left">Total</th>
-                            <th className="p-4 text-left">Status</th>
-                            <th className="p-4 text-left">Actions</th>
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        <tr>
-
-                            <td
-                                colSpan="6"
-                                className="text-center p-10 text-gray-500"
-                            >
-                                No Sales Found
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
+            <SalesTable
+                sales={sales}
+            />
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 title="Create New Sale"
             >
-                <SaleForm />
+                <SaleForm
+                    onSuccess={() => {
+
+                        setIsModalOpen(false);
+
+                        loadSales();
+
+                    }}
+                />
 
                 <div className="flex justify-end mt-4">
                     <Button
