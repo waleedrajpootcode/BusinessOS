@@ -3,10 +3,12 @@ import {
   Package,
   Users,
   ShoppingCart,
+  Truck,
   Boxes,
   BarChart3,
   Settings,
   LogOut,
+  Factory,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -64,6 +66,26 @@ function Sidebar() {
                 <ShoppingCart size={20} />
                 Sales
 
+              </button>
+            </Link>
+          </li>
+
+          <li>
+            <Link to="/suppliers">
+              <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
+
+                <Factory size={20} />
+                Suppliers
+
+              </button>
+            </Link>
+          </li>
+
+          <li>
+            <Link to="/purchases">
+              <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
+                <Truck size={20} />
+                Purchases
               </button>
             </Link>
           </li>

@@ -192,3 +192,34 @@ export async function getRevenue() {
   return revenue;
 
 }
+export async function getRecentSales() {
+
+  const { data, error } = await supabase
+
+    .from("sales")
+
+    .select(`
+      id,
+      invoice_no,
+      total,
+      created_at,
+      customers(full_name)
+    `)
+
+    .order("created_at", {
+      ascending: false,
+    })
+
+    .limit(5);
+
+  if (error) {
+
+    console.error(error);
+
+    return [];
+
+  }
+
+  return data;
+
+}

@@ -69,3 +69,30 @@ export async function deleteProduct(id) {
     throw error;
   }
 }
+export async function getLowStockProducts() {
+
+  const { data, error } = await supabase
+
+    .from("products")
+
+    .select(`
+      id,
+      product_name,
+      stock
+    `)
+
+    .lte("stock", 5)
+
+    .order("stock");
+
+  if (error) {
+
+    console.error(error);
+
+    return [];
+
+  }
+
+  return data;
+
+}
