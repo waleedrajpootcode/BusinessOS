@@ -10,6 +10,7 @@ import Sales from "./pages/Sales";
 import Suppliers from "./pages/Suppliers";
 import Purchases from "./pages/Purchases";
 import Inventory from "./pages/Inventory";
+import Expenses from "./pages/Expenses";
 function App() {
 
 
@@ -54,6 +55,10 @@ function App() {
         <Route
           path="/inventory"
           element={<Inventory />}
+        />
+        <Route
+          path="/expenses"
+          element={<Expenses />}
         />
 
 
