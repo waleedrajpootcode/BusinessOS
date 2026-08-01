@@ -94,5 +94,26 @@ export async function getLowStockProducts() {
   }
 
   return data;
+}
+export async function getInventory() {
+
+  const { data, error } = await supabase
+
+    .from("products")
+
+    .select("*")
+
+    .order("product_name");
+
+  if (error) {
+
+    console.error(error);
+
+    return [];
+
+  }
+
+  return data;
 
 }
+

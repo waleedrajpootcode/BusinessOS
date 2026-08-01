@@ -9,6 +9,7 @@ import Customers from "./pages/Customers";
 import Sales from "./pages/Sales";
 import Suppliers from "./pages/Suppliers";
 import Purchases from "./pages/Purchases";
+import Inventory from "./pages/Inventory";
 function App() {
 
 
@@ -50,6 +51,11 @@ function App() {
           path="/purchases"
           element={<Purchases />}
         />
+        <Route
+          path="/inventory"
+          element={<Inventory />}
+        />
+
 
       </Routes>
     </>

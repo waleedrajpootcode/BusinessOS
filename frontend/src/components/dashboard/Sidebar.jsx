@@ -91,10 +91,12 @@ function Sidebar() {
           </li>
 
           <li>
-            <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-              <Boxes size={20} />
-              Inventory
-            </button>
+            <Link to="/inventory">
+              <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
+                <Boxes size={20} />
+                Inventory
+              </button>
+            </Link>
           </li>
 
           <li>
