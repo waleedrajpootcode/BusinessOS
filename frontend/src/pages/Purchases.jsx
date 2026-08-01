@@ -1,12 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "../components/ui/Button";
 import Modal from "../components/ui/Modal";
 import PurchaseForm from "../components/purchases/PurchaseForm";
+import PurchaseTable from "../components/purchases/PurchaseTable";
+import { getPurchases } from "../services/purchases";
 
 function Purchases() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+    const [purchases, setPurchases] = useState([]);
+  useEffect(() => {
+  loadPurchases();
+}, []);
 
-  return (
+async function loadPurchases() {
+  const data = await getPurchases();
+  setPurchases(data);
+}
+  
+    return (
     <div className="p-6">
 
       {/* Header */}
@@ -44,37 +55,7 @@ function Purchases() {
       {/* Table */}
       <div className="mt-8 bg-white rounded-xl shadow border overflow-hidden">
 
-        <table className="w-full">
-
-          <thead className="bg-gray-100">
-
-            <tr>
-              <th className="p-4 text-left">Invoice</th>
-              <th className="p-4 text-left">Supplier</th>
-              <th className="p-4 text-left">Date</th>
-              <th className="p-4 text-left">Total</th>
-              <th className="p-4 text-left">Status</th>
-              <th className="p-4 text-left">Actions</th>
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            <tr>
-
-              <td
-                colSpan="6"
-                className="text-center p-10 text-gray-500"
-              >
-                No Purchases Found
-              </td>
-
-            </tr>
-
-          </tbody>
-
-        </table>
+       <PurchaseTable purchases={purchases} />
 
       </div>
 
@@ -83,7 +64,12 @@ function Purchases() {
         onClose={() => setIsModalOpen(false)}
         title="Create New Purchase"
       >
-        <PurchaseForm />
+        <PurchaseForm
+  onSuccess={() => {
+    loadPurchases();
+    setIsModalOpen(false);
+  }}
+/>
 
         <div className="flex justify-end mt-4">
 

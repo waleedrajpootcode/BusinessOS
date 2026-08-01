@@ -40,149 +40,227 @@ function PurchaseForm({ onSuccess }) {
     loadData();
   }, []);
 
+ async function handleSubmit(e) {
+  e.preventDefault();
+
+  if (!selectedSupplier) {
+    alert("Please select a supplier.");
+    return;
+  }
+
+  if (!selectedProduct) {
+    alert("Please select a product.");
+    return;
+  }
+
+  if (quantity <= 0) {
+    alert("Quantity must be greater than zero.");
+    return;
+  }
+
+  try {
+    const purchaseNo = await generatePurchaseNumber();
+
+    const purchase = await savePurchase({
+      invoice_no: purchaseNo,
+      supplier_id: Number(selectedSupplier),
+      subtotal: subtotal,
+      discount: discount,
+      tax: tax,
+      total: total,
+      payment_method: "Cash",
+      status: "Pending",
+    });
+
+    console.log("Saved Purchase:", purchase);
+
+    await savePurchaseItems([
+      {
+        purchase_id: purchase.id,
+        product_id: Number(selectedProduct),
+        quantity: quantity,
+        price: price,
+        total: subtotal,
+      },
+    ]);
+
+    console.log("Purchase Items Saved");
+
+    await increaseStock(
+      Number(selectedProduct),
+      quantity
+    );
+
+    console.log("Stock Updated");
+
+    // Reset Form
+    setSelectedSupplier("");
+    setSelectedProduct("");
+    setQuantity(1);
+    setPrice(0);
+    setDiscount(0);
+    setTax(0);
+
+    alert("Purchase saved successfully!");
+
+    // Refresh Parent Component (Future Use)
+    if (onSuccess) {
+      onSuccess();
+    }
+
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+  }
+}
+
   return (
-  <form className="space-y-4">
-
-    {/* Supplier */}
-
-    <select
-      value={selectedSupplier}
-      onChange={(e) =>
-        setSelectedSupplier(e.target.value)
-      }
-      className="w-full border rounded-lg p-3"
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4"
     >
-      <option value="">
-        Select Supplier
-      </option>
 
-      {suppliers.map((supplier) => (
-        <option
-          key={supplier.id}
-          value={supplier.id}
-        >
-          {supplier.supplier_name}
-        </option>
-      ))}
+      {/* Supplier */}
 
-    </select>
-
-    {/* Product */}
-
-    <select
-      value={selectedProduct}
-      onChange={(e) => {
-
-        const id = Number(e.target.value);
-
-        setSelectedProduct(id);
-
-        const product =
-          products.find(
-            (p) => p.id === id
-          );
-
-        if (product) {
-
-          setPrice(
-            Number(product.price)
-          );
-
-        } else {
-
-          setPrice(0);
-
+      <select
+        value={selectedSupplier}
+        onChange={(e) =>
+          setSelectedSupplier(e.target.value)
         }
-
-      }}
-      className="w-full border rounded-lg p-3"
-    >
-      <option value="">
-        Select Product
-      </option>
-
-      {products.map((product) => (
-
-        <option
-          key={product.id}
-          value={product.id}
-        >
-          {product.product_name}
+        className="w-full border rounded-lg p-3"
+      >
+        <option value="">
+          Select Supplier
         </option>
 
-      ))}
+        {suppliers.map((supplier) => (
+          <option
+            key={supplier.id}
+            value={supplier.id}
+          >
+            {supplier.supplier_name}
+          </option>
+        ))}
 
-    </select>
+      </select>
 
-    {/* Quantity */}
+      {/* Product */}
 
-    <input
-      type="number"
-      min="1"
-      placeholder="Quantity"
-      value={quantity}
-      onChange={(e) =>
-        setQuantity(Number(e.target.value))
-      }
-      className="w-full border rounded-lg p-3"
-    />
+      <select
+        value={selectedProduct}
+        onChange={(e) => {
 
-    {/* Discount */}
+          const id = Number(e.target.value);
 
-    <input
-      type="number"
-      placeholder="Discount"
-      value={discount}
-      onChange={(e) =>
-        setDiscount(Number(e.target.value))
-      }
-      className="w-full border rounded-lg p-3"
-    />
+          setSelectedProduct(id);
+          setQuantity(1);
+          
+          const product =
+            products.find(
+              (p) => p.id === id
+            );
 
-    {/* Tax */}
+          if (product) {
 
-    <input
-      type="number"
-      placeholder="Tax"
-      value={tax}
-      onChange={(e) =>
-        setTax(Number(e.target.value))
-      }
-      className="w-full border rounded-lg p-3"
-    />
+            setPrice(
+              Number(product.price)
+            );
 
-    {/* Total */}
+          } else {
 
-    <div className="bg-gray-100 rounded-lg p-4">
+            setPrice(0);
 
-      <h2 className="font-semibold">
-        Total
-      </h2>
+          }
 
-      <div className="space-y-2">
+        }}
+        className="w-full border rounded-lg p-3"
+      >
+        <option value="">
+          Select Product
+        </option>
 
-        <p>
-          Price: PKR {price}
-        </p>
+        {products.map((product) => (
 
-        <p className="text-2xl font-bold">
-          Total: PKR {total}
-        </p>
+          <option
+            key={product.id}
+            value={product.id}
+          >
+            {product.product_name}
+          </option>
+
+        ))}
+
+      </select>
+
+      {/* Quantity */}
+
+      <input
+        type="number"
+        min="1"
+        placeholder="Quantity"
+        value={quantity}
+        onChange={(e) =>
+          setQuantity(Number(e.target.value))
+        }
+        className="w-full border rounded-lg p-3"
+      />
+
+      {/* Discount */}
+
+      <input
+        type="number"
+        placeholder="Discount"
+        value={discount}
+        onChange={(e) =>
+          setDiscount(Number(e.target.value))
+        }
+        className="w-full border rounded-lg p-3"
+      />
+
+      {/* Tax */}
+
+      <input
+        type="number"
+        placeholder="Tax"
+        value={tax}
+        onChange={(e) =>
+          setTax(Number(e.target.value))
+        }
+        className="w-full border rounded-lg p-3"
+      />
+
+      {/* Total */}
+
+      <div className="bg-gray-100 rounded-lg p-4">
+
+        <h2 className="font-semibold">
+          Total
+        </h2>
+
+        <div className="space-y-2">
+
+          <p>
+            Price: PKR {price}
+          </p>
+
+          <p className="text-2xl font-bold">
+            Total: PKR {total}
+          </p>
+
+        </div>
 
       </div>
 
-    </div>
+      <div className="flex justify-end">
 
-    <div className="flex justify-end">
+        <Button type="submit">
+          Save Purchase
+        </Button>
 
-      <Button type="submit">
-        Save Purchase
-      </Button>
+      </div>
 
-    </div>
-
-  </form>
-);
+    </form>
+  );
 }
 
 export default PurchaseForm;

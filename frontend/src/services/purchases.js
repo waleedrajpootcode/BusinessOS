@@ -136,3 +136,31 @@ export async function increaseStock(
   }
 
 }
+export async function getPurchases() {
+
+  const { data, error } = await supabase
+
+    .from("purchases")
+
+    .select(`
+      *,
+      suppliers (
+        supplier_name
+      )
+    `)
+
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+
+    console.error(error);
+
+    return [];
+
+  }
+
+  return data;
+
+}
