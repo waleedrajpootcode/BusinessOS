@@ -110,10 +110,12 @@ function Sidebar() {
           </li>
 
           <li>
-            <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-              <BarChart3 size={20} />
-              Reports
-            </button>
+            <Link to="/reports">
+              <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
+                <BarChart3 size={20} />
+                Reports
+              </button>
+            </Link>
           </li>
 
           <li>

@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import Button from "../ui/Button";
 import {
-  getProductsForSale,
-  getCustomersForSale,
-  generateInvoiceNumber,
-  saveSale,
-  saveSaleItems,
-  updateProductStock,
+    getProductsForSale,
+    getCustomersForSale,
+    generateInvoiceNumber,
+    saveSale,
+    saveSaleItems,
+    updateProductStock,
 } from "../../services/sales";
 
 function SaleForm({ onSuccess }) {
@@ -14,15 +14,16 @@ function SaleForm({ onSuccess }) {
     const [products, setProducts] = useState([]);
     const [quantity, setQuantity] = useState(1);
     const [price, setPrice] = useState(0);
+    const [costPrice, setCostPrice] = useState(0);
     const [selectedCustomer, setSelectedCustomer] = useState("");
     const [discount, setDiscount] = useState(0);
     const [tax, setTax] = useState(0);
     const subtotal = price * quantity;
 
-const total =
-  subtotal
-  - discount
-  + tax;
+    const total =
+        subtotal
+        - discount
+        + tax;
     const [selectedProduct, setSelectedProduct] = useState("");
     useEffect(() => {
         async function loadData() {
@@ -35,74 +36,75 @@ const total =
 
         loadData();
     }, []);
-async function handleSubmit(e) {
-  e.preventDefault();
+    async function handleSubmit(e) {
+        e.preventDefault();
 
-  if (!selectedCustomer) {
-    alert("Please select a customer.");
-    return;
-  }
+        if (!selectedCustomer) {
+            alert("Please select a customer.");
+            return;
+        }
 
-  if (!selectedProduct) {
-    alert("Please select a product.");
-    return;
-  }
+        if (!selectedProduct) {
+            alert("Please select a product.");
+            return;
+        }
 
-  if (quantity <= 0) {
-    alert("Quantity must be greater than zero.");
-    return;
-  }
+        if (quantity <= 0) {
+            alert("Quantity must be greater than zero.");
+            return;
+        }
 
-  try {
-    const invoiceNo = await generateInvoiceNumber();
+        try {
+            const invoiceNo = await generateInvoiceNumber();
 
-const sale = await saveSale({
-  invoice_no: invoiceNo,
-  customer_id: Number(selectedCustomer),
-  subtotal: subtotal,
-  discount: discount,
-  tax: tax,
-  total: total,
-  payment_method: "Cash",
-  status: "Pending",
-});
+            const sale = await saveSale({
+                invoice_no: invoiceNo,
+                customer_id: Number(selectedCustomer),
+                subtotal: subtotal,
+                discount: discount,
+                tax: tax,
+                total: total,
+                payment_method: "Cash",
+                status: "Pending",
+            });
 
-console.log("Saved Sale:", sale);
-await saveSaleItems([
-  {
-    sale_id: sale.id,
-    product_id: Number(selectedProduct),
-    quantity: quantity,
-    price: price,
-    total: subtotal,
-  },
-]);
+            console.log("Saved Sale:", sale);
+            await saveSaleItems([
+                {
+                    sale_id: sale.id,
+                    product_id: Number(selectedProduct),
+                    quantity: quantity,
+                    price: price,
+                    total: subtotal,
+                },
+            ]);
 
-console.log("Sale Item Saved ✅");
-await updateProductStock(
-  Number(selectedProduct),
-  quantity
-);
+            console.log("Sale Item Saved ✅");
+            await updateProductStock(
+                Number(selectedProduct),
+                quantity
+            );
 
-console.log("Stock Updated ✅");
-alert("Sale Saved Successfully ✅");
+            console.log("Stock Updated ✅");
+            alert("Sale Saved Successfully ✅");
 
-setSelectedCustomer("");
-setSelectedProduct("");
-setQuantity(1);
-setPrice(0);
-setDiscount(0);
-setTax(0);
+            setSelectedCustomer("");
+            setSelectedProduct("");
+            setQuantity(1);
+            setPrice(0);
+            setCostPrice(0);
+            setDiscount(0);
+            setTax(0);
 
-if (onSuccess) {
-  onSuccess();
-}
+            if (onSuccess) {
+                onSuccess();
+            }
 
 
-  } catch (error) {
-    alert(error.message);
-  }
-}
+        } catch (error) {
+            alert(error.message);
+        }
+    }
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -144,9 +146,17 @@ if (onSuccess) {
                     console.log("Selected Product:", product);
 
                     if (product) {
+
                         setPrice(Number(product.price));
+
+                        setCostPrice(Number(product.cost_price));
+
                     } else {
+
                         setPrice(0);
+
+                        setCostPrice(0);
+
                     }
                 }}
                 className="w-full border rounded-lg p-3"
@@ -207,6 +217,10 @@ if (onSuccess) {
 
                     <p className="text-lg">
                         Price: PKR {price}
+                    </p>
+
+                    <p className="text-lg">
+                        Cost Price: PKR {costPrice}
                     </p>
 
                     <p className="text-2xl font-bold">
