@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import {
   getTotalRevenue,
+  getTotalSalesProfit,
   getTotalPurchases,
   getTotalExpenses,
   getNetProfit,
@@ -12,6 +13,7 @@ import StatsCard from "../components/dashboard/cards/StatsCard";
 function Reports() {
 
   const [revenue, setRevenue] = useState(0);
+  const [salesProfit, setSalesProfit] = useState(0);
   const [purchases, setPurchases] = useState(0);
   const [expenses, setExpenses] = useState(0);
   const [profit, setProfit] = useState(0);
@@ -23,6 +25,10 @@ function Reports() {
   async function loadReports() {
 
     setRevenue(await getTotalRevenue());
+
+    setSalesProfit(
+      await getTotalSalesProfit()
+    );
 
     setPurchases(await getTotalPurchases());
 
@@ -48,11 +54,16 @@ function Reports() {
 
       </div>
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-5 gap-6">
 
         <StatsCard
           title="Revenue"
           value={`PKR ${revenue.toLocaleString()}`}
+        />
+
+        <StatsCard
+          title="Sales Profit"
+          value={`PKR ${salesProfit.toLocaleString()}`}
         />
 
         <StatsCard

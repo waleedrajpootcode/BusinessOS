@@ -13,12 +13,39 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-function Sidebar() {
+function Sidebar({
+  sidebarOpen,
+  setSidebarOpen,
+}) {
   return (
-    <aside className="w-64 min-h-screen bg-slate-900 text-white flex flex-col">
+    <aside
+      className={`
+fixed
+left-0
+top-0
+h-screen
+w-64
+bg-slate-900
+text-white
+flex
+flex-col
+z-50
+transform
+transition-transform
+duration-300
+${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+md:translate-x-0
+`}
+    >
 
       {/* Logo */}
       <div className="p-6 border-b border-slate-700">
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="md:hidden mb-4 text-gray-300"
+        >
+          ✕
+        </button>
         <h1 className="text-2xl font-bold">
           BusinessOS
         </h1>
@@ -29,7 +56,7 @@ function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 overflow-y-auto">
 
         <ul className="space-y-2">
 

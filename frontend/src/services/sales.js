@@ -223,3 +223,66 @@ export async function getRecentSales() {
   return data;
 
 }
+/* ===========================
+   Top Selling Products
+=========================== */
+
+export async function getTopSellingProducts(limit = 5) {
+
+  const { data, error } = await supabase
+
+    .from("sale_items")
+
+    .select(`
+      quantity,
+      total,
+      products (
+        product_name
+      )
+    `);
+
+  if (error) {
+
+    console.error(error);
+
+    return [];
+
+  }
+
+  const grouped = {};
+
+  data.forEach((item) => {
+
+    const name =
+      item.products?.product_name;
+
+    if (!name) return;
+
+    if (!grouped[name]) {
+
+      grouped[name] = {
+        product_name: name,
+        quantity: 0,
+        revenue: 0,
+      };
+
+    }
+
+    grouped[name].quantity +=
+      Number(item.quantity);
+
+    grouped[name].revenue +=
+      Number(item.total);
+
+  });
+
+  return Object.values(grouped)
+
+    .sort(
+      (a, b) =>
+        b.quantity - a.quantity
+    )
+
+    .slice(0, limit);
+
+}

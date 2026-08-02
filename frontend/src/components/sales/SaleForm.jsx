@@ -25,6 +25,9 @@ function SaleForm({ onSuccess }) {
         - discount
         + tax;
     const [selectedProduct, setSelectedProduct] = useState("");
+    const profitPerUnit = price - costPrice;
+
+    const totalProfit = profitPerUnit * quantity;
     useEffect(() => {
         async function loadData() {
             const customerData = await getCustomersForSale();
@@ -64,19 +67,29 @@ function SaleForm({ onSuccess }) {
                 discount: discount,
                 tax: tax,
                 total: total,
+                profit: totalProfit,
                 payment_method: "Cash",
                 status: "Pending",
             });
 
             console.log("Saved Sale:", sale);
             await saveSaleItems([
-                {
-                    sale_id: sale.id,
-                    product_id: Number(selectedProduct),
-                    quantity: quantity,
-                    price: price,
-                    total: subtotal,
-                },
+               {
+  sale_id: sale.id,
+  product_id: Number(selectedProduct),
+
+  quantity: quantity,
+
+  cost_price: costPrice,
+
+  price: price,
+
+  profit_per_unit: profitPerUnit,
+
+  total_profit: totalProfit,
+
+  total: subtotal,
+}
             ]);
 
             console.log("Sale Item Saved ✅");
@@ -147,7 +160,7 @@ function SaleForm({ onSuccess }) {
 
                     if (product) {
 
-                        setPrice(Number(product.price));
+                        setPrice(Number(product.price)); 
 
                         setCostPrice(Number(product.cost_price));
 
@@ -214,7 +227,13 @@ function SaleForm({ onSuccess }) {
                 </h2>
 
                 <div className="space-y-2">
+                    <p className="text-lg">
+                        Profit / Unit: PKR {profitPerUnit}
+                    </p>
 
+                    <p className="text-lg font-semibold text-green-600">
+                        Total Profit: PKR {totalProfit}
+                    </p>
                     <p className="text-lg">
                         Price: PKR {price}
                     </p>

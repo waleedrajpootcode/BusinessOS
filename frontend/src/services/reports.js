@@ -23,6 +23,28 @@ export async function getTotalRevenue() {
 }
 
 /* ===========================
+   Total Sales Profit
+=========================== */
+
+export async function getTotalSalesProfit() {
+
+  const { data, error } = await supabase
+    .from("sales")
+    .select("profit");
+
+  if (error) {
+    console.error(error);
+    return 0;
+  }
+
+  return data.reduce(
+    (sum, sale) => sum + Number(sale.profit),
+    0
+  );
+
+}
+
+/* ===========================
    Total Purchases
 =========================== */
 
@@ -72,15 +94,12 @@ export async function getTotalExpenses() {
 
 export async function getNetProfit() {
 
-  const revenue =
-    await getTotalRevenue();
-
-  const purchases =
-    await getTotalPurchases();
+  const salesProfit =
+    await getTotalSalesProfit();
 
   const expenses =
     await getTotalExpenses();
 
-  return revenue - purchases - expenses;
+  return salesProfit - expenses;
 
 }
