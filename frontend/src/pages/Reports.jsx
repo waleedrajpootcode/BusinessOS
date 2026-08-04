@@ -3,6 +3,7 @@ import RevenueChart from "../components/reports/RevenueChart";
 import TopSellingProducts from "../components/reports/TopSellingProducts";
 import LowStockProducts from "../components/reports/LowStockProducts";
 import TopCustomers from "../components/reports/TopCustomers";
+import SalesTrendChart from "../components/reports/SalesTrendChart";
 
 import {
   getTotalRevenue,
@@ -14,6 +15,7 @@ import {
   getTopSellingProducts,
   getLowStockProducts,
   getTopCustomers,
+  getMonthlySalesCount,
 } from "../services/reports";
 
 import StatsCard from "../components/dashboard/cards/StatsCard";
@@ -29,6 +31,7 @@ function Reports() {
   const [topProducts, setTopProducts] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [topCustomers, setTopCustomers] = useState([]);
+  const [salesTrend, setSalesTrend] = useState([]);
 
 
   useEffect(() => {
@@ -70,6 +73,10 @@ function Reports() {
 
     setTopCustomers(
       await getTopCustomers()
+    );
+
+    setSalesTrend(
+      await getMonthlySalesCount()
     );
 
   }
@@ -149,6 +156,14 @@ function Reports() {
 
         <TopCustomers
           customers={topCustomers}
+        />
+
+      </div>
+
+      <div className="mt-8">
+
+        <SalesTrendChart
+          data={salesTrend}
         />
 
       </div>

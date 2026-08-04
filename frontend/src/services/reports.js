@@ -239,3 +239,42 @@ export async function getTopCustomers() {
     .slice(0, 5);
 
 }
+export async function getMonthlySalesCount() {
+
+  const { data, error } = await supabase
+    .from("sales")
+    .select("created_at");
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  const months = [
+    "Jan","Feb","Mar","Apr","May","Jun",
+    "Jul","Aug","Sep","Oct","Nov","Dec"
+  ];
+
+  const map = {};
+
+  months.forEach((month) => {
+    map[month] = 0;
+  });
+
+  data.forEach((sale) => {
+
+    const month =
+      months[
+        new Date(sale.created_at).getMonth()
+      ];
+
+    map[month]++;
+
+  });
+
+  return months.map((month) => ({
+    month,
+    sales: map[month],
+  }));
+
+}
