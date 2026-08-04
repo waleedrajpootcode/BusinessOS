@@ -199,3 +199,43 @@ export async function getLowStockProducts() {
     .sort((a, b) => a.stock - b.stock);
 
 }
+export async function getTopCustomers() {
+
+  const { data, error } = await supabase
+    .from("sales")
+    .select(`
+      total,
+      customers (
+        full_name
+      )
+    `);
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  const map = {};
+
+  data.forEach((sale) => {
+
+    const name =
+      sale.customers?.full_name || "Unknown";
+
+    if (!map[name]) {
+      map[name] = 0;
+    }
+
+    map[name] += Number(sale.total);
+
+  });
+
+  return Object.entries(map)
+    .map(([name, total]) => ({
+      name,
+      total,
+    }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5);
+
+}

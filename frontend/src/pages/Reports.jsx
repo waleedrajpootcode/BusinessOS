@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import RevenueChart from "../components/reports/RevenueChart";
 import TopSellingProducts from "../components/reports/TopSellingProducts";
 import LowStockProducts from "../components/reports/LowStockProducts";
+import TopCustomers from "../components/reports/TopCustomers";
 
 import {
   getTotalRevenue,
@@ -12,6 +13,7 @@ import {
   getMonthlyRevenue,
   getTopSellingProducts,
   getLowStockProducts,
+  getTopCustomers,
 } from "../services/reports";
 
 import StatsCard from "../components/dashboard/cards/StatsCard";
@@ -26,6 +28,7 @@ function Reports() {
   const [profit, setProfit] = useState(0);
   const [topProducts, setTopProducts] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [topCustomers, setTopCustomers] = useState([]);
 
 
   useEffect(() => {
@@ -65,6 +68,9 @@ function Reports() {
       await getLowStockProducts()
     );
 
+    setTopCustomers(
+      await getTopCustomers()
+    );
 
   }
 
@@ -135,6 +141,14 @@ function Reports() {
 
         <LowStockProducts
           products={lowStockProducts}
+        />
+
+      </div>
+
+      <div className="mt-8">
+
+        <TopCustomers
+          customers={topCustomers}
         />
 
       </div>
