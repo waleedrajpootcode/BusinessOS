@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import RevenueChart from "../components/reports/RevenueChart";
+import TopSellingProducts from "../components/reports/TopSellingProducts";
 
 import {
   getTotalRevenue,
@@ -6,6 +8,8 @@ import {
   getTotalPurchases,
   getTotalExpenses,
   getNetProfit,
+  getMonthlyRevenue,
+  getTopSellingProducts,
 } from "../services/reports";
 
 import StatsCard from "../components/dashboard/cards/StatsCard";
@@ -16,10 +20,14 @@ function Reports() {
   const [salesProfit, setSalesProfit] = useState(0);
   const [purchases, setPurchases] = useState(0);
   const [expenses, setExpenses] = useState(0);
+  const [revenueData, setRevenueData] = useState([]);
   const [profit, setProfit] = useState(0);
+  const [topProducts, setTopProducts] = useState([]);
+
 
   useEffect(() => {
     loadReports();
+
   }, []);
 
   async function loadReports() {
@@ -30,11 +38,25 @@ function Reports() {
       await getTotalSalesProfit()
     );
 
-    setPurchases(await getTotalPurchases());
+    setPurchases(
+      await getTotalPurchases()
+    );
 
-    setExpenses(await getTotalExpenses());
+    setExpenses(
+      await getTotalExpenses()
+    );
 
-    setProfit(await getNetProfit());
+    setProfit(
+      await getNetProfit()
+    );
+
+    setRevenueData(
+      await getMonthlyRevenue()
+    );
+
+    setTopProducts(
+      await getTopSellingProducts()
+    );
 
   }
 
@@ -54,7 +76,7 @@ function Reports() {
 
       </div>
 
-      <div className="grid grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
 
         <StatsCard
           title="Revenue"
@@ -79,6 +101,24 @@ function Reports() {
         <StatsCard
           title="Net Profit"
           value={`PKR ${profit.toLocaleString()}`}
+        />
+
+      </div>
+
+      {/* Revenue Chart */}
+
+      <div className="mt-8">
+
+        <RevenueChart
+          data={revenueData}
+        />
+
+      </div>
+
+      <div className="mt-8">
+
+        <TopSellingProducts
+          products={topProducts}
         />
 
       </div>
