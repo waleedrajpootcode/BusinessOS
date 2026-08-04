@@ -6,10 +6,15 @@ import LowStockCard from "../components/dashboard/cards/LowStockCard";
 import RecentSalesCard from "../components/dashboard/RecentSalesCard";
 import TopSellingCard from "../components/dashboard/cards/TopSellingCard";
 import { getLowStockProducts } from "../services/dashboard";
+import NotificationPanel from "../components/dashboard/NotificationPanel";
+import { getNotifications } from "../services/notifications";
+
 
 function Dashboard() {
 
   const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+
 
   useEffect(() => {
 
@@ -24,25 +29,33 @@ function Dashboard() {
 
     setLowStockProducts(products);
 
+    setNotifications(
+      await getNotifications()
+    );
+
   }
 
   return (
 
-    <Layout>
+  <Layout>
 
-      <DashboardCards />
+    <DashboardCards />
 
-      <LowStockCard
-        products={lowStockProducts}
-      />
+    <LowStockCard
+      products={lowStockProducts}
+    />
 
-      <RecentSalesCard />
+    <RecentSalesCard />
 
-      <TopSellingCard />
+    <TopSellingCard />
 
-    </Layout>
+    <NotificationPanel
+      notifications={notifications}
+    />
 
-  );
+  </Layout>
+
+);
 
 }
 
