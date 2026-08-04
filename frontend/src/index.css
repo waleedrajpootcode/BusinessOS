@@ -43,3 +43,31 @@ img {
   max-width: 100%;
   display: block;
 }
+@media print {
+
+  body {
+    background: white !important;
+  }
+
+  aside,
+  header,
+  nav,
+  button {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .print-area {
+    display: block !important;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+}

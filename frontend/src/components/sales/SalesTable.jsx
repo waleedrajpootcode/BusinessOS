@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 function SalesTable({ sales }) {
   return (
     <div className="mt-8 bg-white rounded-xl shadow border overflow-hidden">
@@ -60,7 +61,17 @@ function SalesTable({ sales }) {
                 </td>
 
                 <td className="p-4">
-                  Coming Soon
+
+                  <Link to={`/invoice/${sale.id}`}>
+
+                    <button className="px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
+
+                      View Invoice
+
+                    </button>
+
+                  </Link>
+
                 </td>
 
               </tr>

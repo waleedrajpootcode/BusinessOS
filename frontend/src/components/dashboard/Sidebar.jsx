@@ -146,10 +146,12 @@ md:translate-x-0
           </li>
 
           <li>
-            <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-              <Settings size={20} />
-              Settings
-            </button>
+            <Link to="/settings">
+              <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
+                <Settings size={20} />
+                Settings
+              </button>
+            </Link>
           </li>
 
         </ul>

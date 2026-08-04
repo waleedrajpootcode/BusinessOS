@@ -12,8 +12,8 @@ import Purchases from "./pages/Purchases";
 import Inventory from "./pages/Inventory";
 import Expenses from "./pages/Expenses";
 import Reports from "./pages/Reports";
-
-
+import Settings from "./pages/Settings";
+import Invoice from "./pages/Invoice";
 function App() {
 
 
@@ -66,6 +66,16 @@ function App() {
         <Route
           path="/reports"
           element={<Reports />}
+        />
+
+        <Route
+          path="/settings"
+          element={<Settings />}
+        />
+
+        <Route
+          path="/invoice/:id"
+          element={<Invoice />}
         />
 
 
