@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import RevenueChart from "../components/reports/RevenueChart";
 import TopSellingProducts from "../components/reports/TopSellingProducts";
+import LowStockProducts from "../components/reports/LowStockProducts";
 
 import {
   getTotalRevenue,
@@ -10,6 +11,7 @@ import {
   getNetProfit,
   getMonthlyRevenue,
   getTopSellingProducts,
+  getLowStockProducts,
 } from "../services/reports";
 
 import StatsCard from "../components/dashboard/cards/StatsCard";
@@ -23,6 +25,7 @@ function Reports() {
   const [revenueData, setRevenueData] = useState([]);
   const [profit, setProfit] = useState(0);
   const [topProducts, setTopProducts] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
 
 
   useEffect(() => {
@@ -57,6 +60,11 @@ function Reports() {
     setTopProducts(
       await getTopSellingProducts()
     );
+
+    setLowStockProducts(
+      await getLowStockProducts()
+    );
+
 
   }
 
@@ -119,6 +127,14 @@ function Reports() {
 
         <TopSellingProducts
           products={topProducts}
+        />
+
+      </div>
+
+      <div className="mt-8">
+
+        <LowStockProducts
+          products={lowStockProducts}
         />
 
       </div>

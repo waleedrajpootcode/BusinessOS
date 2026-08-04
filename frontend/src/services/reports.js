@@ -183,3 +183,19 @@ export async function getTopSellingProducts() {
     .slice(0, 5);
 
 } 
+export async function getLowStockProducts() {
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, product_name, stock");
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data
+    .filter(product => Number(product.stock) <= 5)
+    .sort((a, b) => a.stock - b.stock);
+
+}
