@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { useAuth } from "../context/AuthContext";
 import Layout from "../components/dashboard/Layout";
 import DashboardCards from "../components/dashboard/DashboardCards";
 import LowStockCard from "../components/dashboard/cards/LowStockCard";
@@ -14,7 +14,7 @@ function Dashboard() {
 
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [notifications, setNotifications] = useState([]);
-
+  const { role } = useAuth();
 
   useEffect(() => {
 
@@ -37,25 +37,31 @@ function Dashboard() {
 
   return (
 
-  <Layout>
+    <Layout>
 
-    <DashboardCards />
+      <h2 className="text-xl font-bold mb-4">
 
-    <LowStockCard
-      products={lowStockProducts}
-    />
+        Current Role: {role}
 
-    <RecentSalesCard />
+      </h2>
 
-    <TopSellingCard />
+      <DashboardCards />
 
-    <NotificationPanel
-      notifications={notifications}
-    />
+      <LowStockCard
+        products={lowStockProducts}
+      />
 
-  </Layout>
+      <RecentSalesCard />
 
-);
+      <TopSellingCard />
+
+      <NotificationPanel
+        notifications={notifications}
+      />
+
+    </Layout>
+
+  );
 
 }
 

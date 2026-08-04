@@ -8,12 +8,16 @@ export async function getUserRole() {
 
   if (!user) return null;
 
-  const { data } = await supabase
+  console.log("Auth User ID:", user.id);
+
+  const { data, error } = await supabase
     .from("profiles")
-    .select("role")
+    .select("*")
     .eq("id", user.id)
     .single();
 
-  return data?.role || "staff";
+  console.log("Profile Data:", data);
+  console.log("Profile Error:", error);
 
+  return data?.role || "staff";
 }
