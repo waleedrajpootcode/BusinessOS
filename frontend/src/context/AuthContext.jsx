@@ -6,19 +6,19 @@
 } from "react";
 
 import { supabase } from "../lib/supabase";
-import { getUserRole } from "../services/profile";
-
+import { getUserProfile } from "../services/profile";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
 
-  const [user, setUser] = useState(null);
+const [user, setUser] = useState(null);
 
-  const [role, setRole] = useState(null);
+const [role, setRole] = useState(null);
 
-  const [loading, setLoading] = useState(true);
+const [status, setStatus] = useState(null);
 
+const [loading, setLoading] = useState(true);
   useEffect(() => {
 
     loadUser();
@@ -35,10 +35,10 @@ export function AuthProvider({ children }) {
 
     if (user) {
 
-      const userRole =
-        await getUserRole();
+      const profile = await getUserProfile();
 
-      setRole(userRole);
+setRole(profile?.role || "staff");
+setStatus(profile?.status || "active");
 
     }
 
@@ -49,11 +49,12 @@ export function AuthProvider({ children }) {
   return (
 
     <AuthContext.Provider
-      value={{
-        user,
-        role,
-        loading,
-      }}
+     value={{
+  user,
+  role,
+  status,
+  loading,
+}}
     >
 
       {children}

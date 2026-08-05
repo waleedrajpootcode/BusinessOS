@@ -1,26 +1,45 @@
 import { Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { supabase } from "../lib/supabase";
+import { useAuth } from "../context/AuthContext";
+
 function ProtectedRoute({ children }) {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    useEffect(() => {
-        async function checkUser() {
-            const { data } = await supabase.auth.getSession();
+  const {
+    user,
+    loading,
+    status,
+  } = useAuth();
+  useEffect(() => {
 
-            setUser(data.session?.user ?? null);
-            setLoading(false);
-        }
+    async function checkStatus() {
 
-        checkUser();
-    }, []);
-    if (loading) {
-  return <h2>Loading...</h2>;
-}
-if (!user) {
-  return <Navigate to="/login" replace />;
-}
-return children;
+      if (
+        user &&
+        status === "inactive"
+      ) {
+
+        await supabase.auth.signOut();
+
+        alert(
+          "Your account has been disabled. Contact administrator."
+        );
+
+        window.location.href = "/login";
+
+      }
+
+    }
+
+    checkStatus();
+
+  }, [user, status]);
+  if (loading) {
+    return <h2>Loading...</h2>;
+  }
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
 
 }
 

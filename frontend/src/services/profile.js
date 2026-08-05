@@ -1,6 +1,6 @@
 import { supabase } from "../lib/supabase";
 
-export async function getUserRole() {
+export async function getUserProfile() {
 
   const {
     data: { user },
@@ -8,16 +8,17 @@ export async function getUserRole() {
 
   if (!user) return null;
 
-  console.log("Auth User ID:", user.id);
-
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
 
-  console.log("Profile Data:", data);
-  console.log("Profile Error:", error);
+  if (error) {
+    console.error(error);
+    return null;
+  }
 
-  return data?.role || "staff";
+  return data;
+
 }
