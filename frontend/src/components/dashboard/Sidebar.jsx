@@ -11,6 +11,7 @@ import {
   Settings,
   LogOut,
   Factory,
+  UserCog,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -145,6 +146,17 @@ md:translate-x-0
                 <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
                   <BarChart3 size={20} />
                   Reports
+                </button>
+              </Link>
+            </li>
+          )}
+
+          {role === "admin" && (
+            <li>
+              <Link to="/users">
+                <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
+                  <UserCog size={20} />
+                  Users
                 </button>
               </Link>
             </li>

@@ -15,6 +15,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import AdminRoute from "./components/AdminRoute";
 import Invoice from "./pages/Invoice";
+import Users from "./pages/Users";
 
 function App() {
 
@@ -71,6 +72,17 @@ function App() {
             <ProtectedRoute>
               <AdminRoute>
                 <Reports />
+              </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <Users />
               </AdminRoute>
             </ProtectedRoute>
           }
