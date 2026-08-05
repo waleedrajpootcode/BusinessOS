@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import AdminRoute from "./components/AdminRoute";
 import Invoice from "./pages/Invoice";
 import Users from "./pages/Users";
+import BusinessSetup from "./pages/BusinessSetup";
 
 function App() {
 
@@ -102,6 +103,15 @@ function App() {
         <Route
           path="/invoice/:id"
           element={<Invoice />}
+        />
+
+        <Route
+          path="/business-setup"
+          element={
+            <ProtectedRoute>
+              <BusinessSetup />
+            </ProtectedRoute>
+          }
         />
 
 
