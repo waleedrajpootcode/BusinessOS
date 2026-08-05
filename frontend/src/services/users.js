@@ -30,3 +30,18 @@ export async function updateUserRole(id, role) {
   return true;
 
 }
+export async function updateUserStatus(id, status) {
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ status })
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    return false;
+  }
+
+  return true;
+
+}

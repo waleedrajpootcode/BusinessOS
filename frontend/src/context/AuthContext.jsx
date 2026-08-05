@@ -1,4 +1,4 @@
-import {
+ import {
   createContext,
   useContext,
   useEffect,
@@ -7,6 +7,7 @@ import {
 
 import { supabase } from "../lib/supabase";
 import { getUserRole } from "../services/profile";
+
 
 const AuthContext = createContext();
 
