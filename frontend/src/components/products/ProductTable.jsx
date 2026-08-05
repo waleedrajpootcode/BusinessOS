@@ -1,4 +1,8 @@
-import { Pencil, Trash2 } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Barcode,
+} from "lucide-react";
 
 function ProductTable({
   products,
@@ -6,7 +10,7 @@ function ProductTable({
   onEdit,
 }) {
   return (
-   <div className="mt-8 bg-white rounded-xl shadow border overflow-x-auto">
+    <div className="mt-8 bg-white rounded-xl shadow border overflow-x-auto">
 
       <table className="w-full">
 
@@ -69,6 +73,14 @@ function ProductTable({
                       className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
                     >
                       <Trash2 size={18} />
+                    </button>
+
+                    <button
+                      className="bg-green-600 hover:bg-green-700 text-white p-2 rounded"
+                    >
+
+                      <Barcode size={18} />
+
                     </button>
 
                   </div>
