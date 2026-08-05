@@ -1,6 +1,24 @@
 import UserRoleBadge from "./UserRoleBadge";
+import { updateUserRole } from "../../services/users";
+
 
 function UserRow({ user }) {
+
+
+async function changeRole(e) {
+
+  const success = await updateUserRole(
+    user.id,
+    e.target.value
+  );
+
+  if (success) {
+
+    window.location.reload();
+
+  }
+
+}
 
   return (
 
@@ -20,9 +38,21 @@ function UserRow({ user }) {
 
       <td className="p-3">
 
-        <UserRoleBadge
-          role={user.role}
-        />
+        <select
+  value={user.role}
+  onChange={changeRole}
+  className="border rounded px-2 py-1"
+>
+
+  <option value="admin">
+    Admin
+  </option>
+
+  <option value="staff">
+    Staff
+  </option>
+
+</select>
 
       </td>
 

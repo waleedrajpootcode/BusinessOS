@@ -15,3 +15,18 @@ export async function getUsers() {
   return data;
 
 }
+export async function updateUserRole(id, role) {
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ role })
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    return false;
+  }
+
+  return true;
+
+}
