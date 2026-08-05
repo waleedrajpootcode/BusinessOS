@@ -13,7 +13,9 @@ import Inventory from "./pages/Inventory";
 import Expenses from "./pages/Expenses";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import AdminRoute from "./components/AdminRoute";
 import Invoice from "./pages/Invoice";
+
 function App() {
 
 
@@ -65,12 +67,24 @@ function App() {
         />
         <Route
           path="/reports"
-          element={<Reports />}
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <Reports />
+              </AdminRoute>
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/settings"
-          element={<Settings />}
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <Settings />
+              </AdminRoute>
+            </ProtectedRoute>
+          }
         />
 
         <Route
