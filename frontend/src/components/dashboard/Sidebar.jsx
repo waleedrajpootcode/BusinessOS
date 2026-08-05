@@ -1,3 +1,4 @@
+import { useAuth } from "../../context/AuthContext";
 import {
   LayoutDashboard,
   Package,
@@ -17,6 +18,8 @@ function Sidebar({
   sidebarOpen,
   setSidebarOpen,
 }) {
+  const { role } = useAuth();
+
   return (
     <aside
       className={`
@@ -136,23 +139,27 @@ md:translate-x-0
             </Link>
           </li>
 
-          <li>
-            <Link to="/reports">
-              <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-                <BarChart3 size={20} />
-                Reports
-              </button>
-            </Link>
-          </li>
+          {role === "admin" && (
+            <li>
+              <Link to="/reports">
+                <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
+                  <BarChart3 size={20} />
+                  Reports
+                </button>
+              </Link>
+            </li>
+          )}
 
-          <li>
-            <Link to="/settings">
-              <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
-                <Settings size={20} />
-                Settings
-              </button>
-            </Link>
-          </li>
+          {role === "admin" && (
+            <li>
+              <Link to="/settings">
+                <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
+                  <Settings size={20} />
+                  Settings
+                </button>
+              </Link>
+            </li>
+          )}
 
         </ul>
 
