@@ -48,12 +48,17 @@ function BusinessSetup() {
 
       if (businessId) {
 
-        await updateBusinessSettings(
-          businessId,
-          {
-            business_name: businessName,
-          }
-        );
+       await updateBusinessSettings(
+  businessId,
+  {
+    business_name: businessName,
+
+    ...(logoUrl && {
+      logo_url: logoUrl,
+    }),
+
+  }
+);
 
         alert("Business Updated Successfully ✅");
 

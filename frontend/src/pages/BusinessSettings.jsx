@@ -11,10 +11,9 @@ import {
 function BusinessSettings() {
 
     const [businessId, setBusinessId] = useState(null);
-
     const [businessName, setBusinessName] = useState("");
     const [logoFile, setLogoFile] = useState(null);
-
+    const [logoUrl, setLogoUrl] = useState("");
 
     useEffect(() => {
 
@@ -28,6 +27,8 @@ function BusinessSettings() {
 
                 setBusinessName(settings.business_name || "");
 
+                setLogoUrl(settings.logo || "");
+
             }
 
         }
@@ -40,12 +41,23 @@ function BusinessSettings() {
 
         try {
 
+            let uploadedLogo = logoUrl;
+
+            if (logoFile) {
+
+                uploadedLogo = await uploadBusinessLogo(logoFile);
+
+            }
+
             await updateBusinessSettings(
                 businessId,
                 {
                     business_name: businessName,
+                    logo_url: uploadedLogo,
                 }
             );
+
+            setLogoUrl(uploadedLogo);
 
             alert("Business Updated Successfully ✅");
 
@@ -108,6 +120,16 @@ function BusinessSettings() {
                         }}
                         className="w-full md:w-[500px] border rounded-lg p-3"
                     />
+
+                    {logoUrl && (
+                        <div className="mt-4">
+                            <img
+                                src={logoUrl}
+                                alt="Business Logo"
+                                className="w-32 h-32 object-contain border rounded-lg p-2"
+                            />
+                        </div>
+                    )}
 
                     <p className="text-sm text-gray-500 mt-2">
                         JPG, PNG, WEBP (Max 2MB)
