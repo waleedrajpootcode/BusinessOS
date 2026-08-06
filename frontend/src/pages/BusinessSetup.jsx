@@ -46,11 +46,26 @@ function BusinessSetup() {
 
     try {
 
-      await saveBusinessSettings({
-        business_name: businessName,
-      });
+      if (businessId) {
 
-      alert("Business Saved Successfully ✅");
+        await updateBusinessSettings(
+          businessId,
+          {
+            business_name: businessName,
+          }
+        );
+
+        alert("Business Updated Successfully ✅");
+
+      } else {
+
+        await saveBusinessSettings({
+          business_name: businessName,
+        });
+
+        alert("Business Saved Successfully ✅");
+
+      }
 
       navigate("/dashboard");
 
