@@ -17,7 +17,7 @@ import AdminRoute from "./components/AdminRoute";
 import Invoice from "./pages/Invoice";
 import Users from "./pages/Users";
 import BusinessSetup from "./pages/BusinessSetup";
-
+import BusinessSettings from "./pages/BusinessSettings";
 function App() {
 
 
@@ -110,6 +110,15 @@ function App() {
           element={
             <ProtectedRoute>
               <BusinessSetup />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/business-settings"
+          element={
+            <ProtectedRoute>
+              <BusinessSettings />
             </ProtectedRoute>
           }
         />

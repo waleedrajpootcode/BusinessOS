@@ -176,7 +176,7 @@ md:translate-x-0
           )}
 
           <li>
-            <Link to="/business-setup">
+            <Link to="/business-settings">
               <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
                 <Building2 size={20} />
                 Business Settings
