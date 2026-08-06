@@ -1,6 +1,8 @@
 import { StrictMode } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { createRoot } from "react-dom/client";
+import { BusinessProvider } from "./context/BusinessContext";
+
 
 import "./index.css";
 
@@ -10,18 +12,22 @@ import { AuthProvider } from "./context/AuthContext";
 
 createRoot(document.getElementById("root")).render(
 
-  <StrictMode>
+ <StrictMode>
 
-    <BrowserRouter>
+  <BrowserRouter>
 
-      <AuthProvider>
+    <AuthProvider>
+
+      <BusinessProvider>
 
         <App />
 
-      </AuthProvider>
+      </BusinessProvider>
 
-    </BrowserRouter>
+    </AuthProvider>
 
-  </StrictMode>
+  </BrowserRouter>
+
+</StrictMode>
 
 );

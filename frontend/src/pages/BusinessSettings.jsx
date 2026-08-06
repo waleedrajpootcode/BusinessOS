@@ -12,6 +12,11 @@ function BusinessSettings() {
 
     const [businessId, setBusinessId] = useState(null);
     const [businessName, setBusinessName] = useState("");
+    const [businessType, setBusinessType] = useState("");
+    const [phone, setPhone] = useState("");
+    const [email, setEmail] = useState("");
+    const [address, setAddress] = useState("");
+
     const [logoFile, setLogoFile] = useState(null);
     const [logoUrl, setLogoUrl] = useState("");
 
@@ -26,6 +31,15 @@ function BusinessSettings() {
                 setBusinessId(settings.id);
 
                 setBusinessName(settings.business_name || "");
+
+                setBusinessType(settings.business_type || "");
+
+                setPhone(settings.phone || "");
+
+                setEmail(settings.email || "");
+
+                setAddress(settings.address || "");
+
 
                 setLogoUrl(settings.logo || "");
 
@@ -53,7 +67,11 @@ function BusinessSettings() {
                 businessId,
                 {
                     business_name: businessName,
-                    logo_url: uploadedLogo,
+                    business_type: businessType,
+                    phone: phone,
+                    email: email,
+                    address: address,
+                    logo: uploadedLogo,
                 }
             );
 
@@ -105,6 +123,81 @@ function BusinessSettings() {
                     />
 
                 </div>
+
+                <div className="mt-6">
+
+                    <label className="block mb-2 font-medium">
+                        Business Type
+                    </label>
+
+                    <select
+                        value={businessType}
+                        onChange={(e) => setBusinessType(e.target.value)}
+                        className="w-full md:w-[500px] border rounded-lg p-3"
+                    >
+                        <option value="">Select Business Type</option>
+                        <option value="General Store">General Store</option>
+                        <option value="Super Store">Super Store</option>
+                        <option value="Wholesale">Wholesale</option>
+                        <option value="Mobile Shop">Mobile Shop</option>
+                        <option value="Garments">Garments</option>
+                        <option value="Pharmacy">Pharmacy</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Other">Other</option>
+                    </select>
+
+                </div>
+
+                <div className="mt-6">
+
+                    <label className="block mb-2 font-medium">
+                        Phone
+                    </label>
+
+                    <input
+                        type="text"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+92 300 1234567"
+                        className="w-full md:w-[500px] border rounded-lg p-3"
+                    />
+
+                </div>
+
+                <div className="mt-6">
+
+                    <label className="block mb-2 font-medium">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="info@yourbusiness.com"
+                        className="w-full md:w-[500px] border rounded-lg p-3"
+                    />
+
+                </div>
+
+                <div className="mt-6">
+
+                    <label className="block mb-2 font-medium">
+                        Address
+                    </label>
+
+                    <textarea
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        placeholder="Enter Business Address"
+                        rows={3}
+                        className="w-full md:w-[500px] border rounded-lg p-3"
+                    />
+
+                </div>
+
+
 
                 <div className="mt-6">
 

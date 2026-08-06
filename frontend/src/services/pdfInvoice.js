@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-export function generateInvoicePDF(invoice, items) {
+export function generateInvoicePDF(invoice, items, business) {
 
   const pdf = new jsPDF({
     orientation: "portrait",
@@ -15,15 +15,33 @@ export function generateInvoicePDF(invoice, items) {
 
   pdf.setFontSize(20);
   pdf.setFont("helvetica", "bold");
-  pdf.text("BusinessOS Technologies", 14, 18);
-
   pdf.setFontSize(10);
   pdf.setFont("helvetica", "normal");
 
-  pdf.text("Lahore, Punjab, Pakistan", 14, 24);
-  pdf.text("support@businessos.pk", 14, 29);
-  pdf.text("+92 300 1234567", 14, 34);
 
+  pdf.text(
+    business?.business_name || "BusinessOS",
+    14,
+    18
+  );
+
+  pdf.text(
+    business?.address || "",
+    14,
+    24
+  );
+
+  pdf.text(
+    business?.email || "",
+    14,
+    29
+  );
+
+  pdf.text(
+    business?.phone || "",
+    14,
+    34
+  );
   // ===========================
   // Invoice Info
   // ===========================
@@ -93,22 +111,22 @@ export function generateInvoicePDF(invoice, items) {
 
   ]);
 
- autoTable(pdf, {
+  autoTable(pdf, {
 
-  startY: 65,
+    startY: 65,
 
-  head: [[
-    "Product",
-    "Qty",
-    "Price",
-    "Cost",
-    "Profit",
-    "Total",
-  ]],
+    head: [[
+      "Product",
+      "Qty",
+      "Price",
+      "Cost",
+      "Profit",
+      "Total",
+    ]],
 
-  body: rows,
+    body: rows,
 
-  theme: "grid",
+    theme: "grid",
 
 
     styles: {
@@ -130,7 +148,7 @@ export function generateInvoicePDF(invoice, items) {
   // ===========================
 
   const finalY =
-  (pdf.lastAutoTable?.finalY || 65) + 10;
+    (pdf.lastAutoTable?.finalY || 65) + 10;
 
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(12);

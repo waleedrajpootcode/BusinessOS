@@ -18,6 +18,7 @@ import Invoice from "./pages/Invoice";
 import Users from "./pages/Users";
 import BusinessSetup from "./pages/BusinessSetup";
 import BusinessSettings from "./pages/BusinessSettings";
+import Employees from "./pages/Employees";
 function App() {
 
 
@@ -84,6 +85,17 @@ function App() {
             <ProtectedRoute>
               <AdminRoute>
                 <Users />
+              </AdminRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/employees"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <Employees />
               </AdminRoute>
             </ProtectedRoute>
           }

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { generateInvoicePDF } from "../services/pdfInvoice";
+import { useBusiness } from "../context/BusinessContext";
 
 import Layout from "../components/dashboard/Layout";
 import Button from "../components/ui/Button";
@@ -16,6 +17,7 @@ function Invoice() {
 
     const [invoice, setInvoice] = useState(null);
     const [items, setItems] = useState([]);
+    const { business } = useBusiness();
 
     const invoiceRef = useRef(null);
 
@@ -46,7 +48,8 @@ function Invoice() {
 
         generateInvoicePDF(
             invoice,
-            items
+            items,
+            business
         );
 
     }
@@ -73,27 +76,35 @@ function Invoice() {
 
                     <div>
 
+                        {business?.logo && (
+                            <img
+                                src={business.logo}
+                                alt="Logo"
+                                className="w-20 h-20 object-contain mb-3"
+                            />
+                        )}
+
                         <h2 className="text-2xl font-bold">
 
-                            BusinessOS Technologies
+                            {business?.business_name || "BusinessOS"}
 
                         </h2>
 
                         <p className="text-gray-500 mt-2">
 
-                            Lahore, Punjab, Pakistan
+                            {business?.address || "Business Address"}
 
                         </p>
 
                         <p>
 
-                            support@businessos.pk
+                            {business?.email || "Email"}
 
                         </p>
 
                         <p>
 
-                            +92 300 1234567
+                            {business?.phone || "Phone"}
 
                         </p>
 
