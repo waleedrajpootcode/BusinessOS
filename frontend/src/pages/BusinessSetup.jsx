@@ -3,30 +3,34 @@ import Button from "../components/ui/Button";
 import {
   saveBusinessSettings,
   getBusinessSettings,
+  updateBusinessSettings,
 } from "../services/businessSettings";
 import { useNavigate } from "react-router-dom";
 
 function BusinessSetup() {
 
   const [businessName, setBusinessName] = useState("");
+  const [businessId, setBusinessId] = useState(null);
 
   const navigate = useNavigate();
 
   useEffect(() => {
 
-    async function checkSetup() {
+    async function loadBusiness() {
 
       const settings = await getBusinessSettings();
 
       if (settings) {
 
-        navigate("/dashboard");
+        setBusinessId(settings.id);
+
+        setBusinessName(settings.business_name || "");
 
       }
 
     }
 
-    checkSetup();
+    loadBusiness();
 
   }, []);
 
