@@ -12,6 +12,7 @@ import {
   LogOut,
   Factory,
   UserCog,
+  Building2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -171,7 +172,18 @@ md:translate-x-0
                 </button>
               </Link>
             </li>
+
           )}
+
+          <li>
+            <Link to="/business-setup">
+              <button className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-slate-800 transition">
+                <Building2 size={20} />
+                Business Settings
+              </button>
+            </Link>
+          </li>
+
 
         </ul>
 

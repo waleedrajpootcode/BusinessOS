@@ -1,9 +1,62 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "../components/ui/Button";
+import {
+  saveBusinessSettings,
+  getBusinessSettings,
+} from "../services/businessSettings";
+import { useNavigate } from "react-router-dom";
 
 function BusinessSetup() {
 
   const [businessName, setBusinessName] = useState("");
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+
+    async function checkSetup() {
+
+      const settings = await getBusinessSettings();
+
+      if (settings) {
+
+        navigate("/dashboard");
+
+      }
+
+    }
+
+    checkSetup();
+
+  }, []);
+
+  async function handleNext() {
+
+    if (!businessName.trim()) {
+
+      alert("Please enter business name");
+
+      return;
+
+    }
+
+    try {
+
+      await saveBusinessSettings({
+        business_name: businessName,
+      });
+
+      alert("Business Saved Successfully ✅");
+
+      navigate("/dashboard");
+
+    } catch (error) {
+
+      alert(error.message);
+
+    }
+
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -30,7 +83,7 @@ function BusinessSetup() {
           className="w-full border rounded-lg p-3 mb-6"
         />
 
-        <Button>
+        <Button onClick={handleNext}>
           Next
         </Button>
 
