@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/dashboard/Layout";
 import Button from "../components/ui/Button";
+import { uploadBusinessLogo } from "../services/storage";
 
 import {
     getBusinessSettings,
@@ -12,6 +13,8 @@ function BusinessSettings() {
     const [businessId, setBusinessId] = useState(null);
 
     const [businessName, setBusinessName] = useState("");
+    const [logoFile, setLogoFile] = useState(null);
+
 
     useEffect(() => {
 
@@ -100,6 +103,9 @@ function BusinessSettings() {
                     <input
                         type="file"
                         accept="image/*"
+                        onChange={(e) => {
+                            setLogoFile(e.target.files[0]);
+                        }}
                         className="w-full md:w-[500px] border rounded-lg p-3"
                     />
 
