@@ -41,3 +41,26 @@ export async function saveBusinessSettings(settings) {
 
   return data;
 }
+export async function updateBusinessSettings(id, settings) {
+
+  const { data, error } = await supabase
+
+    .from("business_settings")
+
+    .update(settings)
+
+    .eq("id", id)
+
+    .select()
+
+    .single();
+
+  if (error) {
+
+    throw error;
+
+  }
+
+  return data;
+
+}
