@@ -44,75 +44,111 @@ function PurchaseDetails() {
 
         <Layout>
 
-            <div className="p-6">
+            <div className="p-6 print-area print:p-3">
 
-                <div className="mt-6 bg-white rounded-xl shadow p-6">
-
-                    <div className="grid grid-cols-2 gap-6">
-
-                        <div>
-
-                            <p className="text-gray-500">
-                                Invoice Number
-                            </p>
-
-                            <h2 className="font-semibold text-lg">
-                                {purchase.invoice_no}
-                            </h2>
-
-                        </div>
-
-                        <div>
-
-                            <p className="text-gray-500">
-                                Supplier
-                            </p>
-
-                            <h2 className="font-semibold text-lg">
-                                {purchase.suppliers?.supplier_name}
-                            </h2>
-
-                        </div>
-
-                        <div>
-
-                            <p className="text-gray-500">
-                                Purchase Date
-                            </p>
-
-                            <h2 className="font-semibold text-lg">
-
-                                {new Date(
-                                    purchase.created_at
-                                ).toLocaleDateString()}
-
-                            </h2>
-
-                        </div>
-
-                        <div>
-
-                            <p className="text-gray-500">
-                                Status
-                            </p>
-
-                            <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">
-
-                                {purchase.status}
-
-                            </span>
-
-                        </div>
-
-                    </div>
-
+                <div className="flex justify-end mb-6 print:mb-2">
+                    <button
+                        type="button"
+                        onClick={() => window.print()}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
+                    >
+                        🖨️ Print Invoice
+                    </button>
                 </div>
 
-                <h2 className="text-xl font-bold mt-8 mb-4">
+<div className="bg-white rounded-xl shadow p-6">
+
+  <div className="flex items-center justify-between">
+
+    <div>
+      <h1 className="text-3xl font-bold">
+        RRAW Business OS
+      </h1>
+
+      <p className="text-gray-500 mt-1">
+        Business Management System
+      </p>
+    </div>
+
+    <div className="text-right">
+      <h2 className="text-3xl font-bold text-blue-600">
+        INVOICE
+      </h2>
+
+      <p className="text-gray-500 mt-1">
+        Purchase Invoice
+      </p>
+    </div>
+
+  </div>
+
+  <div className="border-t mt-6 pt-4">
+
+    <p className="text-sm text-gray-500">
+      Thank you for doing business with us.
+    </p>
+
+  </div>
+
+</div>
+
+                <div className="mt-6 bg-white rounded-xl shadow p-6 print:mt-2 print:p-3">
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <div>
+      <p className="text-sm text-gray-500">
+        Invoice Number
+      </p>
+
+      <p className="text-lg font-semibold mt-1">
+        {purchase.invoice_no}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-sm text-gray-500">
+        Supplier
+      </p>
+
+      <p className="text-lg font-semibold mt-1">
+        {purchase.suppliers?.supplier_name}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-sm text-gray-500">
+        Purchase Date
+      </p>
+
+      <p className="text-lg font-semibold mt-1">
+        {new Date(
+          purchase.created_at
+        ).toLocaleDateString()}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-sm text-gray-500">
+        Status
+      </p>
+
+      <div className="mt-2">
+        <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-medium">
+          {purchase.status}
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+                <h2 className="text-xl font-bold mt-8 mb-4 print:mt-3 print:mb-2">
                     Purchase Items
                 </h2>
 
-                <div className="mt-8 bg-white rounded-xl shadow overflow-hidden">
+                <div className="mt-8 bg-white rounded-xl shadow overflow-hidden print:mt-2">
 
                     <table className="w-full">
 
@@ -149,23 +185,23 @@ function PurchaseDetails() {
                                     className="border-b hover:bg-gray-50 transition"
                                 >
 
-                                    <td className="p-4 font-medium">
+                                    <td className="p-4 font-medium print:p-2">
 
                                         {item.products?.product_name}
 
                                     </td>
 
-                                    <td className="p-4 text-center">
+                                    <td className="p-4 text-center print:p-2">
 
                                         {item.quantity}
 
                                     </td>
 
-                                    <td className="p-4 text-right font-mono">
+                                    <td className="p-4 text-right font-mono print:p-2">
                                         PKR {Number(item.price).toLocaleString()}
                                     </td>
 
-                                    <td className="p-4 text-right font-semibold">
+                                    <td className="p-4 text-right font-semibold print:p-2">
                                         PKR {Number(item.total).toLocaleString()}
                                     </td>
 
@@ -179,12 +215,12 @@ function PurchaseDetails() {
 
                 </div>
 
-                <div className="mt-8 flex justify-end">
+                <div className="mt-8 flex justify-end pb-8 print:mt-3 print:pb-2">
 
 
-                    <div className="w-96 bg-white rounded-xl shadow p-6">
+                    <div className="w-96 bg-white rounded-xl shadow p-6 print:p-3">
 
-                        <div className="flex justify-between py-2">
+                        <div className="flex justify-between py-2 print:py-1">
 
                             <span>Subtotal</span>
 
@@ -196,7 +232,7 @@ function PurchaseDetails() {
 
                         </div>
 
-                        <div className="flex justify-between py-2">
+                       <div className="flex justify-between py-2 print:py-1">
 
                             <span>Discount</span>
 
@@ -208,7 +244,7 @@ function PurchaseDetails() {
 
                         </div>
 
-                        <div className="flex justify-between py-2">
+                        <div className="flex justify-between py-2 print:py-1">
 
                             <span>Tax</span>
 
@@ -220,9 +256,9 @@ function PurchaseDetails() {
 
                         </div>
 
-                        <hr className="my-4" />
+                        <hr className="my-4 print:my-2" />
 
-                        <div className="flex justify-between text-xl font-bold text-blue-600">
+                        <div className="flex justify-between text-xl font-bold text-blue-600 print:text-black">
 
                             <span>Grand Total</span>
 

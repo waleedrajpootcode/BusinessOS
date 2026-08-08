@@ -164,3 +164,19 @@ export async function getPurchases() {
   return data;
 
 }
+export async function deletePurchase(purchaseId) {
+  const { data, error } = await supabase.rpc(
+    "delete_purchase_safe",
+    {
+      p_purchase_id: Number(purchaseId),
+    }
+  );
+
+  if (error) {
+    console.error("Delete Purchase Error:", error);
+    throw error;
+  }
+
+  return data;
+}
+

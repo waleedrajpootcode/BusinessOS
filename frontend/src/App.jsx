@@ -20,6 +20,7 @@ import BusinessSetup from "./pages/BusinessSetup";
 import BusinessSettings from "./pages/BusinessSettings";
 import Employees from "./pages/Employees";
 import PurchaseDetails from "./pages/PurchaseDetails";
+import EditPurchase from "./pages/EditPurchase";
 
 function App() {
 
@@ -70,6 +71,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/purchases/:id/edit"
+  element={<EditPurchase />}
+/>
+
         <Route
           path="/inventory"
           element={<Inventory />}
@@ -144,7 +150,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
 
       </Routes>
     </>

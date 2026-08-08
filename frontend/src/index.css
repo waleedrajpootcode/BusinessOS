@@ -45,6 +45,11 @@ img {
 }
 @media print {
 
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
   body {
     background: white !important;
   }
@@ -63,11 +68,36 @@ img {
 
   .print-area {
     display: block !important;
-    width: 100%;
-    margin: 0;
-    padding: 0;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
+  }
+
+  .print-area > div {
+    box-shadow: none !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  .print-area h1,
+  .print-area h2,
+  .print-area h3 {
+    break-after: avoid;
+    page-break-after: avoid;
   }
 
 }

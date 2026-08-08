@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import {Eye,} from "lucide-react";
 function SalesTable({ sales }) {
   return (
     <div className="mt-8 bg-white rounded-xl shadow border overflow-hidden">
@@ -60,19 +61,21 @@ function SalesTable({ sales }) {
                   {sale.status}
                 </td>
 
-                <td className="p-4">
+<td className="p-4 text-center">
+  <Link
+    to={`/invoice/${sale.id}`}
+    title="View Invoice"
+    className="inline-flex items-center justify-center"
+  >
+    <button
+      type="button"
+      className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
+    >
+      <Eye size={18} />
+    </button>
+  </Link>
+</td>
 
-                  <Link to={`/invoice/${sale.id}`}>
-
-                    <button className="px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
-
-                      View Invoice
-
-                    </button>
-
-                  </Link>
-
-                </td>
 
               </tr>
 
