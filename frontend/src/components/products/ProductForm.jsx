@@ -1,6 +1,7 @@
-import { useState } from "react";
 import Button from "../ui/Button";
 import { addProduct, updateProduct } from "../../services/products";
+import { useEffect, useState } from "react";
+import { getCategories } from "../../services/categories";
 
 function ProductForm({
   product = null,
@@ -10,21 +11,41 @@ function ProductForm({
   const [sku, setSku] = useState(product?.sku || "");
   const [barcode, setBarcode] = useState(product?.barcode || "");
   const [category, setCategory] = useState(product?.category || "");
+  const [minimumStock, setMinimumStock] = useState(
+    product?.minimum_stock || 5
+  );
+
   const [price, setPrice] = useState(product?.price || "");
   const [stock, setStock] = useState(product?.stock || "");
   const [costPrice, setCostPrice] = useState(
     product?.cost_price || ""
   );
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+
+    async function loadCategories() {
+
+      const data = await getCategories();
+
+      setCategories(data);
+
+    }
+
+    loadCategories();
+
+  }, []);
+
 
   async function handleSubmit(e) {
     e.preventDefault();
 
     if (
-  !productName ||
-  !costPrice ||
-  !price ||
-  !stock
-) {
+      !productName ||
+      !costPrice ||
+      !price ||
+      !stock
+    ) {
       alert("Please fill all required fields.");
       return;
     }
@@ -38,6 +59,7 @@ function ProductForm({
         cost_price: Number(costPrice),
         price: Number(price),
         stock: Number(stock),
+        minimum_stock: Number(minimumStock),
       };
 
       if (product) {
@@ -57,6 +79,7 @@ function ProductForm({
       setPrice("");
       setStock("");
       setCostPrice("");
+      setMinimumStock(5);
 
       if (onSuccess) {
         onSuccess();
@@ -94,13 +117,32 @@ function ProductForm({
         className="w-full border rounded-lg p-3"
       />
 
-      <input
-        type="text"
-        placeholder="Category"
+      <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
         className="w-full border rounded-lg p-3"
-      />
+      >
+
+        <option value="">
+          Select Category
+        </option>
+
+
+        {categories.map((item) => (
+
+          <option
+            key={item.id}
+            value={item.category_name}
+          >
+
+            {item.category_name}
+
+          </option>
+
+        ))}
+
+
+      </select>
 
       <input
         type="number"
@@ -127,6 +169,15 @@ function ProductForm({
         onChange={(e) => setStock(e.target.value)}
         className="w-full border rounded-lg p-3"
       />
+
+      <input
+        type="number"
+        placeholder="Minimum Stock Alert"
+        value={minimumStock}
+        onChange={(e) => setMinimumStock(e.target.value)}
+        className="w-full border rounded-lg p-3"
+      />
+
 
       <div className="flex justify-end">
         <Button type="submit">

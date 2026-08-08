@@ -12,6 +12,7 @@ import {
 function PurchaseForm({ onSuccess }) {
   const [suppliers, setSuppliers] = useState([]);
   const [products, setProducts] = useState([]);
+  const [items, setItems] = useState([]);
 
   const [selectedSupplier, setSelectedSupplier] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("");
@@ -24,10 +25,15 @@ function PurchaseForm({ onSuccess }) {
 
   const [tax, setTax] = useState(0);
 
-  const subtotal = price * quantity;
+  const subtotal = items.reduce(
+
+    (sum, item) => sum + item.total,
+
+    0
+
+  );
 
   const total = subtotal - discount + tax;
-
   useEffect(() => {
     async function loadData() {
       const supplierData = await getSuppliersForPurchase();
@@ -40,6 +46,60 @@ function PurchaseForm({ onSuccess }) {
     loadData();
   }, []);
 
+  function addItem() {
+
+    if (!selectedProduct) {
+
+      alert("Select Product");
+
+      return;
+
+    }
+
+    const product = products.find(
+
+      (p) => p.id === Number(selectedProduct)
+
+    );
+
+    if (!product) return;
+
+    const newItem = {
+
+      product_id: product.id,
+
+      product_name: product.product_name,
+
+      quantity,
+
+      price,
+
+      total: quantity * price,
+
+    };
+
+
+
+    setItems([...items, newItem]);
+
+    setSelectedProduct("");
+
+    setQuantity(1);
+
+    setPrice(0);
+
+  }
+
+  function removeItem(index) {
+
+    const updated = [...items];
+
+    updated.splice(index, 1);
+
+    setItems(updated);
+
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -48,8 +108,8 @@ function PurchaseForm({ onSuccess }) {
       return;
     }
 
-    if (!selectedProduct) {
-      alert("Please select a product.");
+    if (items.length === 0) {
+      alert("Please add at least one product.");
       return;
     }
 
@@ -74,22 +134,35 @@ function PurchaseForm({ onSuccess }) {
 
       console.log("Saved Purchase:", purchase);
 
-      await savePurchaseItems([
-        {
-          purchase_id: purchase.id,
-          product_id: Number(selectedProduct),
-          quantity: quantity,
-          price: price,
-          total: subtotal,
-        },
-      ]);
+      const purchaseItems = items.map((item) => ({
+
+        purchase_id: purchase.id,
+
+        product_id: item.product_id,
+
+        quantity: item.quantity,
+
+        price: item.price,
+
+        total: item.total,
+
+      }));
+
+      await savePurchaseItems(purchaseItems);
 
       console.log("Purchase Items Saved");
 
-      await increaseStock(
-        Number(selectedProduct),
-        quantity
-      );
+      for (const item of items) {
+
+        await increaseStock(
+
+          item.product_id,
+
+          item.quantity
+
+        );
+
+      }
 
       console.log("Stock Updated");
 
@@ -100,6 +173,7 @@ function PurchaseForm({ onSuccess }) {
       setPrice(0);
       setDiscount(0);
       setTax(0);
+      setItems([]);
 
       alert("Purchase saved successfully!");
 
@@ -205,6 +279,14 @@ function PurchaseForm({ onSuccess }) {
         className="w-full border rounded-lg p-3"
       />
 
+      <Button
+        type="button"
+        onClick={addItem}
+      >
+        + Add Item
+      </Button>
+
+
       {/* Discount */}
 
       <input
@@ -229,6 +311,113 @@ function PurchaseForm({ onSuccess }) {
         className="w-full border rounded-lg p-3"
       />
 
+      {/* Purchase Items */}
+
+      <div className="mt-6">
+
+        <h3 className="text-lg font-semibold mb-3">
+          Purchase Items
+        </h3>
+
+        <div className="border rounded-lg overflow-hidden">
+
+          <table className="w-full">
+
+            <thead className="bg-gray-100">
+
+              <tr>
+
+                <th className="p-3 text-left">
+                  Product
+                </th>
+
+                <th className="p-3 text-center">
+                  Qty
+                </th>
+
+                <th className="p-3 text-right">
+                  Price
+                </th>
+
+                <th className="p-3 text-right">
+                  Total
+                </th>
+
+                <th className="p-3 text-center">
+                  Action
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              {items.length === 0 ? (
+
+                <tr>
+
+                  <td
+                    colSpan="5"
+                    className="text-center p-6 text-gray-500"
+                  >
+                    No Items Added
+                  </td>
+
+                </tr>
+
+              ) : (
+
+                items.map((item, index) => (
+
+                  <tr
+                    key={index}
+                    className="border-t"
+                  >
+
+                    <td className="p-3">
+                      {item.product_name}
+                    </td>
+
+                    <td className="p-3 text-center">
+                      {item.quantity}
+                    </td>
+
+                    <td className="p-3 text-right">
+                      PKR {item.price}
+                    </td>
+
+                    <td className="p-3 text-right">
+                      PKR {item.total}
+                    </td>
+
+                    <td className="p-3 text-center">
+
+                      <button
+                        type="button"
+                        onClick={() => removeItem(index)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                      >
+                        Remove
+                      </button>
+
+                    </td>
+
+                  </tr>
+
+                ))
+
+              )}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+
       {/* Total */}
 
       <div className="bg-gray-100 rounded-lg p-4">
@@ -240,9 +429,8 @@ function PurchaseForm({ onSuccess }) {
         <div className="space-y-2">
 
           <p>
-            Price: PKR {price}
+            Subtotal: PKR {subtotal}
           </p>
-
           <p className="text-2xl font-bold">
             Total: PKR {total}
           </p>

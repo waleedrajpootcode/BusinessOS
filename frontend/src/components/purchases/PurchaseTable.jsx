@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 function PurchaseTable({ purchases }) {
   return (
     <table className="w-full">
@@ -56,6 +57,17 @@ function PurchaseTable({ purchases }) {
 
               <td className="p-4">
                 {purchase.status}
+              </td>
+
+              <td className="p-4 text-center">
+
+                <Link
+                  to={`/purchases/${purchase.id}`}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+                >
+                  View
+                </Link>
+
               </td>
 
             </tr>

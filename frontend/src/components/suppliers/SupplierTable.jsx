@@ -83,7 +83,7 @@ function SupplierTable({
 
                   {/* Edit */}
                   <button
-                    onClick={() => onEdit(product)}
+                    onClick={() => onEdit(supplier)}
                     className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
                   >
                     <Pencil size={18} />
@@ -91,7 +91,7 @@ function SupplierTable({
 
                   {/* Delete */}
                   <button
-                    onClick={() => onDelete(product.id)}
+                    onClick={() => onDelete(supplier.id)}
                     className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
                   >
                     <Trash2 size={18} />

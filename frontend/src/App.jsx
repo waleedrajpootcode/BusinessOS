@@ -19,6 +19,8 @@ import Users from "./pages/Users";
 import BusinessSetup from "./pages/BusinessSetup";
 import BusinessSettings from "./pages/BusinessSettings";
 import Employees from "./pages/Employees";
+import PurchaseDetails from "./pages/PurchaseDetails";
+
 function App() {
 
 
@@ -59,6 +61,14 @@ function App() {
         <Route
           path="/purchases"
           element={<Purchases />}
+        />
+        <Route
+          path="/purchases/:id"
+          element={
+            <ProtectedRoute>
+              <PurchaseDetails />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/inventory"
