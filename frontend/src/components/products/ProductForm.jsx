@@ -1,8 +1,13 @@
 import Button from "../ui/Button";
 import AlertMessage from "../ui/AlertMessage";
-import { addProduct, updateProduct } from "../../services/products";
+import {
+  addProduct,
+  updateProduct,
+  generateInternalBarcode,
+} from "../../services/products";
 import { useEffect, useState } from "react";
 import { getCategories } from "../../services/categories";
+
 
 function ProductForm({
   product = null,
@@ -146,16 +151,23 @@ function ProductForm({
     setIsSubmitting(true);
 
     try {
-      const productData = {
-        product_name: productName.trim(),
-        sku: sku.trim(),
-        barcode: barcode.trim(),
-        category,
-        cost_price: Number(costPrice),
-        price: Number(price),
-        stock: Number(stock),
-        minimum_stock: Number(minimumStock),
-      };
+let finalBarcode = barcode.trim();
+
+if (!product && !finalBarcode) {
+  finalBarcode = await generateInternalBarcode();
+}
+
+
+const productData = {
+  product_name: productName.trim(),
+  sku: sku.trim(),
+  barcode: finalBarcode,
+  category,
+  cost_price: Number(costPrice),
+  price: Number(price),
+  stock: Number(stock),
+  minimum_stock: Number(minimumStock),
+};
 
       if (product) {
         await updateProduct(

@@ -47,20 +47,26 @@ function Products() {
     loadProducts();
   }, []);
   const filteredProducts = products.filter((product) => {
-    return (
-      product.product_name
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
+  const search = searchTerm.toLowerCase();
 
-      product.sku
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
+  return (
+    product.product_name
+      ?.toLowerCase()
+      .includes(search) ||
 
-      product.category
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
-  });
+    product.sku
+      ?.toLowerCase()
+      .includes(search) ||
+
+    product.barcode
+      ?.toLowerCase()
+      .includes(search) ||
+
+    product.category
+      ?.toLowerCase()
+      .includes(search)
+  );
+});
 
   return (
     <div className="p-6">

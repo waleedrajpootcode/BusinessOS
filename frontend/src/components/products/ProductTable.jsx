@@ -1,3 +1,5 @@
+import { useState } from "react";
+import ProductBarcodeModal from "./ProductBarcodeModal";
 import {
   Pencil,
   Trash2,
@@ -9,11 +11,12 @@ function ProductTable({
   onDelete,
   onEdit,
 }) {
+  const [selectedBarcodeProduct, setSelectedBarcodeProduct] =
+    useState(null);
+
   return (
-    <div className="mt-8 bg-white rounded-xl shadow border overflow-x-auto">
-
+    <>
       <table className="w-full">
-
         <thead className="bg-gray-100">
           <tr>
             <th className="p-4 text-left">Product</th>
@@ -22,14 +25,11 @@ function ProductTable({
             <th className="p-4 text-left">Cost Price</th>
             <th className="p-4 text-left">Selling Price</th>
             <th className="p-4 text-left">Stock</th>
-            <th className="p-4 text-left">
-              Actions
-            </th>
+            <th className="p-4 text-left">Actions</th>
           </tr>
         </thead>
 
         <tbody>
-
           {products.length === 0 ? (
             <tr>
               <td
@@ -45,42 +45,68 @@ function ProductTable({
                 key={product.id}
                 className="border-t"
               >
-                <td className="p-4">{product.product_name}</td>
-                <td className="p-4">{product.sku}</td>
-                <td className="p-4">{product.category}</td>
                 <td className="p-4">
-                  PKR {product.cost_price}
+                  {product.product_name}
                 </td>
 
                 <td className="p-4">
-                  PKR {product.price}
+                  {product.sku}
                 </td>
-                <td className="p-4">{product.stock}</td>
+
+                <td className="p-4">
+                  {product.category}
+                </td>
+
+                <td className="p-4">
+                  PKR{" "}
+                  {Number(product.cost_price).toLocaleString()}
+                </td>
+
+                <td className="p-4">
+                  PKR{" "}
+                  {Number(product.price).toLocaleString()}
+                </td>
+
+                <td className="p-4">
+                  {product.stock}
+                </td>
+
                 <td className="p-4">
                   <div className="flex gap-2">
 
                     {/* Edit */}
                     <button
+                      type="button"
                       onClick={() => onEdit(product)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
+                      title="Edit Product"
+                      aria-label="Edit Product"
+                      className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded transition"
                     >
                       <Pencil size={18} />
                     </button>
 
                     {/* Delete */}
                     <button
+                      type="button"
                       onClick={() => onDelete(product.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
+                      title="Delete Product"
+                      aria-label="Delete Product"
+                      className="bg-red-500 hover:bg-red-600 text-white p-2 rounded transition"
                     >
                       <Trash2 size={18} />
                     </button>
 
+                    {/* Barcode */}
                     <button
-                      className="bg-green-600 hover:bg-green-700 text-white p-2 rounded"
+                      type="button"
+                      onClick={() =>
+                        setSelectedBarcodeProduct(product)
+                      }
+                      title="View Barcode"
+                      aria-label="View Barcode"
+                      className="bg-green-500 hover:bg-green-600 text-white p-2 rounded transition"
                     >
-
                       <Barcode size={18} />
-
                     </button>
 
                   </div>
@@ -88,12 +114,17 @@ function ProductTable({
               </tr>
             ))
           )}
-
         </tbody>
-
       </table>
 
-    </div>
+      {/* Barcode Modal */}
+      <ProductBarcodeModal
+        product={selectedBarcodeProduct}
+        onClose={() =>
+          setSelectedBarcodeProduct(null)
+        }
+      />
+    </>
   );
 }
 

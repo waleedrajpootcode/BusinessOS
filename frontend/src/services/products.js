@@ -116,4 +116,15 @@ export async function getInventory() {
   return data;
 
 }
+export async function generateInternalBarcode() {
+  const { data, error } = await supabase.rpc(
+    "generate_internal_barcode"
+  );
 
+  if (error) {
+    console.error("Barcode Generation Error:", error);
+    throw error;
+  }
+
+  return data;
+}
