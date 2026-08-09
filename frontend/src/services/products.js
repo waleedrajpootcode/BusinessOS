@@ -59,15 +59,23 @@ export async function getProducts() {
   return data;
 }
 export async function deleteProduct(id) {
-  const { error } = await supabase
-    .from("products")
-    .delete()
-    .eq("id", id);
+  const { data, error } = await supabase.rpc(
+    "delete_product_safe",
+    {
+      p_product_id: Number(id),
+    }
+  );
 
   if (error) {
-    console.error(error);
+    console.error(
+      "Safe Product Delete Error:",
+      error
+    );
+
     throw error;
   }
+
+  return data;
 }
 export async function getLowStockProducts() {
 

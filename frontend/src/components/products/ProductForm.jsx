@@ -69,7 +69,7 @@ function ProductForm({
 
         setAlertMessage(
           error.message ||
-            "Failed to load categories."
+          "Failed to load categories."
         );
       }
     }
@@ -151,23 +151,23 @@ function ProductForm({
     setIsSubmitting(true);
 
     try {
-let finalBarcode = barcode.trim();
+      let finalBarcode = barcode.trim();
 
-if (!product && !finalBarcode) {
-  finalBarcode = await generateInternalBarcode();
-}
+      if (!product && !finalBarcode) {
+        finalBarcode = await generateInternalBarcode();
+      }
 
 
-const productData = {
-  product_name: productName.trim(),
-  sku: sku.trim(),
-  barcode: finalBarcode,
-  category,
-  cost_price: Number(costPrice),
-  price: Number(price),
-  stock: Number(stock),
-  minimum_stock: Number(minimumStock),
-};
+      const productData = {
+        product_name: productName.trim(),
+        sku: sku.trim(),
+        barcode: finalBarcode,
+        category,
+        cost_price: Number(costPrice),
+        price: Number(price),
+        stock: Number(stock),
+        minimum_stock: Number(minimumStock),
+      };
 
       if (product) {
         await updateProduct(
@@ -250,7 +250,7 @@ const productData = {
 
       setAlertMessage(
         error.message ||
-          "Failed to save product."
+        "Failed to save product."
       );
     } finally {
       setIsSubmitting(false);
@@ -368,8 +368,8 @@ const productData = {
               ? "Updating..."
               : "Saving..."
             : product
-            ? "Update Product"
-            : "Save Product"}
+              ? "Update Product"
+              : "Save Product"}
         </Button>
       </div>
     </form>

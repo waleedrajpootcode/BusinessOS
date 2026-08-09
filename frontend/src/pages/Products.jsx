@@ -3,6 +3,8 @@ import Button from "../components/ui/Button";
 import Modal from "../components/ui/Modal";
 import ProductForm from "../components/products/ProductForm";
 import ProductTable from "../components/products/ProductTable";
+import AlertMessage from "../components/ui/AlertMessage";
+
 import {
   getProducts,
   deleteProduct,
@@ -13,11 +15,32 @@ function Products() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("success");
 
-  async function loadProducts() {
+async function loadProducts() {
+  try {
+    setIsLoading(true);
+
     const data = await getProducts();
+
     setProducts(data);
+  } catch (error) {
+    console.error(
+      "Load Products Error:",
+      error
+    );
+
+    setAlertType("error");
+    setAlertMessage(
+      error.message ||
+        "Failed to load products."
+    );
+  } finally {
+    setIsLoading(false);
   }
+}
 
   async function handleDelete(id) {
     const confirmed = window.confirm(
@@ -30,12 +53,16 @@ function Products() {
     try {
       await deleteProduct(id);
 
-      alert("Product Deleted Successfully ✅");
+      setAlertType("success");
+      setAlertMessage("Product Deleted Successfully ✅");
 
-      loadProducts();
+      await loadProducts();
 
     } catch (error) {
-      alert(error.message);
+      setAlertType("error");
+      setAlertMessage(
+        error.message || "Failed to delete product."
+      );
     }
   }
   function handleEdit(product) {
@@ -47,30 +74,33 @@ function Products() {
     loadProducts();
   }, []);
   const filteredProducts = products.filter((product) => {
-  const search = searchTerm.toLowerCase();
+    const search = searchTerm.toLowerCase();
 
-  return (
-    product.product_name
-      ?.toLowerCase()
-      .includes(search) ||
+    return (
+      product.product_name
+        ?.toLowerCase()
+        .includes(search) ||
 
-    product.sku
-      ?.toLowerCase()
-      .includes(search) ||
+      product.sku
+        ?.toLowerCase()
+        .includes(search) ||
 
-    product.barcode
-      ?.toLowerCase()
-      .includes(search) ||
+      product.barcode
+        ?.toLowerCase()
+        .includes(search) ||
 
-    product.category
-      ?.toLowerCase()
-      .includes(search)
-  );
-});
+      product.category
+        ?.toLowerCase()
+        .includes(search)
+    );
+  });
 
   return (
     <div className="p-6">
-
+      <AlertMessage
+        type={alertType}
+        message={alertMessage}
+      />
       {/* Header */}
       <div className="flex items-center justify-between">
 
@@ -106,12 +136,18 @@ function Products() {
         />
       </div>
 
-      {/* Table */}
-      <ProductTable
-        products={filteredProducts}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
-      />
+{/* Table */}
+{isLoading ? (
+  <div className="bg-white rounded-xl shadow p-10 text-center text-gray-500">
+    Loading Products...
+  </div>
+) : (
+  <ProductTable
+    products={filteredProducts}
+    onDelete={handleDelete}
+    onEdit={handleEdit}
+  />
+)}
 
       {/* Modal */}
       <Modal
