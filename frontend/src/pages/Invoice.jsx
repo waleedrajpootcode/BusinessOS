@@ -42,17 +42,26 @@ function Invoice() {
 
     }
 
-    function downloadPDF() {
+async function downloadPDF() {
+  if (!invoice) return;
 
-        if (!invoice) return;
+  try {
+    await generateInvoicePDF(
+      invoice,
+      items,
+      business
+    );
+  } catch (error) {
+    console.error(
+      "PDF generation error:",
+      error
+    );
 
-        generateInvoicePDF(
-            invoice,
-            items,
-            business
-        );
-
-    }
+    alert(
+      "Unable to generate invoice PDF."
+    );
+  }
+}
 
     return (
         <Layout>
