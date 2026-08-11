@@ -8,7 +8,9 @@ import { getPurchases } from "../services/purchases";
 function Purchases() {
   const [isModalOpen, setIsModalOpen] = useState(false);
     const [purchases, setPurchases] = useState([]);
-  useEffect(() => {
+  const [searchTerm, setSearchTerm] = useState("");
+
+    useEffect(() => {
   loadPurchases();
 }, []);
 
@@ -16,7 +18,18 @@ async function loadPurchases() {
   const data = await getPurchases();
   setPurchases(data);
 }
-  
+ 
+const filteredPurchases = purchases.filter((purchase) => {
+  const search = searchTerm.toLowerCase();
+
+  return (
+    purchase.invoice_no?.toLowerCase().includes(search) ||
+    purchase.suppliers?.supplier_name
+      ?.toLowerCase()
+      .includes(search)
+  );
+});
+
     return (
     <div className="p-6">
 
@@ -44,18 +57,19 @@ async function loadPurchases() {
       {/* Search */}
       <div className="mt-8">
 
-        <input
-          type="text"
-          placeholder="Search Purchases..."
-          className="w-full border rounded-lg p-3"
-        />
-
+<input
+  type="text"
+  placeholder="Search Purchases..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  className="w-full border rounded-lg p-3"
+/>
       </div>
 
       {/* Table */}
       <div className="mt-8 bg-white rounded-xl shadow border overflow-hidden">
 
-       <PurchaseTable purchases={purchases} />
+       <PurchaseTable purchases={filteredPurchases} />
 
       </div>
 

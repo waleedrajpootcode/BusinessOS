@@ -4,6 +4,8 @@ import { getInventory } from "../services/products";
 function Inventory() {
 
   const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
 
   useEffect(() => {
     loadInventory();
@@ -13,6 +15,11 @@ function Inventory() {
     const data = await getInventory();
     setProducts(data);
   }
+  const filteredProducts = products.filter((product) =>
+  product.product_name
+    ?.toLowerCase()
+    .includes(searchTerm.toLowerCase())
+);
 
   return (
     <div className="p-6">
@@ -31,11 +38,13 @@ function Inventory() {
       </div>
 
       {/* Search */}
-      <input
-        type="text"
-        placeholder="Search Products..."
-        className="w-full border rounded-lg p-3 mb-6"
-      />
+<input
+  type="text"
+  placeholder="Search Products..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  className="w-full border rounded-lg p-3 mb-6"
+/>
 
       {/* Table */}
       <div className="bg-white rounded-xl shadow border overflow-hidden">
@@ -67,7 +76,7 @@ function Inventory() {
 
           <tbody>
 
-            {products.length === 0 ? (
+            {filteredProducts.length === 0 ? (
 
               <tr>
 
@@ -82,7 +91,7 @@ function Inventory() {
 
             ) : (
 
-              products.map((product) => (
+              filteredProducts.map((product) => (
 
                 <tr
                   key={product.id}

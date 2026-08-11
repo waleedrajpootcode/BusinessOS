@@ -96,45 +96,28 @@ export async function savePurchaseItems(items) {
 }
 export async function increaseStock(
   productId,
-  quantity
+  quantity,
+  purchaseId
 ) {
+  const { data, error } = await supabase.rpc(
+    "increase_stock_with_movement",
+    {
+      p_product_id: Number(productId),
+      p_quantity: Number(quantity),
+      p_purchase_id: Number(purchaseId),
+    }
+  );
 
-  // Get Current Stock
-  const { data: product, error: fetchError } =
-    await supabase
-      .from("products")
-      .select("stock")
-      .eq("id", productId)
-      .single();
+  if (error) {
+    console.error(
+      "Increase Stock Error:",
+      error
+    );
 
-  if (fetchError) {
-
-    console.error(fetchError);
-
-    throw fetchError;
-
+    throw error;
   }
 
-  const newStock =
-    Number(product.stock) + Number(quantity);
-
-  // Update Stock
-  const { error: updateError } =
-    await supabase
-      .from("products")
-      .update({
-        stock: newStock,
-      })
-      .eq("id", productId);
-
-  if (updateError) {
-
-    console.error(updateError);
-
-    throw updateError;
-
-  }
-
+  return data;
 }
 export async function getPurchases() {
 

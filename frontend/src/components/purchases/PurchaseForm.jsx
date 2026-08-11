@@ -112,11 +112,11 @@ function PurchaseForm({ onSuccess }) {
         currentItems.map((item) =>
           Number(item.product_id) === Number(product.id)
             ? {
-                ...item,
-                quantity: mergedQuantity,
-                price: priceValue,
-                total: mergedTotal,
-              }
+              ...item,
+              quantity: mergedQuantity,
+              price: priceValue,
+              total: mergedTotal,
+            }
             : item
         )
       );
@@ -149,10 +149,10 @@ function PurchaseForm({ onSuccess }) {
       currentItems.map((item) =>
         Number(item.product_id) === Number(productId)
           ? {
-              ...item,
-              quantity: quantityValue,
-              total: quantityValue * Number(item.price),
-            }
+            ...item,
+            quantity: quantityValue,
+            total: quantityValue * Number(item.price),
+          }
           : item
       )
     );
@@ -169,10 +169,10 @@ function PurchaseForm({ onSuccess }) {
       currentItems.map((item) =>
         Number(item.product_id) === Number(productId)
           ? {
-              ...item,
-              price: priceValue,
-              total: Number(item.quantity) * priceValue,
-            }
+            ...item,
+            price: priceValue,
+            total: Number(item.quantity) * priceValue,
+          }
           : item
       )
     );
@@ -249,7 +249,8 @@ function PurchaseForm({ onSuccess }) {
       for (const item of items) {
         await increaseStock(
           item.product_id,
-          Number(item.quantity)
+          Number(item.quantity),
+          purchase.id
         );
       }
 
@@ -272,7 +273,7 @@ function PurchaseForm({ onSuccess }) {
       console.error("Purchase save error:", error);
       alert(
         error?.message ||
-          "Something went wrong while saving the purchase."
+        "Something went wrong while saving the purchase."
       );
     } finally {
       setLoading(false);
