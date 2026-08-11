@@ -2,11 +2,35 @@ import Layout from "../components/dashboard/Layout";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getPurchaseDetails } from "../services/purchaseDetails";
+import { generatePurchasePDF } from "../services/pdfPurchase";
+import { useBusiness } from "../context/BusinessContext";
 
 function PurchaseDetails() {
     const { id } = useParams();
 
     const [purchase, setPurchase] = useState(null);
+    const { business } = useBusiness();
+
+
+    async function downloadPDF() {
+        if (!purchase) return;
+
+        try {
+            await generatePurchasePDF(
+                purchase,
+                business
+            );
+        } catch (error) {
+            console.error(
+                "Purchase PDF generation error:",
+                error
+            );
+
+            alert(
+                "Unable to generate purchase PDF."
+            );
+        }
+    }
 
     useEffect(() => {
 
@@ -54,95 +78,106 @@ function PurchaseDetails() {
                     >
                         🖨️ Print Invoice
                     </button>
+
+
+                    <button
+                        type="button"
+                        onClick={downloadPDF}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
+                    >
+                        📄 Download PDF
+                    </button>
+
+
                 </div>
 
-<div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6">
 
-  <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between">
 
-    <div>
-      <h1 className="text-3xl font-bold">
-        RRAW Business OS
-      </h1>
+                        <div>
+                            <h1 className="text-3xl font-bold">
+                                RRAW Business OS
+                            </h1>
 
-      <p className="text-gray-500 mt-1">
-        Business Management System
-      </p>
-    </div>
+                            <p className="text-gray-500 mt-1">
+                                Business Management System
+                            </p>
+                        </div>
 
-    <div className="text-right">
-      <h2 className="text-3xl font-bold text-blue-600">
-        INVOICE
-      </h2>
+                        <div className="text-right">
+                            <h2 className="text-3xl font-bold text-blue-600">
+                                INVOICE
+                            </h2>
 
-      <p className="text-gray-500 mt-1">
-        Purchase Invoice
-      </p>
-    </div>
+                            <p className="text-gray-500 mt-1">
+                                Purchase Invoice
+                            </p>
+                        </div>
 
-  </div>
+                    </div>
 
-  <div className="border-t mt-6 pt-4">
+                    <div className="border-t mt-6 pt-4">
 
-    <p className="text-sm text-gray-500">
-      Thank you for doing business with us.
-    </p>
+                        <p className="text-sm text-gray-500">
+                            Thank you for doing business with us.
+                        </p>
 
-  </div>
+                    </div>
 
-</div>
+                </div>
 
                 <div className="mt-6 bg-white rounded-xl shadow p-6 print:mt-2 print:p-3">
 
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-    <div>
-      <p className="text-sm text-gray-500">
-        Invoice Number
-      </p>
+                        <div>
+                            <p className="text-sm text-gray-500">
+                                Invoice Number
+                            </p>
 
-      <p className="text-lg font-semibold mt-1">
-        {purchase.invoice_no}
-      </p>
-    </div>
+                            <p className="text-lg font-semibold mt-1">
+                                {purchase.invoice_no}
+                            </p>
+                        </div>
 
-    <div>
-      <p className="text-sm text-gray-500">
-        Supplier
-      </p>
+                        <div>
+                            <p className="text-sm text-gray-500">
+                                Supplier
+                            </p>
 
-      <p className="text-lg font-semibold mt-1">
-        {purchase.suppliers?.supplier_name}
-      </p>
-    </div>
+                            <p className="text-lg font-semibold mt-1">
+                                {purchase.suppliers?.supplier_name}
+                            </p>
+                        </div>
 
-    <div>
-      <p className="text-sm text-gray-500">
-        Purchase Date
-      </p>
+                        <div>
+                            <p className="text-sm text-gray-500">
+                                Purchase Date
+                            </p>
 
-      <p className="text-lg font-semibold mt-1">
-        {new Date(
-          purchase.created_at
-        ).toLocaleDateString()}
-      </p>
-    </div>
+                            <p className="text-lg font-semibold mt-1">
+                                {new Date(
+                                    purchase.created_at
+                                ).toLocaleDateString()}
+                            </p>
+                        </div>
 
-    <div>
-      <p className="text-sm text-gray-500">
-        Status
-      </p>
+                        <div>
+                            <p className="text-sm text-gray-500">
+                                Status
+                            </p>
 
-      <div className="mt-2">
-        <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-medium">
-          {purchase.status}
-        </span>
-      </div>
-    </div>
+                            <div className="mt-2">
+                                <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-medium">
+                                    {purchase.status}
+                                </span>
+                            </div>
+                        </div>
 
-  </div>
+                    </div>
 
-</div>
+                </div>
 
                 <h2 className="text-xl font-bold mt-8 mb-4 print:mt-3 print:mb-2">
                     Purchase Items
@@ -232,7 +267,7 @@ function PurchaseDetails() {
 
                         </div>
 
-                       <div className="flex justify-between py-2 print:py-1">
+                        <div className="flex justify-between py-2 print:py-1">
 
                             <span>Discount</span>
 
