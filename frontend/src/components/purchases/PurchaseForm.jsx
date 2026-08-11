@@ -16,88 +16,174 @@ function PurchaseForm({ onSuccess }) {
 
   const [selectedSupplier, setSelectedSupplier] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("");
-
   const [quantity, setQuantity] = useState(1);
-
   const [price, setPrice] = useState(0);
 
   const [discount, setDiscount] = useState(0);
-
   const [tax, setTax] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  const subtotal = items.reduce(
-
-    (sum, item) => sum + item.total,
-
-    0
-
-  );
-
-  const total = subtotal - discount + tax;
   useEffect(() => {
     async function loadData() {
-      const supplierData = await getSuppliersForPurchase();
-      const productData = await getProductsForPurchase();
+      try {
+        const supplierData = await getSuppliersForPurchase();
+        const productData = await getProductsForPurchase();
 
-      setSuppliers(supplierData);
-      setProducts(productData);
+        setSuppliers(supplierData || []);
+        setProducts(productData || []);
+      } catch (error) {
+        console.error("Purchase data loading error:", error);
+        alert(error.message || "Failed to load purchase data.");
+      }
     }
 
     loadData();
   }, []);
 
+  const subtotal = items.reduce(
+    (sum, item) => sum + Number(item.total || 0),
+    0
+  );
+
+  const total = Math.max(
+    0,
+    subtotal - Number(discount || 0) + Number(tax || 0)
+  );
+
+  const totalQuantity = items.reduce(
+    (sum, item) => sum + Number(item.quantity || 0),
+    0
+  );
+
+  function handleProductChange(value) {
+    const id = Number(value);
+
+    setSelectedProduct(value);
+    setQuantity(1);
+
+    const product = products.find((p) => Number(p.id) === id);
+
+    if (product) {
+      setPrice(Number(product.cost_price || 0));
+    } else {
+      setPrice(0);
+    }
+  }
+
   function addItem() {
-
     if (!selectedProduct) {
-
-      alert("Select Product");
-
+      alert("Please select a product.");
       return;
+    }
 
+    const quantityValue = Number(quantity);
+    const priceValue = Number(price);
+
+    if (!Number.isFinite(quantityValue) || quantityValue <= 0) {
+      alert("Quantity must be greater than zero.");
+      return;
+    }
+
+    if (!Number.isFinite(priceValue) || priceValue < 0) {
+      alert("Purchase price cannot be negative.");
+      return;
     }
 
     const product = products.find(
-
-      (p) => p.id === Number(selectedProduct)
-
+      (p) => Number(p.id) === Number(selectedProduct)
     );
 
-    if (!product) return;
+    if (!product) {
+      alert("Selected product was not found.");
+      return;
+    }
 
-    const newItem = {
+    const existingItem = items.find(
+      (item) => Number(item.product_id) === Number(product.id)
+    );
 
-      product_id: product.id,
+    if (existingItem) {
+      const mergedQuantity =
+        Number(existingItem.quantity) + quantityValue;
 
-      product_name: product.product_name,
+      const mergedTotal = mergedQuantity * priceValue;
 
-      quantity,
+      setItems((currentItems) =>
+        currentItems.map((item) =>
+          Number(item.product_id) === Number(product.id)
+            ? {
+                ...item,
+                quantity: mergedQuantity,
+                price: priceValue,
+                total: mergedTotal,
+              }
+            : item
+        )
+      );
+    } else {
+      const newItem = {
+        product_id: product.id,
+        product_name: product.product_name,
+        quantity: quantityValue,
+        price: priceValue,
+        total: quantityValue * priceValue,
+      };
 
-      price,
-
-      total: quantity * price,
-
-    };
-
-
-
-    setItems([...items, newItem]);
+      setItems((currentItems) => [...currentItems, newItem]);
+    }
 
     setSelectedProduct("");
-
     setQuantity(1);
-
     setPrice(0);
-
   }
 
-  function removeItem(index) {
+  function updateItemQuantity(productId, newQuantity) {
+    const quantityValue = Number(newQuantity);
 
-    const updated = [...items];
+    if (!Number.isFinite(quantityValue) || quantityValue <= 0) {
+      removeItem(productId);
+      return;
+    }
 
-    updated.splice(index, 1);
+    setItems((currentItems) =>
+      currentItems.map((item) =>
+        Number(item.product_id) === Number(productId)
+          ? {
+              ...item,
+              quantity: quantityValue,
+              total: quantityValue * Number(item.price),
+            }
+          : item
+      )
+    );
+  }
 
-    setItems(updated);
+  function updateItemPrice(productId, newPrice) {
+    const priceValue = Number(newPrice);
 
+    if (!Number.isFinite(priceValue) || priceValue < 0) {
+      return;
+    }
+
+    setItems((currentItems) =>
+      currentItems.map((item) =>
+        Number(item.product_id) === Number(productId)
+          ? {
+              ...item,
+              price: priceValue,
+              total: Number(item.quantity) * priceValue,
+            }
+          : item
+      )
+    );
+  }
+
+  function removeItem(productId) {
+    setItems((currentItems) =>
+      currentItems.filter(
+        (item) => Number(item.product_id) !== Number(productId)
+      )
+    );
   }
 
   async function handleSubmit(e) {
@@ -113,60 +199,64 @@ function PurchaseForm({ onSuccess }) {
       return;
     }
 
-    if (quantity <= 0) {
-      alert("Quantity must be greater than zero.");
+    const hasInvalidItem = items.some(
+      (item) =>
+        Number(item.quantity) <= 0 ||
+        Number(item.price) < 0
+    );
+
+    if (hasInvalidItem) {
+      alert("Please check product quantities and prices.");
+      return;
+    }
+
+    if (Number(discount) < 0) {
+      alert("Discount cannot be negative.");
+      return;
+    }
+
+    if (Number(tax) < 0) {
+      alert("Tax cannot be negative.");
       return;
     }
 
     try {
+      setLoading(true);
+
       const purchaseNo = await generatePurchaseNumber();
 
       const purchase = await savePurchase({
         invoice_no: purchaseNo,
         supplier_id: Number(selectedSupplier),
-        subtotal: subtotal,
-        discount: discount,
-        tax: tax,
-        total: total,
+        subtotal,
+        discount: Number(discount || 0),
+        tax: Number(tax || 0),
+        total,
         payment_method: "Cash",
         status: "Pending",
       });
 
-      console.log("Saved Purchase:", purchase);
-
       const purchaseItems = items.map((item) => ({
-
         purchase_id: purchase.id,
-
         product_id: item.product_id,
-
-        quantity: item.quantity,
-
-        price: item.price,
-
-        total: item.total,
-
+        quantity: Number(item.quantity),
+        price: Number(item.price),
+        total: Number(item.total),
       }));
 
       await savePurchaseItems(purchaseItems);
 
-      console.log("Purchase Items Saved");
-
       for (const item of items) {
-
         await increaseStock(
-
           item.product_id,
-
-          item.quantity
-
+          Number(item.quantity)
         );
-
       }
 
-      console.log("Stock Updated");
+      alert(
+        `Purchase saved successfully!\nPurchase: ${purchaseNo}\nItems: ${items.length}`
+      );
 
-      // Reset Form
       setSelectedSupplier("");
       setSelectedProduct("");
       setQuantity(1);
@@ -175,278 +265,306 @@ function PurchaseForm({ onSuccess }) {
       setTax(0);
       setItems([]);
 
-      alert("Purchase saved successfully!");
-
-      // Refresh Parent Component (Future Use)
       if (onSuccess) {
         onSuccess();
       }
-
     } catch (error) {
-      console.error(error);
-      alert(error.message);
+      console.error("Purchase save error:", error);
+      alert(
+        error?.message ||
+          "Something went wrong while saving the purchase."
+      );
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4"
-    >
-
+    <form onSubmit={handleSubmit} className="space-y-5">
       {/* Supplier */}
+      <div>
+        <label className="block font-medium mb-2">
+          Supplier
+        </label>
 
-      <select
-        value={selectedSupplier}
-        onChange={(e) =>
-          setSelectedSupplier(e.target.value)
-        }
-        className="w-full border rounded-lg p-3"
-      >
-        <option value="">
-          Select Supplier
-        </option>
-
-        {suppliers.map((supplier) => (
-          <option
-            key={supplier.id}
-            value={supplier.id}
-          >
-            {supplier.supplier_name}
-          </option>
-        ))}
-
-      </select>
-
-      {/* Product */}
-
-      <select
-        value={selectedProduct}
-        onChange={(e) => {
-
-          const id = Number(e.target.value);
-
-          setSelectedProduct(id);
-          setQuantity(1);
-
-          const product =
-            products.find(
-              (p) => p.id === id
-            );
-
-          if (product) {
-
-            setPrice(
-              Number(product.cost_price)
-            );
-
-          } else {
-
-            setPrice(0);
-
+        <select
+          value={selectedSupplier}
+          onChange={(e) =>
+            setSelectedSupplier(e.target.value)
           }
-
-        }}
-        className="w-full border rounded-lg p-3"
-      >
-        <option value="">
-          Select Product
-        </option>
-
-        {products.map((product) => (
-
-          <option
-            key={product.id}
-            value={product.id}
-          >
-            {product.product_name}
+          className="w-full border rounded-lg p-3"
+        >
+          <option value="">
+            Select Supplier
           </option>
 
-        ))}
+          {suppliers.map((supplier) => (
+            <option
+              key={supplier.id}
+              value={supplier.id}
+            >
+              {supplier.supplier_name}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      </select>
+      {/* Add Products */}
+      <div className="border rounded-xl p-4 bg-gray-50">
+        <h2 className="font-semibold text-lg mb-4">
+          Add Products
+        </h2>
 
-      {/* Quantity */}
+        <div className="grid md:grid-cols-4 gap-3">
+          <select
+            value={selectedProduct}
+            onChange={(e) =>
+              handleProductChange(e.target.value)
+            }
+            className="w-full border rounded-lg p-3"
+          >
+            <option value="">
+              Select Product
+            </option>
 
-      <input
-        type="number"
-        min="1"
-        placeholder="Quantity"
-        value={quantity}
-        onChange={(e) =>
-          setQuantity(Number(e.target.value))
-        }
-        className="w-full border rounded-lg p-3"
-      />
+            {products.map((product) => (
+              <option
+                key={product.id}
+                value={product.id}
+              >
+                {product.product_name}
+              </option>
+            ))}
+          </select>
 
-      <Button
-        type="button"
-        onClick={addItem}
-      >
-        + Add Item
-      </Button>
+          <input
+            type="number"
+            min="1"
+            placeholder="Quantity"
+            value={quantity}
+            onChange={(e) =>
+              setQuantity(Number(e.target.value))
+            }
+            className="w-full border rounded-lg p-3"
+          />
 
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Purchase Price"
+            value={price}
+            onChange={(e) =>
+              setPrice(Number(e.target.value))
+            }
+            className="w-full border rounded-lg p-3"
+          />
 
-      {/* Discount */}
-
-      <input
-        type="number"
-        placeholder="Discount"
-        value={discount}
-        onChange={(e) =>
-          setDiscount(Number(e.target.value))
-        }
-        className="w-full border rounded-lg p-3"
-      />
-
-      {/* Tax */}
-
-      <input
-        type="number"
-        placeholder="Tax"
-        value={tax}
-        onChange={(e) =>
-          setTax(Number(e.target.value))
-        }
-        className="w-full border rounded-lg p-3"
-      />
+          <Button
+            type="button"
+            onClick={addItem}
+          >
+            + Add Item
+          </Button>
+        </div>
+      </div>
 
       {/* Purchase Items */}
+      <div className="border rounded-xl overflow-hidden">
+        <div className="bg-gray-100 p-4">
+          <h2 className="font-semibold text-lg">
+            Purchase Items
+          </h2>
+        </div>
 
-      <div className="mt-6">
-
-        <h3 className="text-lg font-semibold mb-3">
-          Purchase Items
-        </h3>
-
-        <div className="border rounded-lg overflow-hidden">
-
-          <table className="w-full">
-
-            <thead className="bg-gray-100">
-
-              <tr>
-
-                <th className="p-3 text-left">
-                  Product
-                </th>
-
-                <th className="p-3 text-center">
-                  Qty
-                </th>
-
-                <th className="p-3 text-right">
-                  Price
-                </th>
-
-                <th className="p-3 text-right">
-                  Total
-                </th>
-
-                <th className="p-3 text-center">
-                  Action
-                </th>
-
-              </tr>
-
-            </thead>
-
-            <tbody>
-
-              {items.length === 0 ? (
-
+        {items.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            No products added yet.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
                 <tr>
+                  <th className="p-3 text-left">
+                    Product
+                  </th>
 
-                  <td
-                    colSpan="5"
-                    className="text-center p-6 text-gray-500"
-                  >
-                    No Items Added
-                  </td>
+                  <th className="p-3 text-center">
+                    Quantity
+                  </th>
 
+                  <th className="p-3 text-right">
+                    Price
+                  </th>
+
+                  <th className="p-3 text-right">
+                    Total
+                  </th>
+
+                  <th className="p-3 text-center">
+                    Action
+                  </th>
                 </tr>
+              </thead>
 
-              ) : (
-
-                items.map((item, index) => (
-
+              <tbody>
+                {items.map((item) => (
                   <tr
-                    key={index}
+                    key={item.product_id}
                     className="border-t"
                   >
-
-                    <td className="p-3">
+                    <td className="p-3 font-medium">
                       {item.product_name}
                     </td>
 
                     <td className="p-3 text-center">
-                      {item.quantity}
+                      <input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          updateItemQuantity(
+                            item.product_id,
+                            e.target.value
+                          )
+                        }
+                        className="w-24 border rounded-lg p-2 text-center"
+                      />
                     </td>
 
                     <td className="p-3 text-right">
-                      PKR {item.price}
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={item.price}
+                        onChange={(e) =>
+                          updateItemPrice(
+                            item.product_id,
+                            e.target.value
+                          )
+                        }
+                        className="w-32 border rounded-lg p-2 text-right"
+                      />
                     </td>
 
-                    <td className="p-3 text-right">
-                      PKR {item.total}
+                    <td className="p-3 text-right font-medium">
+                      PKR{" "}
+                      {Number(item.total).toFixed(2)}
                     </td>
 
                     <td className="p-3 text-center">
-
                       <button
                         type="button"
-                        onClick={() => removeItem(index)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                        onClick={() =>
+                          removeItem(item.product_id)
+                        }
+                        className="text-red-600 hover:text-red-800 font-medium"
                       >
                         Remove
                       </button>
-
                     </td>
-
                   </tr>
-
-                ))
-
-              )}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
+      {/* Discount & Tax */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <label className="block font-medium mb-2">
+            Discount
+          </label>
 
-      {/* Total */}
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={discount}
+            onChange={(e) =>
+              setDiscount(Number(e.target.value))
+            }
+            className="w-full border rounded-lg p-3"
+          />
+        </div>
 
-      <div className="bg-gray-100 rounded-lg p-4">
+        <div>
+          <label className="block font-medium mb-2">
+            Tax
+          </label>
 
-        <h2 className="font-semibold">
-          Total
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={tax}
+            onChange={(e) =>
+              setTax(Number(e.target.value))
+            }
+            className="w-full border rounded-lg p-3"
+          />
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div className="bg-gray-100 rounded-xl p-5">
+        <h2 className="font-semibold text-lg mb-3">
+          Purchase Summary
         </h2>
 
         <div className="space-y-2">
+          <p>
+            Products:{" "}
+            <strong>{items.length}</strong>
+          </p>
 
           <p>
-            Subtotal: PKR {subtotal}
-          </p>
-          <p className="text-2xl font-bold">
-            Total: PKR {total}
+            Total Quantity:{" "}
+            <strong>{totalQuantity}</strong>
           </p>
 
+          <p>
+            Subtotal:{" "}
+            <strong>
+              PKR {subtotal.toFixed(2)}
+            </strong>
+          </p>
+
+          <p>
+            Discount:{" "}
+            <strong>
+              PKR {Number(discount || 0).toFixed(2)}
+            </strong>
+          </p>
+
+          <p>
+            Tax:{" "}
+            <strong>
+              PKR {Number(tax || 0).toFixed(2)}
+            </strong>
+          </p>
+
+          <p className="text-xl font-bold">
+            Grand Total: PKR {total.toFixed(2)}
+          </p>
         </div>
-
       </div>
 
+      {/* Save */}
       <div className="flex justify-end">
-
-        <Button type="submit">
-          Save Purchase
+        <Button
+          type="submit"
+          disabled={loading}
+        >
+          {loading
+            ? "Saving Purchase..."
+            : "Save Purchase"}
         </Button>
-
       </div>
-
     </form>
   );
 }
