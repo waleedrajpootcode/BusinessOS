@@ -90,35 +90,26 @@ export async function saveSaleItems(items) {
   return data;
 
 }
-export async function updateProductStock(productId, quantity) {
-
-  const { data: product, error: fetchError } = await supabase
-    .from("products")
-    .select("stock")
-    .eq("id", productId)
-    .single();
-
-  if (fetchError) {
-    console.error(fetchError);
-    throw fetchError;
-  }
-
-  const newStock = product.stock - quantity;
-
-  if (newStock < 0) {
-    throw new Error("Not enough stock available.");
-  }
-
-  const { data, error } = await supabase
-    .from("products")
-    .update({
-      stock: newStock,
-    })
-    .eq("id", productId)
-    .select();
+export async function updateProductStock(
+  productId,
+  quantity,
+  saleId
+) {
+  const { data, error } = await supabase.rpc(
+    "decrease_stock_with_movement",
+    {
+      p_product_id: Number(productId),
+      p_quantity: Number(quantity),
+      p_sale_id: Number(saleId),
+    }
+  );
 
   if (error) {
-    console.error(error);
+    console.error(
+      "Decrease Stock Error:",
+      error
+    );
+
     throw error;
   }
 

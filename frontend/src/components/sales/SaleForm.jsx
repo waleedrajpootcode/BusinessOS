@@ -247,10 +247,11 @@ function SaleForm({ onSuccess }) {
 
       // Reduce stock for every product in this invoice
       for (const item of cart) {
-        await updateProductStock(
-          Number(item.product_id),
-          Number(item.quantity)
-        );
+await updateProductStock(
+  Number(item.product_id),
+  Number(item.quantity),
+  Number(sale.id)
+);
       }
 
       alert(
