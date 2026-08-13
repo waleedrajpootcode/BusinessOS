@@ -7,11 +7,11 @@ import {
   getCustomersForSale,
   generateInvoiceNumber,
   saveSale,
-  saveSaleItems,
-  updateProductStock,
 } from "../../services/sales";
+import { useBusiness } from "../../context/BusinessContext";
 
 function SaleForm({ onSuccess }) {
+  const { business } = useBusiness();
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
 
@@ -100,10 +100,10 @@ function SaleForm({ onSuccess }) {
         return currentCart.map((cartItem) =>
           Number(cartItem.product_id) === Number(product.id)
             ? {
-                ...cartItem,
-                quantity:
-                  Number(cartItem.quantity) + Number(quantity),
-              }
+              ...cartItem,
+              quantity:
+                Number(cartItem.quantity) + Number(quantity),
+            }
             : cartItem
         );
       }
@@ -152,9 +152,9 @@ function SaleForm({ onSuccess }) {
       currentCart.map((item) =>
         Number(item.product_id) === Number(productId)
           ? {
-              ...item,
-              quantity: quantityValue,
-            }
+            ...item,
+            quantity: quantityValue,
+          }
           : item
       )
     );
@@ -170,7 +170,7 @@ function SaleForm({ onSuccess }) {
     (sum, item) =>
       sum +
       (Number(item.price) - Number(item.cost_price)) *
-        Number(item.quantity),
+      Number(item.quantity),
     0
   );
 
@@ -184,6 +184,11 @@ function SaleForm({ onSuccess }) {
 
     if (!selectedCustomer) {
       alert("Please select a customer.");
+      return;
+    }
+
+    if (!business?.id) {
+      alert("Business information is not available. Please try again.");
       return;
     }
 
@@ -208,51 +213,27 @@ function SaleForm({ onSuccess }) {
       const invoiceNo = await generateInvoiceNumber();
 
       // One sale/header for the complete invoice
-      const sale = await saveSale({
-        invoice_no: invoiceNo,
-        customer_id: Number(selectedCustomer),
-        subtotal: subtotal,
-        discount: Number(discount || 0),
-        tax: Number(tax || 0),
-        total: total,
-        profit: totalProfit,
-        payment_method: "Cash",
-        status: "Pending",
-      });
+      const saleItems = cart.map((item) => ({
+  product_id: Number(item.product_id),
+  quantity: Number(item.quantity),
+  cost_price: Number(item.cost_price),
+  price: Number(item.price),
+}));
 
-      // Multiple products/items under the same sale
-      const saleItems = cart.map((item) => {
-        const profitPerUnit =
-          Number(item.price) - Number(item.cost_price);
-
-        const itemTotal =
-          Number(item.price) * Number(item.quantity);
-
-        const itemProfit =
-          profitPerUnit * Number(item.quantity);
-
-        return {
-          sale_id: sale.id,
-          product_id: Number(item.product_id),
-          quantity: Number(item.quantity),
-          cost_price: Number(item.cost_price),
-          price: Number(item.price),
-          profit_per_unit: profitPerUnit,
-          total_profit: itemProfit,
-          total: itemTotal,
-        };
-      });
-
-      await saveSaleItems(saleItems);
-
-      // Reduce stock for every product in this invoice
-      for (const item of cart) {
-await updateProductStock(
-  Number(item.product_id),
-  Number(item.quantity),
-  Number(sale.id)
+await saveSale(
+  {
+    invoice_no: invoiceNo,
+    customer_id: Number(selectedCustomer),
+    subtotal: subtotal,
+    discount: Number(discount || 0),
+    tax: Number(tax || 0),
+    total: total,
+    profit: totalProfit,
+    payment_method: "Cash",
+    status: "Pending",
+  },
+  saleItems
 );
-      }
 
       alert(
         `Sale Saved Successfully ✅\nInvoice: ${invoiceNo}\nItems: ${cart.length}`
@@ -273,7 +254,7 @@ await updateProductStock(
 
       alert(
         error?.message ||
-          "Something went wrong while saving the sale."
+        "Something went wrong while saving the sale."
       );
     } finally {
       setLoading(false);

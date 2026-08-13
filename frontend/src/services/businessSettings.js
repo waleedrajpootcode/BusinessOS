@@ -4,11 +4,10 @@ export async function getBusinessSettings() {
   const { data, error } = await supabase
     .from("business_settings")
     .select("*")
-    .limit(1)
     .maybeSingle();
 
   if (error) {
-    console.error(error);
+    console.error("Business settings error:", error);
     return null;
   }
 

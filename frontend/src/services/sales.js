@@ -46,28 +46,29 @@ export async function generateInvoiceNumber() {
 
   return `INV-${year}${month}${day}-${random}`;
 }
-export async function saveSale(sale) {
-
-  const { data, error } = await supabase
-
-    .from("sales")
-
-    .insert([sale])
-
-    .select()
-
-    .single();
+export async function saveSale(sale, items) {
+  const { data, error } = await supabase.rpc(
+    "create_sale_safe",
+    {
+      p_invoice_no: sale.invoice_no,
+      p_customer_id: Number(sale.customer_id),
+      p_subtotal: Number(sale.subtotal),
+      p_discount: Number(sale.discount || 0),
+      p_tax: Number(sale.tax || 0),
+      p_total: Number(sale.total),
+      p_profit: Number(sale.profit || 0),
+      p_payment_method: sale.payment_method || "Cash",
+      p_status: sale.status || "Pending",
+      p_items: items,
+    }
+  );
 
   if (error) {
-
-    console.error(error);
-
+    console.error("Create sale RPC error:", error);
     throw error;
-
   }
 
   return data;
-
 }
 export async function saveSaleItems(items) {
 
@@ -116,32 +117,32 @@ export async function updateProductStock(
   return data;
 }
 export async function getSales() {
-
-  const { data, error } = await supabase
-
-    .from("sales")
-
-    .select(`
-      *,
-      customers (
-        full_name
-      )
-    `)
-
-    .order("id", {
-      ascending: false,
-    });
+  const { data, error } = await supabase.rpc(
+    "get_sales_with_payment_summary"
+  );
 
   if (error) {
-
-    console.error(error);
-
+    console.error("Get sales RPC error:", error);
     return [];
-
   }
 
-  return data;
+  return (data || []).map((sale) => ({
+    ...sale,
 
+    id: sale.sale_id,
+
+    total: Number(sale.invoice_total || 0),
+
+    total_paid: Number(sale.total_paid || 0),
+
+    outstanding: Number(sale.outstanding || 0),
+
+    status: sale.payment_status,
+
+    customers: {
+      full_name: sale.customer_name || "Unknown Customer",
+    },
+  }));
 }
 export async function getSalesCount() {
 
