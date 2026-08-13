@@ -214,10 +214,6 @@ async function downloadPDF() {
 
                                 <th className="p-3 text-right">Price</th>
 
-                                <th className="p-3 text-right">Cost</th>
-
-                                <th className="p-3 text-right">Profit</th>
-
                                 <th className="p-3 text-right">Total</th>
 
                             </tr>
@@ -245,14 +241,6 @@ async function downloadPDF() {
                                         PKR {Number(item.price).toLocaleString()}
                                     </td>
 
-                                    <td className="p-3 text-right">
-                                        PKR {Number(item.cost_price).toLocaleString()}
-                                    </td>
-
-                                    <td className="p-3 text-right text-green-600 font-semibold">
-                                        PKR {Number(item.total_profit).toLocaleString()}
-                                    </td>
-
                                     <td className="p-3 text-right font-semibold">
                                         PKR {Number(item.total).toLocaleString()}
                                     </td>
@@ -268,6 +256,69 @@ async function downloadPDF() {
                 </div>
 
             </div>
+                            {/* Invoice Summary */}
+
+                <div className="mt-8 flex justify-end">
+
+                    <div className="w-full md:w-96 bg-gray-50 border rounded-xl p-5">
+
+                        <h3 className="text-lg font-bold mb-4">
+                            Invoice Summary
+                        </h3>
+
+                        <div className="space-y-3">
+
+                            <div className="flex justify-between">
+                                <span>Subtotal</span>
+
+                                <strong>
+                                    PKR{" "}
+                                    {Number(
+                                        invoice?.subtotal || 0
+                                    ).toLocaleString()}
+                                </strong>
+                            </div>
+
+                            <div className="flex justify-between">
+                                <span>Discount</span>
+
+                                <strong>
+                                    PKR{" "}
+                                    {Number(
+                                        invoice?.discount || 0
+                                    ).toLocaleString()}
+                                </strong>
+                            </div>
+
+                            <div className="flex justify-between">
+                                <span>Tax</span>
+
+                                <strong>
+                                    PKR{" "}
+                                    {Number(
+                                        invoice?.tax || 0
+                                    ).toLocaleString()}
+                                </strong>
+                            </div>
+
+                            <hr />
+
+                            <div className="flex justify-between text-xl font-bold">
+                                <span>Grand Total</span>
+
+                                <span>
+                                    PKR{" "}
+                                    {Number(
+                                        invoice?.total || 0
+                                    ).toLocaleString()}
+                                </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
 
         </Layout>
     );
