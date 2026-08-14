@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase";
-
+import { getCurrentBusinessId } from "./currentBusiness";
 
 export async function getProductsForPurchase() {
 
@@ -51,27 +51,25 @@ export async function generatePurchaseNumber() {
 
 }
 export async function savePurchase(purchase) {
+  const businessId = await getCurrentBusinessId();
+
+  const purchasePayload = {
+    ...purchase,
+    business_id: businessId,
+  };
 
   const { data, error } = await supabase
-
     .from("purchases")
-
-    .insert([purchase])
-
+    .insert([purchasePayload])
     .select()
-
     .single();
 
   if (error) {
-
-    console.error(error);
-
+    console.error("Save Purchase Error:", error);
     throw error;
-
   }
 
   return data;
-
 }
 export async function savePurchaseItems(items) {
 

@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { getCurrentBusinessId } from "./currentBusiness";
 
 export async function getCustomers() {
   const { data, error } = await supabase
@@ -15,13 +16,20 @@ export async function getCustomers() {
 }
 
 export async function addCustomer(customer) {
+  const businessId = await getCurrentBusinessId();
+
+  const customerPayload = {
+    ...customer,
+    business_id: businessId,
+  };
+
   const { data, error } = await supabase
     .from("customers")
-    .insert([customer])
+    .insert([customerPayload])
     .select();
 
   if (error) {
-    console.error(error);
+    console.error("Add Customer Error:", error);
     throw error;
   }
 

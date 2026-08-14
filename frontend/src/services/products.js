@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { getCurrentBusinessId } from "./currentBusiness";
 
 export async function getProductsCount() {
   const { count, error } = await supabase
@@ -16,12 +17,20 @@ export async function getProductsCount() {
   return count;
 }
 export async function addProduct(product) {
+  const businessId = await getCurrentBusinessId();
+
+  const productPayload = {
+    ...product,
+    business_id: businessId,
+  };
+
   const { data, error } = await supabase
     .from("products")
-    .insert([product]);
+    .insert([productPayload])
+    .select();
 
   if (error) {
-    console.error(error);
+    console.error("Add Product Error:", error);
     throw error;
   }
 
