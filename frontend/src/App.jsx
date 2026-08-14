@@ -6,6 +6,7 @@ import { Routes, Route } from 'react-router-dom'
 import ProtectedRoute from "./components/ProtectedRoute";
 import Products from "./pages/Products";
 import Customers from "./pages/Customers";
+import CustomerLedger from "./pages/CustomerLedger";
 import Sales from "./pages/Sales";
 import Suppliers from "./pages/Suppliers";
 import Purchases from "./pages/Purchases";
@@ -52,6 +53,15 @@ function App() {
           element={<Customers />}
         />
         <Route
+          path="/customer-ledger/:id"
+          element={
+            <ProtectedRoute>
+              <CustomerLedger />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/sales"
           element={<Sales />}
         />
@@ -72,9 +82,9 @@ function App() {
           }
         />
         <Route
-  path="/purchases/:id/edit"
-  element={<EditPurchase />}
-/>
+          path="/purchases/:id/edit"
+          element={<EditPurchase />}
+        />
 
         <Route
           path="/inventory"

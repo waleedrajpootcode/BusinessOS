@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, BookOpen } from "lucide-react";
 
 function CustomerTable({
   customers,
@@ -58,6 +58,16 @@ function CustomerTable({
                       className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
                     >
                       <Trash2 size={18} />
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        window.location.href = `/customer-ledger/${customer.id}`
+                      }
+                      title="Customer Udhaar Ledger"
+                      className="bg-green-500 hover:bg-green-600 text-white p-2 rounded"
+                    >
+                      <BookOpen size={18} />
                     </button>
 
                   </div>
