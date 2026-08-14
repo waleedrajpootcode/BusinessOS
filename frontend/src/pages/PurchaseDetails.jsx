@@ -11,7 +11,6 @@ function PurchaseDetails() {
     const [purchase, setPurchase] = useState(null);
     const { business } = useBusiness();
 
-
     async function downloadPDF() {
         if (!purchase) return;
 
@@ -33,275 +32,318 @@ function PurchaseDetails() {
     }
 
     useEffect(() => {
-
         async function loadPurchase() {
-
-            const data = await getPurchaseDetails(id);
-
-            setPurchase(data);
-
+            try {
+                const data = await getPurchaseDetails(id);
+                setPurchase(data);
+            } catch (error) {
+                console.error(
+                    "Purchase Details Error:",
+                    error
+                );
+            }
         }
 
         loadPurchase();
-
     }, [id]);
 
     if (!purchase) {
-
         return (
-
             <Layout>
-
                 <div className="p-6">
-
                     Loading...
-
                 </div>
-
             </Layout>
-
         );
-
     }
 
     return (
-
         <Layout>
+            <div className="p-6">
 
-            <div className="p-6 print-area print:p-3">
+                {/* Print Area */}
+                <div className="print-area max-w-5xl mx-auto bg-white">
 
-                <div className="flex justify-end mb-6 print:mb-2">
-                    <button
-                        type="button"
-                        onClick={() => window.print()}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
-                    >
-                        🖨️ Print Invoice
-                    </button>
+                    {/* Action Buttons */}
+                    <div className="flex justify-end gap-3 mb-6 print:hidden">
+                        <button
+                            type="button"
+                            onClick={() => window.print()}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
+                        >
+                            🖨️ Print Invoice
+                        </button>
 
-
-                    <button
-                        type="button"
-                        onClick={downloadPDF}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
-                    >
-                        📄 Download PDF
-                    </button>
-
-
-                </div>
-
-                <div className="bg-white rounded-xl shadow p-6">
-
-                    <div className="flex items-center justify-between">
-
-                        <div>
-                            <h1 className="text-3xl font-bold">
-                                RRAW Business OS
-                            </h1>
-
-                            <p className="text-gray-500 mt-1">
-                                Business Management System
-                            </p>
-                        </div>
-
-                        <div className="text-right">
-                            <h2 className="text-3xl font-bold text-blue-600">
-                                INVOICE
-                            </h2>
-
-                            <p className="text-gray-500 mt-1">
-                                Purchase Invoice
-                            </p>
-                        </div>
-
+                        <button
+                            type="button"
+                            onClick={downloadPDF}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
+                        >
+                            📄 Download PDF
+                        </button>
                     </div>
 
-                    <div className="border-t mt-6 pt-4">
+                    {/* Invoice Header */}
+                    <div className="invoice-section bg-white rounded-xl shadow border p-8">
 
-                        <p className="text-sm text-gray-500">
-                            Thank you for doing business with us.
-                        </p>
+                        <div className="flex items-start justify-between gap-8">
 
-                    </div>
+                            {/* Business Information */}
+                            <div className="flex items-start gap-4">
 
-                </div>
+                                {business?.logo && (
+                                    <img
+                                        src={business.logo}
+                                        alt={
+                                            business?.business_name ||
+                                            "Business Logo"
+                                        }
+                                        className="w-20 h-20 object-contain"
+                                    />
+                                )}
 
-                <div className="mt-6 bg-white rounded-xl shadow p-6 print:mt-2 print:p-3">
+                                <div>
+                                    <h1 className="text-2xl font-bold">
+                                        {business?.business_name ||
+                                            "BusinessOS"}
+                                    </h1>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {business?.address && (
+                                        <p className="text-gray-500 mt-2">
+                                            {business.address}
+                                        </p>
+                                    )}
 
-                        <div>
-                            <p className="text-sm text-gray-500">
-                                Invoice Number
-                            </p>
+                                    {business?.email && (
+                                        <p className="text-gray-600 mt-1">
+                                            {business.email}
+                                        </p>
+                                    )}
 
-                            <p className="text-lg font-semibold mt-1">
-                                {purchase.invoice_no}
-                            </p>
-                        </div>
+                                    {business?.phone && (
+                                        <p className="text-gray-600 mt-1">
+                                            {business.phone}
+                                        </p>
+                                    )}
+                                </div>
 
-                        <div>
-                            <p className="text-sm text-gray-500">
-                                Supplier
-                            </p>
-
-                            <p className="text-lg font-semibold mt-1">
-                                {purchase.suppliers?.supplier_name}
-                            </p>
-                        </div>
-
-                        <div>
-                            <p className="text-sm text-gray-500">
-                                Purchase Date
-                            </p>
-
-                            <p className="text-lg font-semibold mt-1">
-                                {new Date(
-                                    purchase.created_at
-                                ).toLocaleDateString()}
-                            </p>
-                        </div>
-
-                        <div>
-                            <p className="text-sm text-gray-500">
-                                Status
-                            </p>
-
-                            <div className="mt-2">
-                                <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-medium">
-                                    {purchase.status}
-                                </span>
                             </div>
+
+                            {/* Invoice Title */}
+                            <div className="text-right">
+
+                                <h2 className="text-3xl font-bold">
+                                    INVOICE
+                                </h2>
+
+                                <p className="text-gray-500 mt-2">
+                                    Purchase Invoice
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <hr className="my-6" />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                            <div>
+                                <p className="text-sm text-gray-500">
+                                    Invoice Number
+                                </p>
+
+                                <p className="text-lg font-semibold mt-1">
+                                    {purchase.invoice_no}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-sm text-gray-500">
+                                    Supplier
+                                </p>
+
+                                <p className="text-lg font-semibold mt-1">
+                                    {purchase.suppliers?.supplier_name ||
+                                        "Supplier"}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-sm text-gray-500">
+                                    Purchase Date
+                                </p>
+
+                                <p className="text-lg font-semibold mt-1">
+                                    {new Date(
+                                        purchase.created_at
+                                    ).toLocaleDateString()}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-sm text-gray-500">
+                                    Status
+                                </p>
+
+                                <p className="text-lg font-semibold mt-1">
+                                    {purchase.status}
+                                </p>
+                            </div>
+
                         </div>
 
                     </div>
 
-                </div>
+                    {/* Purchase Items */}
+                    <div className="invoice-section mt-6 bg-white rounded-xl shadow border overflow-hidden">
 
-                <h2 className="text-xl font-bold mt-8 mb-4 print:mt-3 print:mb-2">
-                    Purchase Items
-                </h2>
+                        <div className="p-6 border-b">
+                            <h2 className="text-xl font-bold">
+                                Purchase Items
+                            </h2>
+                        </div>
 
-                <div className="mt-8 bg-white rounded-xl shadow overflow-hidden print:mt-2">
+                        <div className="invoice-table-wrapper overflow-x-auto">
 
-                    <table className="w-full">
+                            <table className="w-full border-collapse">
 
-                        <thead className="bg-gray-50 border-b">
+                                <thead className="bg-gray-50 border-b">
 
-                            <tr>
+                                    <tr>
 
-                                <th className="p-4 text-left">
-                                    Product
-                                </th>
+                                        <th className="p-4 text-left">
+                                            Product
+                                        </th>
 
-                                <th className="p-4 text-center">
-                                    Qty
-                                </th>
+                                        <th className="p-4 text-center">
+                                            Qty
+                                        </th>
 
-                                <th className="p-4 text-right">
-                                    Price
-                                </th>
+                                        <th className="p-4 text-right">
+                                            Price
+                                        </th>
 
-                                <th className="p-4 text-right">
-                                    Total
-                                </th>
+                                        <th className="p-4 text-right">
+                                            Total
+                                        </th>
 
-                            </tr>
+                                    </tr>
 
-                        </thead>
+                                </thead>
 
-                        <tbody>
+                                <tbody>
 
-                            {purchase.purchase_items?.map((item) => (
+                                    {purchase.purchase_items?.map(
+                                        (item) => (
+                                            <tr
+                                                key={item.id}
+                                                className="border-b"
+                                            >
 
-                                <tr
-                                    key={item.id}
-                                    className="border-b hover:bg-gray-50 transition"
-                                >
+                                                <td className="p-4 font-medium">
+                                                    {
+                                                        item.products
+                                                            ?.product_name
+                                                    }
+                                                </td>
 
-                                    <td className="p-4 font-medium print:p-2">
+                                                <td className="p-4 text-center">
+                                                    {item.quantity}
+                                                </td>
 
-                                        {item.products?.product_name}
+                                                <td className="p-4 text-right">
+                                                    PKR{" "}
+                                                    {Number(
+                                                        item.price || 0
+                                                    ).toLocaleString()}
+                                                </td>
 
-                                    </td>
+                                                <td className="p-4 text-right font-semibold">
+                                                    PKR{" "}
+                                                    {Number(
+                                                        item.total || 0
+                                                    ).toLocaleString()}
+                                                </td>
 
-                                    <td className="p-4 text-center print:p-2">
+                                            </tr>
+                                        )
+                                    )}
 
-                                        {item.quantity}
+                                </tbody>
 
-                                    </td>
-
-                                    <td className="p-4 text-right font-mono print:p-2">
-                                        PKR {Number(item.price).toLocaleString()}
-                                    </td>
-
-                                    <td className="p-4 text-right font-semibold print:p-2">
-                                        PKR {Number(item.total).toLocaleString()}
-                                    </td>
-
-                                </tr>
-
-                            ))}
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-                <div className="mt-8 flex justify-end pb-8 print:mt-3 print:pb-2">
-
-
-                    <div className="w-96 bg-white rounded-xl shadow p-6 print:p-3">
-
-                        <div className="flex justify-between py-2 print:py-1">
-
-                            <span>Subtotal</span>
-
-                            <span>
-
-                                PKR {Number(purchase.subtotal).toLocaleString()}
-
-                            </span>
+                            </table>
 
                         </div>
 
-                        <div className="flex justify-between py-2 print:py-1">
+                    </div>
 
-                            <span>Discount</span>
+                    {/* Invoice Summary */}
+                    <div className="invoice-section mt-6 flex justify-end pb-8">
 
-                            <span>
+                        <div className="w-full md:w-96 bg-white rounded-xl shadow border p-6">
 
-                                PKR {Number(purchase.discount).toLocaleString()}
+                            <h3 className="text-lg font-bold mb-4">
+                                Invoice Summary
+                            </h3>
 
-                            </span>
+                            <div className="space-y-3">
 
-                        </div>
+                                <div className="flex justify-between">
+                                    <span>
+                                        Subtotal
+                                    </span>
 
-                        <div className="flex justify-between py-2 print:py-1">
+                                    <strong>
+                                        PKR{" "}
+                                        {Number(
+                                            purchase.subtotal || 0
+                                        ).toLocaleString()}
+                                    </strong>
+                                </div>
 
-                            <span>Tax</span>
+                                <div className="flex justify-between">
+                                    <span>
+                                        Discount
+                                    </span>
 
-                            <span>
+                                    <strong>
+                                        PKR{" "}
+                                        {Number(
+                                            purchase.discount || 0
+                                        ).toLocaleString()}
+                                    </strong>
+                                </div>
 
-                                PKR {Number(purchase.tax).toLocaleString()}
+                                <div className="flex justify-between">
+                                    <span>
+                                        Tax
+                                    </span>
 
-                            </span>
+                                    <strong>
+                                        PKR{" "}
+                                        {Number(
+                                            purchase.tax || 0
+                                        ).toLocaleString()}
+                                    </strong>
+                                </div>
 
-                        </div>
+                                <hr />
 
-                        <hr className="my-4 print:my-2" />
+                                <div className="flex justify-between text-xl font-bold">
+                                    <span>
+                                        Grand Total
+                                    </span>
 
-                        <div className="flex justify-between text-xl font-bold text-blue-600 print:text-black">
+                                    <span>
+                                        PKR{" "}
+                                        {Number(
+                                            purchase.total || 0
+                                        ).toLocaleString()}
+                                    </span>
+                                </div>
 
-                            <span>Grand Total</span>
-
-                            <span>
-
-                                PKR {Number(purchase.total).toLocaleString()}
-
-                            </span>
+                            </div>
 
                         </div>
 
@@ -310,11 +352,8 @@ function PurchaseDetails() {
                 </div>
 
             </div>
-
         </Layout>
-
     );
-
 }
 
 export default PurchaseDetails;

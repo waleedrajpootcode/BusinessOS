@@ -101,3 +101,30 @@ export async function getCustomerCreditSummary(customerId) {
 
   return data || [];
 }
+export async function getCustomerPaymentHistory(saleIds) {
+  if (!saleIds || saleIds.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("customer_payments")
+    .select(`
+      id,
+      sale_id,
+      amount,
+      payment_method,
+      payment_date,
+      notes,
+      created_at
+    `)
+    .in("sale_id", saleIds)
+    .order("payment_date", { ascending: false })
+    .order("id", { ascending: false });
+
+  if (error) {
+    console.error("Customer payment history error:", error);
+    throw error;
+  }
+
+  return data || [];
+}
