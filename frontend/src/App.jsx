@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Products from "./pages/Products";
 import Customers from "./pages/Customers";
 import CustomerLedger from "./pages/CustomerLedger";
+import SupplierLedger from "./pages/SupplierLedger";
 import Sales from "./pages/Sales";
 import Suppliers from "./pages/Suppliers";
 import Purchases from "./pages/Purchases";
@@ -57,6 +58,15 @@ function App() {
           element={
             <ProtectedRoute>
               <CustomerLedger />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/supplier-ledger/:id"
+          element={
+            <ProtectedRoute>
+              <SupplierLedger />
             </ProtectedRoute>
           }
         />

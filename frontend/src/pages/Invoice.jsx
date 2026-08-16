@@ -1,10 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { generateInvoicePDF } from "../services/pdfInvoice";
 import { useBusiness } from "../context/BusinessContext";
 
 import Layout from "../components/dashboard/Layout";
-import Button from "../components/ui/Button";
 
 import {
     getInvoice,
@@ -12,213 +11,284 @@ import {
 } from "../services/invoice";
 
 function Invoice() {
-
     const { id } = useParams();
 
     const [invoice, setInvoice] = useState(null);
     const [items, setItems] = useState([]);
-    const { business } = useBusiness();
 
-    const invoiceRef = useRef(null);
+    const { business } = useBusiness();
 
     useEffect(() => {
         loadInvoice();
-    }, []);
+    }, [id]);
 
     async function loadInvoice() {
+        try {
+            const invoiceData = await getInvoice(id);
 
-        const invoiceData = await getInvoice(id);
+            if (!invoiceData) return;
 
-        if (!invoiceData) return;
+            setInvoice(invoiceData);
 
-        setInvoice(invoiceData);
+            const invoiceItems = await getInvoiceItems(id);
 
-        const invoiceItems = await getInvoiceItems(id);
+            setItems(invoiceItems || []);
 
-        setItems(invoiceItems);
-
-        console.log("Invoice:", invoiceData);
-        console.log("Items:", invoiceItems);
-
+            console.log("Invoice:", invoiceData);
+            console.log("Items:", invoiceItems);
+        } catch (error) {
+            console.error("Load Invoice Error:", error);
+        }
     }
 
-async function downloadPDF() {
-  if (!invoice) return;
+    async function downloadPDF() {
+        if (!invoice) return;
 
-  try {
-    await generateInvoicePDF(
-      invoice,
-      items,
-      business
-    );
-  } catch (error) {
-    console.error(
-      "PDF generation error:",
-      error
-    );
+        try {
+            await generateInvoicePDF(
+                invoice,
+                items,
+                business
+            );
+        } catch (error) {
+            console.error(
+                "PDF generation error:",
+                error
+            );
 
-    alert(
-      "Unable to generate invoice PDF."
-    );
-  }
-}
+            alert(
+                "Unable to generate invoice PDF."
+            );
+        }
+    }
+
+    if (!invoice) {
+        return (
+            <Layout>
+                <div className="p-6">
+                    Loading...
+                </div>
+            </Layout>
+        );
+    }
 
     return (
         <Layout>
 
-            <div
-                ref={invoiceRef}
-                className="print-area max-w-5xl mx-auto bg-white rounded-xl shadow border p-8"
-            >
+            <div className="p-6 print-area">
 
-                <h1 className="text-3xl font-bold">
-                    Sales Invoice
-                </h1>
+                {/* =========================
+                    ACTION BUTTONS
+                ========================= */}
 
-                <p className="text-gray-500 mt-2">
-                    Professional Invoice Preview
-                </p>
+                <div className="flex justify-end gap-3 mb-6 print:hidden">
 
-                <hr className="my-8" />
+                    <button
+                        type="button"
+                        onClick={() => window.print()}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
+                    >
+                        🖨️ Print Invoice
+                    </button>
 
-                <div className="grid md:grid-cols-2 gap-8">
+                    <button
+                        type="button"
+                        onClick={downloadPDF}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
+                    >
+                        📄 Download PDF
+                    </button>
 
-                    <div>
+                </div>
 
-                        {business?.logo && (
-                            <img
-                                src={business.logo}
-                                alt="Logo"
-                                className="w-20 h-20 object-contain mb-3"
-                            />
-                        )}
 
-                        <h2 className="text-2xl font-bold">
+                {/* =========================
+                    INVOICE HEADER
+                ========================= */}
 
-                            {business?.business_name || "BusinessOS"}
+                <div className="bg-white rounded-xl shadow p-6 print:shadow-none print:rounded-none print:p-3">
 
-                        </h2>
+                    <div className="flex items-center justify-between gap-6">
 
-                        <p className="text-gray-500 mt-2">
+                        {/* BUSINESS INFORMATION */}
 
-                            {business?.address || "Business Address"}
+                        <div className="flex items-start gap-4">
 
-                        </p>
+                            {business?.logo && (
+                                <img
+                                    src={business.logo}
+                                    alt="Business Logo"
+                                    className="w-20 h-20 object-contain"
+                                />
+                            )}
 
-                        <p>
+                            <div>
 
-                            {business?.email || "Email"}
+                                <h1 className="text-3xl font-bold">
+                                    {business?.business_name ||
+                                        "BusinessOS"}
+                                </h1>
 
-                        </p>
+                                <p className="text-gray-500 mt-1">
+                                    Business Management System
+                                </p>
 
-                        <p>
+                                {business?.address && (
+                                    <p className="text-sm text-gray-600 mt-2">
+                                        {business.address}
+                                    </p>
+                                )}
 
-                            {business?.phone || "Phone"}
+                                {business?.email && (
+                                    <p className="text-sm text-gray-600">
+                                        {business.email}
+                                    </p>
+                                )}
 
-                        </p>
+                                {business?.phone && (
+                                    <p className="text-sm text-gray-600">
+                                        {business.phone}
+                                    </p>
+                                )}
 
-                    </div>
-
-                    <div className="text-right">
-                        <div className="flex justify-end gap-3 mb-4">
-
-                            <Button
-                                onClick={() => window.print()}
-                            >
-                                🖨 Print
-                            </Button>
-
-                            <Button
-                                onClick={downloadPDF}
-                            >
-                                📄 Download PDF
-                            </Button>
+                            </div>
 
                         </div>
 
-                        <h2 className="text-3xl font-bold">
 
-                            INVOICE
+                        {/* INVOICE INFORMATION */}
 
-                        </h2>
+                        <div className="text-right">
 
-                        <p className="mt-4">
+                            <h2 className="text-3xl font-bold text-blue-600 print:text-black">
+                                INVOICE
+                            </h2>
 
-                            <strong>Invoice No:</strong>
+                            <p className="text-gray-500 mt-1">
+                                Sales Invoice
+                            </p>
 
-                            {" "}
+                            <div className="mt-4 space-y-1">
 
-                            {invoice?.invoice_no}
+                                <p>
+                                    <strong>
+                                        Invoice Number:
+                                    </strong>{" "}
+                                    {invoice.invoice_no}
+                                </p>
 
-                        </p>
+                                <p>
+                                    <strong>
+                                        Invoice Date:
+                                    </strong>{" "}
+                                    {new Date(
+                                        invoice.created_at
+                                    ).toLocaleDateString()}
+                                </p>
 
-                        <p>
+                                <p>
+                                    <strong>
+                                        Status:
+                                    </strong>{" "}
+                                    {invoice.status}
+                                </p>
 
-                            <strong>Date:</strong>
+                            </div>
 
-                            {" "}
+                        </div>
 
-                            {invoice
-                                ? new Date(
-                                    invoice.created_at
-                                ).toLocaleDateString()
-                                : ""}
+                    </div>
 
-                        </p>
 
-                        <p>
+                    <div className="border-t mt-6 pt-4">
 
-                            <strong>Status:</strong>
-
-                            {" "}
-
-                            {invoice?.status}
-
+                        <p className="text-sm text-gray-500">
+                            Thank you for doing business with us.
                         </p>
 
                     </div>
 
                 </div>
 
-                <hr className="my-8" />
 
-                <div>
+                {/* =========================
+                    CUSTOMER INFORMATION
+                ========================= */}
 
-                    <h3 className="text-lg font-bold mb-2">
+                <div className="mt-6 bg-white rounded-xl shadow p-6 print:mt-2 print:shadow-none print:rounded-none print:p-3">
 
-                        Bill To
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    </h3>
+                        <div>
 
-                    <p className="text-lg">
+                            <p className="text-sm text-gray-500">
+                                Bill To
+                            </p>
 
-                        {invoice?.customers?.full_name}
+                            <p className="text-lg font-semibold mt-1">
+                                {invoice.customers?.full_name ||
+                                    "Walk-in Customer"}
+                            </p>
 
-                    </p>
+                        </div>
+
+
+                        {invoice.customers?.phone && (
+                            <div>
+
+                                <p className="text-sm text-gray-500">
+                                    Customer Phone
+                                </p>
+
+                                <p className="text-lg font-semibold mt-1">
+                                    {invoice.customers.phone}
+                                </p>
+
+                            </div>
+                        )}
+
+                    </div>
 
                 </div>
 
-                <hr className="my-8" />
 
-                <div className="overflow-x-auto">
+                {/* =========================
+                    SALES ITEMS
+                ========================= */}
 
-                    <table className="w-full border border-gray-200">
+                <h2 className="text-xl font-bold mt-8 mb-4 print:mt-3 print:mb-2">
+                    Sale Items
+                </h2>
 
-                        <thead className="bg-gray-100">
+
+                <div className="mt-8 bg-white rounded-xl shadow overflow-hidden print:mt-2 print:shadow-none print:rounded-none">
+
+                    <table className="w-full">
+
+                        <thead className="bg-gray-50 border-b">
 
                             <tr>
 
-                                <th className="p-3 text-left">Product</th>
+                                <th className="p-4 text-left">
+                                    Product
+                                </th>
 
-                                <th className="p-3 text-center">Qty</th>
+                                <th className="p-4 text-center">
+                                    Qty
+                                </th>
 
-                                <th className="p-3 text-right">Price</th>
+                                <th className="p-4 text-right">
+                                    Price
+                                </th>
 
-                                <th className="p-3 text-right">Total</th>
+                                <th className="p-4 text-right">
+                                    Total
+                                </th>
 
                             </tr>
 
                         </thead>
+
 
                         <tbody>
 
@@ -226,23 +296,42 @@ async function downloadPDF() {
 
                                 <tr
                                     key={item.id}
-                                    className="border-t"
+                                    className="border-b"
                                 >
 
-                                    <td className="p-3">
-                                        {item.products?.product_name}
+                                    <td className="p-4 font-medium print:p-2">
+
+                                        {item.products?.product_name ||
+                                            item.product_name ||
+                                            "-"}
+
                                     </td>
 
-                                    <td className="p-3 text-center">
+
+                                    <td className="p-4 text-center print:p-2">
+
                                         {item.quantity}
+
                                     </td>
 
-                                    <td className="p-3 text-right">
-                                        PKR {Number(item.price).toLocaleString()}
+
+                                    <td className="p-4 text-right font-mono print:p-2">
+
+                                        PKR{" "}
+                                        {Number(
+                                            item.price || 0
+                                        ).toLocaleString()}
+
                                     </td>
 
-                                    <td className="p-3 text-right font-semibold">
-                                        PKR {Number(item.total).toLocaleString()}
+
+                                    <td className="p-4 text-right font-semibold print:p-2">
+
+                                        PKR{" "}
+                                        {Number(
+                                            item.total || 0
+                                        ).toLocaleString()}
+
                                     </td>
 
                                 </tr>
@@ -255,70 +344,86 @@ async function downloadPDF() {
 
                 </div>
 
-            </div>
-                            {/* Invoice Summary */}
 
-                <div className="mt-8 flex justify-end">
+                {/* =========================
+                    INVOICE SUMMARY
+                ========================= */}
 
-                    <div className="w-full md:w-96 bg-gray-50 border rounded-xl p-5">
+                <div className="mt-8 flex justify-end pb-8 print:mt-3 print:pb-2">
 
-                        <h3 className="text-lg font-bold mb-4">
-                            Invoice Summary
-                        </h3>
+                    <div className="w-96 bg-white rounded-xl shadow p-6 print:p-3 print:shadow-none print:rounded-none">
 
-                        <div className="space-y-3">
+                        <div className="flex justify-between py-2 print:py-1">
 
-                            <div className="flex justify-between">
-                                <span>Subtotal</span>
+                            <span>
+                                Subtotal
+                            </span>
 
-                                <strong>
-                                    PKR{" "}
-                                    {Number(
-                                        invoice?.subtotal || 0
-                                    ).toLocaleString()}
-                                </strong>
-                            </div>
+                            <span>
+                                PKR{" "}
+                                {Number(
+                                    invoice.subtotal || 0
+                                ).toLocaleString()}
+                            </span>
 
-                            <div className="flex justify-between">
-                                <span>Discount</span>
+                        </div>
 
-                                <strong>
-                                    PKR{" "}
-                                    {Number(
-                                        invoice?.discount || 0
-                                    ).toLocaleString()}
-                                </strong>
-                            </div>
 
-                            <div className="flex justify-between">
-                                <span>Tax</span>
+                        <div className="flex justify-between py-2 print:py-1">
 
-                                <strong>
-                                    PKR{" "}
-                                    {Number(
-                                        invoice?.tax || 0
-                                    ).toLocaleString()}
-                                </strong>
-                            </div>
+                            <span>
+                                Discount
+                            </span>
 
-                            <hr />
+                            <span>
+                                PKR{" "}
+                                {Number(
+                                    invoice.discount || 0
+                                ).toLocaleString()}
+                            </span>
 
-                            <div className="flex justify-between text-xl font-bold">
-                                <span>Grand Total</span>
+                        </div>
 
-                                <span>
-                                    PKR{" "}
-                                    {Number(
-                                        invoice?.total || 0
-                                    ).toLocaleString()}
-                                </span>
-                            </div>
+
+                        <div className="flex justify-between py-2 print:py-1">
+
+                            <span>
+                                Tax
+                            </span>
+
+                            <span>
+                                PKR{" "}
+                                {Number(
+                                    invoice.tax || 0
+                                ).toLocaleString()}
+                            </span>
+
+                        </div>
+
+
+                        <hr className="my-4 print:my-2" />
+
+
+                        <div className="flex justify-between text-xl font-bold text-blue-600 print:text-black">
+
+                            <span>
+                                Grand Total
+                            </span>
+
+                            <span>
+                                PKR{" "}
+                                {Number(
+                                    invoice.total || 0
+                                ).toLocaleString()}
+                            </span>
 
                         </div>
 
                     </div>
 
                 </div>
+
+            </div>
 
         </Layout>
     );

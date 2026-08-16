@@ -1,0 +1,396 @@
+/* =========================================================
+   BusinessOS - Global Print Layout
+   Central Print System
+   ========================================================= */
+
+@media print {
+
+  /* ---------------------------------------------------------
+     A4 PAGE
+     --------------------------------------------------------- */
+
+  @page {
+    size: A4;
+    margin: 8mm;
+  }
+
+
+  /* ---------------------------------------------------------
+     GLOBAL PRINT RESET
+     --------------------------------------------------------- */
+
+  html,
+  body,
+  #root {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    background: #ffffff !important;
+
+    overflow: visible !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     GLOBAL PRINT BOX RESET
+     --------------------------------------------------------- */
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     REMOVE SCREEN HEIGHT / SCROLL / CLIPPING
+     --------------------------------------------------------- */
+
+  body * {
+    overflow: visible !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     HIDE SCREEN-ONLY ELEMENTS
+     --------------------------------------------------------- */
+
+  aside,
+  nav,
+  header,
+  button,
+  [role="button"],
+  .no-print,
+  .print-hidden {
+    display: none !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     MAIN LAYOUT RESET
+     --------------------------------------------------------- */
+
+  main {
+    width: 100% !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    overflow: visible !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     PRINT AREA
+     --------------------------------------------------------- */
+
+  .print-area {
+    display: block !important;
+
+    width: 100% !important;
+    max-width: none !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    overflow: visible !important;
+
+    background: #ffffff !important;
+
+    box-shadow: none !important;
+    border: none !important;
+
+    position: static !important;
+
+    /*
+      IMPORTANT:
+      Do NOT force the entire invoice to stay on one page.
+    */
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     PRINT AREA CHILDREN
+     --------------------------------------------------------- */
+
+  .print-area > div,
+  .print-area section,
+  .print-area article {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    overflow: visible !important;
+
+    box-shadow: none !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     INVOICE SECTIONS
+     --------------------------------------------------------- */
+
+  .invoice-section {
+    width: 100% !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    overflow: visible !important;
+
+    box-shadow: none !important;
+
+    /*
+      Keep a complete section together
+      whenever it can fit on the current page.
+    */
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+
+    /*
+      Do not create a new page before the section.
+    */
+    break-before: auto !important;
+    page-break-before: auto !important;
+
+    /*
+      Do not force a new page after the section.
+    */
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     INVOICE TABLE WRAPPER
+     --------------------------------------------------------- */
+
+  .invoice-table-wrapper {
+    width: 100% !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    overflow: visible !important;
+
+    display: block !important;
+
+    /*
+      IMPORTANT:
+      Try to keep Invoice Summary with the table
+      when there is enough space remaining.
+    */
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     TABLE
+     --------------------------------------------------------- */
+
+  table {
+    width: 100% !important;
+    max-width: 100% !important;
+
+    border-collapse: collapse !important;
+
+    table-layout: auto !important;
+
+    margin: 0 !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     TABLE ROWS
+     --------------------------------------------------------- */
+
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     TABLE HEADER
+     --------------------------------------------------------- */
+
+  thead {
+    display: table-header-group !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     TABLE FOOTER
+     --------------------------------------------------------- */
+
+  tfoot {
+    display: table-footer-group !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     INVOICE HEADINGS
+     --------------------------------------------------------- */
+
+  .print-area h1,
+  .print-area h2,
+  .print-area h3 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     INVOICE HEADER
+     --------------------------------------------------------- */
+
+  .invoice-header {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+
+    break-before: auto !important;
+    page-break-before: auto !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     INVOICE SUMMARY
+     --------------------------------------------------------- */
+
+  .invoice-summary {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+
+    break-before: auto !important;
+    page-break-before: auto !important;
+
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     SUMMARY / SECTION SPACING
+     --------------------------------------------------------- */
+
+  .invoice-section.mt-6 {
+    margin-top: 4mm !important;
+  }
+
+
+  .invoice-section.pb-8 {
+    padding-bottom: 2mm !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     PRINT AREA CONTENT
+     --------------------------------------------------------- */
+
+  .print-area p,
+  .print-area div,
+  .print-area section,
+  .print-area article {
+    max-height: none !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     REMOVE SCREEN SHADOWS
+     --------------------------------------------------------- */
+
+  .print-area .shadow,
+  .print-area .shadow-sm,
+  .print-area .shadow-md,
+  .print-area .shadow-lg,
+  .print-area .shadow-xl,
+  .print-area .shadow-2xl {
+    box-shadow: none !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     LINKS
+     --------------------------------------------------------- */
+
+  .print-area a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     IMAGES / LOGOS
+     --------------------------------------------------------- */
+
+  .print-area img {
+    max-width: 100% !important;
+
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     FORM / SCREEN CONTROLS
+     --------------------------------------------------------- */
+
+  input,
+  textarea,
+  select {
+    appearance: none !important;
+
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     REMOVE SCREEN OVERFLOW
+     --------------------------------------------------------- */
+
+  .overflow-hidden,
+  .overflow-auto,
+  .overflow-x-auto,
+  .overflow-y-auto {
+    overflow: visible !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     REMOVE SCREEN HEIGHTS
+     --------------------------------------------------------- */
+
+  .h-screen,
+  .min-h-screen {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+
+  /* ---------------------------------------------------------
+     PRINT COLOR ACCURACY
+     --------------------------------------------------------- */
+
+  .print-area {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+}

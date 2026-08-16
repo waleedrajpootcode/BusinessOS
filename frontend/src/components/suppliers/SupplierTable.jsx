@@ -1,4 +1,5 @@
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, BookOpen } from "lucide-react";
+import { Link } from "react-router-dom";
 import Button from "../ui/Button";
 
 function SupplierTable({
@@ -79,25 +80,36 @@ function SupplierTable({
                   {supplier.address}
                 </td>
 
-                <td className="p-4 flex gap-2">
+               <td className="p-4 flex gap-2">
 
-                  {/* Edit */}
-                  <button
-                    onClick={() => onEdit(supplier)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
-                  >
-                    <Pencil size={18} />
-                  </button>
+  {/* Supplier Ledger */}
+  <Link
+    to={`/supplier-ledger/${supplier.id}`}
+    className="bg-green-500 hover:bg-green-600 text-white p-2 rounded"
+    title="Supplier Ledger"
+  >
+    <BookOpen size={18} />
+  </Link>
 
-                  {/* Delete */}
-                  <button
-                    onClick={() => onDelete(supplier.id)}
-                    className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+  {/* Edit */}
+  <button
+    onClick={() => onEdit(supplier)}
+    className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
+    title="Edit Supplier"
+  >
+    <Pencil size={18} />
+  </button>
 
-                </td>
+  {/* Delete */}
+  <button
+    onClick={() => onDelete(supplier.id)}
+    className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
+    title="Delete Supplier"
+  >
+    <Trash2 size={18} />
+  </button>
+
+</td>
 
               </tr>
 
