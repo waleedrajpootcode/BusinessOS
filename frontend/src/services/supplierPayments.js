@@ -64,20 +64,79 @@ export async function addSupplierPayment(payment) {
   }
 
   if (!purchaseId) {
-    throw new Error(
-      "Purchase ID is required."
-    );
+    throw new Error("Purchase ID is required.");
   }
 
   if (!amount || amount <= 0) {
-    throw new Error(
-      "Payment amount must be greater than 0."
-    );
+    throw new Error("Payment amount must be greater than 0.");
   }
 
   if (!payment.payment_method) {
+    throw new Error("Payment method is required.");
+  }
+
+  // Verify purchase belongs to current business
+  const { data: purchase, error: purchaseError } = await supabase
+    .from("purchases")
+    .select("id, business_id, total")
+    .eq("id", purchaseId)
+    .eq("business_id", businessId)
+    .maybeSingle();
+
+  if (purchaseError) {
+    console.error(
+      "Purchase Ownership Check Error:",
+      purchaseError
+    );
+
+    throw purchaseError;
+  }
+
+  if (!purchase) {
     throw new Error(
-      "Payment method is required."
+      "Purchase does not belong to the current business."
+    );
+  }
+
+  // Get current payment summary
+  const { data: summary, error: summaryError } = await supabase
+    .from("supplier_payment_summary")
+    .select("purchase_total, total_paid, outstanding")
+    .eq("purchase_id", purchaseId)
+    .eq("business_id", businessId)
+    .maybeSingle();
+
+  if (summaryError) {
+    console.error(
+      "Supplier Payment Summary Error:",
+      summaryError
+    );
+
+    throw summaryError;
+  }
+
+  const purchaseTotal = Number(
+    summary?.purchase_total ?? purchase.total ?? 0
+  );
+
+  const totalPaid = Number(
+    summary?.total_paid ?? 0
+  );
+
+  const outstanding = Math.max(
+    purchaseTotal - totalPaid,
+    0
+  );
+
+  if (outstanding <= 0) {
+    throw new Error(
+      "This purchase is already fully paid."
+    );
+  }
+
+  if (amount > outstanding) {
+    throw new Error(
+      `Payment cannot be greater than outstanding amount: PKR ${outstanding.toLocaleString()}`
     );
   }
 
