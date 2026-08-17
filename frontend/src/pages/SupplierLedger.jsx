@@ -5,6 +5,7 @@ import { ArrowLeft, CreditCard, X } from "lucide-react";
 import Layout from "../components/dashboard/Layout";
 import Button from "../components/ui/Button";
 import { supabase } from "../lib/supabase";
+import { getCurrentBusinessId } from "../services/currentBusiness";
 
 import {
     getSupplierPaymentSummary,
@@ -38,6 +39,8 @@ function SupplierLedger() {
         try {
             setLoading(true);
 
+            const businessId = await getCurrentBusinessId();
+
             // ============================
             // Validate Supplier ID
             // ============================
@@ -61,6 +64,7 @@ function SupplierLedger() {
                     "id, supplier_name, phone, email, address"
                 )
                 .eq("id", supplierId)
+                .eq("business_id", businessId)
                 .maybeSingle();
 
             if (supplierError) {
@@ -88,6 +92,7 @@ function SupplierLedger() {
                     id,
                     invoice_no,
                     supplier_id,
+                    business_id,
                     subtotal,
                     discount,
                     tax,
@@ -96,6 +101,7 @@ function SupplierLedger() {
                     created_at
                 `)
                 .eq("supplier_id", supplierId)
+                .eq("business_id", businessId)
                 .order("id", {
                     ascending: false,
                 });
@@ -135,6 +141,7 @@ function SupplierLedger() {
             );
 
             setPaymentSummaries(summaries);
+
         } catch (error) {
             console.error(
                 "Supplier ledger error:",

@@ -6,6 +6,18 @@ import { getCurrentBusinessId } from "./currentBusiness";
 =========================== */
 
 export async function getSupplierPayments(purchaseId) {
+  const businessId = await getCurrentBusinessId();
+
+  const purchaseIdNumber = Number(purchaseId);
+
+  if (!businessId) {
+    throw new Error("Business ID is required.");
+  }
+
+  if (!purchaseIdNumber) {
+    throw new Error("Purchase ID is required.");
+  }
+
   const { data, error } = await supabase
     .from("supplier_payments")
     .select(`
@@ -15,9 +27,11 @@ export async function getSupplierPayments(purchaseId) {
       payment_method,
       payment_date,
       notes,
-      created_at
+      created_at,
+      business_id
     `)
-    .eq("purchase_id", Number(purchaseId))
+    .eq("purchase_id", purchaseIdNumber)
+    .eq("business_id", businessId)
     .order("payment_date", {
       ascending: false,
     });
@@ -44,6 +58,10 @@ export async function addSupplierPayment(payment) {
 
   const purchaseId = Number(payment.purchase_id);
   const amount = Number(payment.amount);
+
+  if (!businessId) {
+    throw new Error("Business ID is required.");
+  }
 
   if (!purchaseId) {
     throw new Error(
@@ -100,6 +118,18 @@ export async function addSupplierPayment(payment) {
 export async function getSupplierPaymentSummary(
   purchaseId
 ) {
+  const businessId = await getCurrentBusinessId();
+
+  const purchaseIdNumber = Number(purchaseId);
+
+  if (!businessId) {
+    throw new Error("Business ID is required.");
+  }
+
+  if (!purchaseIdNumber) {
+    throw new Error("Purchase ID is required.");
+  }
+
   const { data, error } = await supabase
     .from("supplier_payment_summary")
     .select(`
@@ -112,7 +142,9 @@ export async function getSupplierPaymentSummary(
       outstanding,
       payment_status
     `)
-    .eq("purchase_id", Number(purchaseId));
+    .eq("purchase_id", purchaseIdNumber)
+    .eq("business_id", businessId)
+    .maybeSingle();
 
   if (error) {
     console.error(
@@ -123,7 +155,7 @@ export async function getSupplierPaymentSummary(
     throw error;
   }
 
-  return data?.[0] || null;
+  return data || null;
 }
 
 
@@ -134,6 +166,10 @@ export async function getSupplierPaymentSummary(
 export async function getAllSupplierPayments() {
   const businessId = await getCurrentBusinessId();
 
+  if (!businessId) {
+    throw new Error("Business ID is required.");
+  }
+
   const { data, error } = await supabase
     .from("supplier_payments")
     .select(`
@@ -143,7 +179,8 @@ export async function getAllSupplierPayments() {
       payment_method,
       payment_date,
       notes,
-      created_at
+      created_at,
+      business_id
     `)
     .eq("business_id", businessId)
     .order("payment_date", {
@@ -172,10 +209,22 @@ export async function deleteSupplierPayment(
 ) {
   const businessId = await getCurrentBusinessId();
 
+  const paymentIdNumber = Number(paymentId);
+
+  if (!businessId) {
+    throw new Error("Business ID is required.");
+  }
+
+  if (!paymentIdNumber) {
+    throw new Error(
+      "Payment ID is required."
+    );
+  }
+
   const { error } = await supabase
     .from("supplier_payments")
     .delete()
-    .eq("id", Number(paymentId))
+    .eq("id", paymentIdNumber)
     .eq("business_id", businessId);
 
   if (error) {
