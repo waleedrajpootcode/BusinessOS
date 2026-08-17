@@ -278,3 +278,166 @@ export async function getMonthlySalesCount() {
   }));
 
 }
+/* ===========================
+   Receivables Summary
+=========================== */
+
+export async function getReceivablesSummary() {
+  const { data, error } = await supabase
+    .from("customer_payment_summary")
+    .select(`
+      customer_id,
+      invoice_total,
+      total_paid,
+      outstanding
+    `);
+
+  if (error) {
+    console.error("Receivables Summary Error:", error);
+    return {
+      totalReceivable: 0,
+      totalCollected: 0,
+      customersWithDue: 0,
+    };
+  }
+
+  const rows = data || [];
+
+  const totalReceivable = rows.reduce(
+    (sum, item) =>
+      sum + Number(item.outstanding || 0),
+    0
+  );
+
+  const totalCollected = rows.reduce(
+    (sum, item) =>
+      sum + Number(item.total_paid || 0),
+    0
+  );
+
+  const customerIdsWithDue = new Set(
+    rows
+      .filter(
+        (item) => Number(item.outstanding || 0) > 0
+      )
+      .map((item) => Number(item.customer_id))
+  );
+
+  return {
+    totalReceivable,
+    totalCollected,
+    customersWithDue: customerIdsWithDue.size,
+  };
+}
+
+
+/* ===========================
+   Customer Receivables
+=========================== */
+
+export async function getCustomerReceivables() {
+  const { data, error } = await supabase
+    .from("customer_payment_summary")
+    .select(`
+      customer_id,
+      invoice_total,
+      total_paid,
+      outstanding
+    `);
+
+  if (error) {
+    console.error(
+      "Customer Receivables Error:",
+      error
+    );
+
+    return [];
+  }
+
+  const rows = data || [];
+
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const customerIds = [
+    ...new Set(
+      rows.map(
+        (item) => Number(item.customer_id)
+      )
+    ),
+  ];
+
+  const { data: customers, error: customerError } =
+    await supabase
+      .from("customers")
+      .select("id, full_name")
+      .in("id", customerIds);
+
+  if (customerError) {
+    console.error(
+      "Customer Receivables Customer Error:",
+      customerError
+    );
+
+    return [];
+  }
+
+  const customerMap = {};
+
+  (customers || []).forEach((customer) => {
+    customerMap[Number(customer.id)] =
+      customer.full_name;
+  });
+
+  const grouped = {};
+
+  rows.forEach((item) => {
+    const customerId = Number(
+      item.customer_id
+    );
+
+    if (!grouped[customerId]) {
+      grouped[customerId] = {
+        customer_id: customerId,
+        customer_name:
+          customerMap[customerId] ||
+          "Unknown Customer",
+        total_sales: 0,
+        total_paid: 0,
+        outstanding: 0,
+      };
+    }
+
+    grouped[customerId].total_sales +=
+      Number(item.invoice_total || 0);
+
+    grouped[customerId].total_paid +=
+      Number(item.total_paid || 0);
+
+    grouped[customerId].outstanding +=
+      Number(item.outstanding || 0);
+  });
+
+  return Object.values(grouped)
+    .map((customer) => {
+      let status = "Paid";
+
+      if (customer.outstanding > 0) {
+        if (customer.total_paid > 0) {
+          status = "Partial";
+        } else {
+          status = "Unpaid";
+        }
+      }
+
+      return {
+        ...customer,
+        status,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.outstanding - a.outstanding
+    );
+}
