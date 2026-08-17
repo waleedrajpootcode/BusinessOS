@@ -25,6 +25,9 @@ function SaleForm({ onSuccess }) {
   const [cart, setCart] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState("Unpaid");
+  const [paymentMethod, setPaymentMethod] = useState("Cash");
+
 
   useEffect(() => {
     async function loadData() {
@@ -214,26 +217,26 @@ function SaleForm({ onSuccess }) {
 
       // One sale/header for the complete invoice
       const saleItems = cart.map((item) => ({
-  product_id: Number(item.product_id),
-  quantity: Number(item.quantity),
-  cost_price: Number(item.cost_price),
-  price: Number(item.price),
-}));
+        product_id: Number(item.product_id),
+        quantity: Number(item.quantity),
+        cost_price: Number(item.cost_price),
+        price: Number(item.price),
+      }));
 
-await saveSale(
-  {
-    invoice_no: invoiceNo,
-    customer_id: Number(selectedCustomer),
-    subtotal: subtotal,
-    discount: Number(discount || 0),
-    tax: Number(tax || 0),
-    total: total,
-    profit: totalProfit,
-    payment_method: "Cash",
-    status: "Pending",
-  },
-  saleItems
-);
+      await saveSale(
+        {
+          invoice_no: invoiceNo,
+          customer_id: Number(selectedCustomer),
+          subtotal: subtotal,
+          discount: Number(discount || 0),
+          tax: Number(tax || 0),
+          total: total,
+          profit: totalProfit,
+          payment_method: paymentMethod,
+          status: paymentStatus,
+        },
+        saleItems
+      );
 
       alert(
         `Sale Saved Successfully ✅\nInvoice: ${invoiceNo}\nItems: ${cart.length}`
@@ -245,6 +248,8 @@ await saveSale(
       setDiscount(0);
       setTax(0);
       setCart([]);
+      setPaymentStatus("Unpaid");
+      setPaymentMethod("Cash");
 
       if (onSuccess) {
         onSuccess();
@@ -468,6 +473,113 @@ await saveSale(
             }
             className="w-full border rounded-lg p-3"
           />
+        </div>
+      </div>
+
+      {/* Payment Status & Method */}
+      <div className="border rounded-xl p-5 bg-gray-50">
+        <h2 className="font-semibold text-lg mb-4">
+          Payment
+        </h2>
+
+        {/* Payment Status */}
+        <div>
+          <label className="block font-medium mb-2">
+            Payment Status
+          </label>
+
+          <div className="grid md:grid-cols-2 gap-3">
+
+            <label
+              className={`border rounded-lg p-4 cursor-pointer ${paymentStatus === "Unpaid"
+                  ? "border-red-500 bg-red-50"
+                  : "bg-white"
+                }`}
+            >
+              <div className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="paymentStatus"
+                  value="Unpaid"
+                  checked={paymentStatus === "Unpaid"}
+                  onChange={(e) =>
+                    setPaymentStatus(e.target.value)
+                  }
+                />
+
+                <div>
+                  <p className="font-semibold">
+                    Unpaid
+                  </p>
+
+                  <p className="text-sm text-gray-500">
+                    Customer will pay later
+                  </p>
+                </div>
+              </div>
+            </label>
+
+            <label
+              className={`border rounded-lg p-4 cursor-pointer ${paymentStatus === "Paid"
+                  ? "border-green-500 bg-green-50"
+                  : "bg-white"
+                }`}
+            >
+              <div className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="paymentStatus"
+                  value="Paid"
+                  checked={paymentStatus === "Paid"}
+                  onChange={(e) =>
+                    setPaymentStatus(e.target.value)
+                  }
+                />
+
+                <div>
+                  <p className="font-semibold">
+                    Paid
+                  </p>
+
+                  <p className="text-sm text-gray-500">
+                    Customer has paid the full amount
+                  </p>
+                </div>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+        {/* Payment Method */}
+        <div className="mt-4">
+          <label className="block font-medium mb-2">
+            Payment Method
+          </label>
+
+          <select
+            value={paymentMethod}
+            onChange={(e) =>
+              setPaymentMethod(e.target.value)
+            }
+            className="w-full border rounded-lg p-3"
+          >
+            <option value="Cash">
+              Cash
+            </option>
+
+            <option value="Bank">
+              Bank
+            </option>
+
+            <option value="Card">
+              Card
+            </option>
+
+            <option value="Online">
+              Online
+            </option>
+          </select>
         </div>
       </div>
 
