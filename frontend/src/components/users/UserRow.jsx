@@ -75,10 +75,11 @@ async function changeStatus(e) {
       </td>
 
       <td className="p-3">
-        <select
+ <select
   value={user.status}
   onChange={changeStatus}
-  className="border rounded px-2 py-1"
+  disabled={currentUser?.id === user.id}
+  className="border rounded px-2 py-1 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
 >
 
   <option value="active">
