@@ -1,7 +1,6 @@
 import { supabase } from "../lib/supabase";
 
 export async function globalSearch(query) {
-
   if (!query || query.trim() === "") {
     return {
       products: [],
@@ -13,7 +12,6 @@ export async function globalSearch(query) {
   const search = query.trim();
 
   const [products, customers, sales] = await Promise.all([
-
     supabase
       .from("products")
       .select("id, product_name, stock")
@@ -36,17 +34,20 @@ export async function globalSearch(query) {
       `)
       .ilike("invoice_no", `%${search}%`)
       .limit(5),
-
   ]);
 
+  const errors = [products.error, customers.error, sales.error].filter(
+    Boolean
+  );
+
+  if (errors.length > 0) {
+    console.error("Global Search Error:", errors[0]);
+    throw errors[0];
+  }
+
   return {
-
     products: products.data || [],
-
     customers: customers.data || [],
-
     sales: sales.data || [],
-
   };
-
 }

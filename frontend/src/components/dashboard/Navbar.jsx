@@ -5,7 +5,7 @@ function Navbar({ setSidebarOpen }) {
 
   return (
 
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+    <header className="min-h-16 bg-white border-b border-gray-200 flex flex-wrap items-center gap-2 px-3 sm:px-6 py-2">
 
       {/* Left */}
       <div className="flex items-center gap-3">
@@ -23,11 +23,9 @@ function Navbar({ setSidebarOpen }) {
 
       </div>
 
-      {/* Center Search */}
-      <div className="hidden md:flex flex-1 justify-center px-8">
-
+      {/* Search */}
+      <div className="flex flex-1 justify-end md:justify-center px-2 md:px-8">
         <GlobalSearch />
-
       </div>
 
       {/* Right */}
