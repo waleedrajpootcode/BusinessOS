@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Button from "../components/ui/Button";
+import AlertMessage from "../components/ui/AlertMessage";
 import Modal from "../components/ui/Modal";
 import CustomerForm from "../components/customers/CustomerForm";
 import CustomerTable from "../components/customers/CustomerTable";
@@ -12,10 +13,21 @@ function Customers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   async function loadCustomers() {
-    const data = await getCustomers();
-    setCustomers(data);
+    setLoading(true);
+    setError("");
+
+    try {
+      const data = await getCustomers();
+      setCustomers(data);
+    } catch (error) {
+      console.error("Load Customers Error:", error);
+      setError("Unable to load customers. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -73,12 +85,37 @@ function Customers() {
 
       </div>
 
+      {error && (
+        <AlertMessage
+          type="error"
+          message={error}
+        />
+      )}
+
       {/* Table */}
-      <CustomerTable
-        customers={customers}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
-      />
+      {loading ? (
+        <div
+          className="mt-8 bg-white rounded-xl shadow border p-10 text-center"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex flex-col items-center gap-3">
+            <div
+              className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"
+              aria-hidden="true"
+            />
+            <p className="text-gray-500">
+              Loading customers...
+            </p>
+          </div>
+        </div>
+      ) : (
+        <CustomerTable
+          customers={customers}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+        />
+      )}
 
       {/* Modal */}
       <Modal
