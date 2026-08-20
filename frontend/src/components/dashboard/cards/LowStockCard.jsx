@@ -1,17 +1,22 @@
-
 function LowStockCard({ products }) {
-
   return (
+    <div className="w-full min-w-0 bg-white rounded-xl shadow border p-4 sm:p-6">
 
-    <div className="bg-white rounded-xl shadow border p-6">
+      {/* Header */}
+      <div className="mb-4">
+        <h2 className="text-lg sm:text-xl font-bold">
+          ⚠ Low Stock Products
+        </h2>
 
-      <h2 className="text-xl font-bold mb-4">
-        ⚠ Low Stock Products
-      </h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Products that need stock attention.
+        </p>
+      </div>
 
+      {/* Empty State */}
       {products.length === 0 ? (
 
-        <p className="text-gray-500">
+        <p className="text-gray-500 py-4">
           No Low Stock Products
         </p>
 
@@ -23,17 +28,17 @@ function LowStockCard({ products }) {
 
             <div
               key={product.id}
-              className="flex justify-between border-b pb-2"
+              className="flex items-center justify-between gap-4 border-b last:border-b-0 pb-3 last:pb-0 min-w-0"
             >
 
-              <span>
+              {/* Product Name */}
+              <span className="min-w-0 flex-1 break-words font-medium">
                 {product.product_name}
               </span>
 
-              <span className="font-bold text-red-500">
-
+              {/* Stock */}
+              <span className="shrink-0 font-bold text-red-500 whitespace-nowrap">
                 {product.stock}
-
               </span>
 
             </div>
@@ -45,9 +50,7 @@ function LowStockCard({ products }) {
       )}
 
     </div>
-
   );
-
 }
 
 export default LowStockCard;

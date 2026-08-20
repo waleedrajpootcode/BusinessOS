@@ -50,7 +50,7 @@ function PurchaseDetails() {
     if (!purchase) {
         return (
             <Layout>
-                <div className="p-6">
+                <div className="w-full min-w-0 p-4 sm:p-6">
                     Loading...
                 </div>
             </Layout>
@@ -59,17 +59,24 @@ function PurchaseDetails() {
 
     return (
         <Layout>
-            <div className="p-6">
+            <div className="w-full min-w-0 p-4 sm:p-6">
 
-                {/* Print Area */}
-                <div className="print-area max-w-5xl mx-auto bg-white">
+                {/* =========================
+                    PRINT AREA
+                ========================= */}
 
-                    {/* Action Buttons */}
-                    <div className="flex justify-end gap-3 mb-6 print:hidden">
+                <div className="print-area w-full max-w-5xl mx-auto min-w-0">
+
+                    {/* =========================
+                        ACTION BUTTONS
+                    ========================= */}
+
+                    <div className="flex flex-col sm:flex-row justify-end gap-3 mb-6 print:hidden">
+
                         <button
                             type="button"
                             onClick={() => window.print()}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
+                            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
                         >
                             🖨️ Print Invoice
                         </button>
@@ -77,19 +84,25 @@ function PurchaseDetails() {
                         <button
                             type="button"
                             onClick={downloadPDF}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
+                            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
                         >
                             📄 Download PDF
                         </button>
+
                     </div>
 
-                    {/* Invoice Header */}
-                    <div className="invoice-section bg-white rounded-xl shadow border p-8">
 
-                        <div className="flex items-start justify-between gap-8">
+                    {/* =========================
+                        INVOICE HEADER
+                    ========================= */}
 
-                            {/* Business Information */}
-                            <div className="flex items-start gap-4">
+                    <div className="invoice-section w-full min-w-0 bg-white rounded-xl shadow border p-4 sm:p-6 lg:p-8">
+
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+
+                            {/* BUSINESS INFORMATION */}
+
+                            <div className="flex items-start gap-4 min-w-0">
 
                                 {business?.logo && (
                                     <img
@@ -98,45 +111,49 @@ function PurchaseDetails() {
                                             business?.business_name ||
                                             "Business Logo"
                                         }
-                                        className="w-20 h-20 object-contain"
+                                        className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 object-contain"
                                     />
                                 )}
 
-                                <div>
-                                    <h1 className="text-2xl font-bold">
+                                <div className="min-w-0">
+
+                                    <h1 className="text-2xl sm:text-3xl font-bold break-words">
                                         {business?.business_name ||
                                             "BusinessOS"}
                                     </h1>
 
                                     {business?.address && (
-                                        <p className="text-gray-500 mt-2">
+                                        <p className="text-gray-500 mt-2 break-words">
                                             {business.address}
                                         </p>
                                     )}
 
                                     {business?.email && (
-                                        <p className="text-gray-600 mt-1">
+                                        <p className="text-gray-600 mt-1 break-all">
                                             {business.email}
                                         </p>
                                     )}
 
                                     {business?.phone && (
-                                        <p className="text-gray-600 mt-1">
+                                        <p className="text-gray-600 mt-1 break-words">
                                             {business.phone}
                                         </p>
                                     )}
+
                                 </div>
 
                             </div>
 
-                            {/* Invoice Title */}
-                            <div className="text-right">
 
-                                <h2 className="text-3xl font-bold">
+                            {/* INVOICE TITLE */}
+
+                            <div className="text-left lg:text-right min-w-0">
+
+                                <h2 className="text-2xl sm:text-3xl font-bold">
                                     INVOICE
                                 </h2>
 
-                                <p className="text-gray-500 mt-2">
+                                <p className="text-gray-500 mt-2 break-words">
                                     Purchase Invoice
                                 </p>
 
@@ -144,32 +161,43 @@ function PurchaseDetails() {
 
                         </div>
 
+
                         <hr className="my-6" />
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                            <div>
+                        {/* INVOICE INFORMATION */}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+
+                            <div className="min-w-0">
+
                                 <p className="text-sm text-gray-500">
                                     Invoice Number
                                 </p>
 
-                                <p className="text-lg font-semibold mt-1">
-                                    {purchase.invoice_no}
+                                <p className="text-lg font-semibold mt-1 break-all">
+                                    {purchase.invoice_no || "-"}
                                 </p>
+
                             </div>
 
-                            <div>
+
+                            <div className="min-w-0">
+
                                 <p className="text-sm text-gray-500">
                                     Supplier
                                 </p>
 
-                                <p className="text-lg font-semibold mt-1">
+                                <p className="text-lg font-semibold mt-1 break-words">
                                     {purchase.suppliers?.supplier_name ||
                                         "Supplier"}
                                 </p>
+
                             </div>
 
-                            <div>
+
+                            <div className="min-w-0">
+
                                 <p className="text-sm text-gray-500">
                                     Purchase Date
                                 </p>
@@ -179,34 +207,47 @@ function PurchaseDetails() {
                                         purchase.created_at
                                     ).toLocaleDateString()}
                                 </p>
+
                             </div>
 
-                            <div>
+
+                            <div className="min-w-0">
+
                                 <p className="text-sm text-gray-500">
                                     Status
                                 </p>
 
-                                <p className="text-lg font-semibold mt-1">
-                                    {purchase.status}
+                                <p className="text-lg font-semibold mt-1 break-words">
+                                    {purchase.status || "-"}
                                 </p>
+
                             </div>
 
                         </div>
 
                     </div>
 
-                    {/* Purchase Items */}
-                    <div className="invoice-section mt-6 bg-white rounded-xl shadow border overflow-hidden">
 
-                        <div className="p-6 border-b">
+                    {/* =========================
+                        PURCHASE ITEMS
+                    ========================= */}
+
+                    <div className="invoice-section mt-6 w-full min-w-0 bg-white rounded-xl shadow border overflow-hidden">
+
+                        <div className="p-4 sm:p-6 border-b">
+
                             <h2 className="text-xl font-bold">
                                 Purchase Items
                             </h2>
+
                         </div>
 
-                        <div className="invoice-table-wrapper overflow-x-auto">
 
-                            <table className="w-full border-collapse">
+                        {/* DESKTOP TABLE */}
+
+                        <div className="hidden md:block w-full min-w-0">
+
+                            <table className="w-full table-fixed">
 
                                 <thead className="bg-gray-50 border-b">
 
@@ -216,15 +257,15 @@ function PurchaseDetails() {
                                             Product
                                         </th>
 
-                                        <th className="p-4 text-center">
+                                        <th className="p-4 text-center w-24">
                                             Qty
                                         </th>
 
-                                        <th className="p-4 text-right">
+                                        <th className="p-4 text-right w-36">
                                             Price
                                         </th>
 
-                                        <th className="p-4 text-right">
+                                        <th className="p-4 text-right w-40">
                                             Total
                                         </th>
 
@@ -232,34 +273,38 @@ function PurchaseDetails() {
 
                                 </thead>
 
+
                                 <tbody>
 
                                     {purchase.purchase_items?.map(
                                         (item) => (
+
                                             <tr
                                                 key={item.id}
                                                 className="border-b"
                                             >
 
-                                                <td className="p-4 font-medium">
-                                                    {
-                                                        item.products
-                                                            ?.product_name
-                                                    }
+                                                <td className="p-4 font-medium break-words">
+                                                    {item.products
+                                                        ?.product_name ||
+                                                        "-"}
                                                 </td>
+
 
                                                 <td className="p-4 text-center">
                                                     {item.quantity}
                                                 </td>
 
-                                                <td className="p-4 text-right">
+
+                                                <td className="p-4 text-right whitespace-nowrap">
                                                     PKR{" "}
                                                     {Number(
                                                         item.price || 0
                                                     ).toLocaleString()}
                                                 </td>
 
-                                                <td className="p-4 text-right font-semibold">
+
+                                                <td className="p-4 text-right font-semibold whitespace-nowrap">
                                                     PKR{" "}
                                                     {Number(
                                                         item.total || 0
@@ -267,6 +312,7 @@ function PurchaseDetails() {
                                                 </td>
 
                                             </tr>
+
                                         )
                                     )}
 
@@ -276,71 +322,185 @@ function PurchaseDetails() {
 
                         </div>
 
+
+                        {/* MOBILE CARDS */}
+
+                        <div className="md:hidden p-4 space-y-3">
+
+                            {purchase.purchase_items?.length === 0 ? (
+
+                                <div className="text-center text-gray-500 py-6">
+                                    No Purchase Items Found
+                                </div>
+
+                            ) : (
+
+                                purchase.purchase_items?.map(
+                                    (item, index) => (
+
+                                        <div
+                                            key={item.id}
+                                            className="w-full min-w-0 bg-white border rounded-xl p-4 shadow-sm"
+                                        >
+
+                                            {/* Product */}
+
+                                            <div className="min-w-0">
+
+                                                <p className="text-xs text-gray-500">
+                                                    Item #{index + 1}
+                                                </p>
+
+                                                <p className="font-semibold mt-1 break-words">
+                                                    {item.products
+                                                        ?.product_name ||
+                                                        "-"}
+                                                </p>
+
+                                            </div>
+
+
+                                            {/* Details */}
+
+                                            <div className="mt-4 space-y-3">
+
+                                                <div className="flex items-center justify-between gap-4">
+
+                                                    <span className="text-sm text-gray-500">
+                                                        Quantity
+                                                    </span>
+
+                                                    <span className="font-medium text-right">
+                                                        {item.quantity}
+                                                    </span>
+
+                                                </div>
+
+
+                                                <div className="flex items-center justify-between gap-4">
+
+                                                    <span className="text-sm text-gray-500">
+                                                        Price
+                                                    </span>
+
+                                                    <span className="font-medium text-right whitespace-nowrap">
+                                                        PKR{" "}
+                                                        {Number(
+                                                            item.price || 0
+                                                        ).toLocaleString()}
+                                                    </span>
+
+                                                </div>
+
+
+                                                <div className="flex items-center justify-between gap-4 border-t pt-3">
+
+                                                    <span className="text-sm font-medium text-gray-600">
+                                                        Total
+                                                    </span>
+
+                                                    <span className="font-semibold text-right whitespace-nowrap">
+                                                        PKR{" "}
+                                                        {Number(
+                                                            item.total || 0
+                                                        ).toLocaleString()}
+                                                    </span>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    )
+                                )
+
+                            )}
+
+                        </div>
+
                     </div>
 
-                    {/* Invoice Summary */}
+
+                    {/* =========================
+                        INVOICE SUMMARY
+                    ========================= */}
+
                     <div className="invoice-section mt-6 flex justify-end pb-8">
 
-                        <div className="w-full md:w-96 bg-white rounded-xl shadow border p-6">
+                        <div className="w-full sm:w-96 max-w-full bg-white rounded-xl shadow border p-4 sm:p-6">
 
                             <h3 className="text-lg font-bold mb-4">
                                 Invoice Summary
                             </h3>
 
+
                             <div className="space-y-3">
 
-                                <div className="flex justify-between">
+                                <div className="flex justify-between gap-4">
+
                                     <span>
                                         Subtotal
                                     </span>
 
-                                    <strong>
+                                    <strong className="text-right whitespace-nowrap">
                                         PKR{" "}
                                         {Number(
                                             purchase.subtotal || 0
                                         ).toLocaleString()}
                                     </strong>
+
                                 </div>
 
-                                <div className="flex justify-between">
+
+                                <div className="flex justify-between gap-4">
+
                                     <span>
                                         Discount
                                     </span>
 
-                                    <strong>
+                                    <strong className="text-right whitespace-nowrap">
                                         PKR{" "}
                                         {Number(
                                             purchase.discount || 0
                                         ).toLocaleString()}
                                     </strong>
+
                                 </div>
 
-                                <div className="flex justify-between">
+
+                                <div className="flex justify-between gap-4">
+
                                     <span>
                                         Tax
                                     </span>
 
-                                    <strong>
+                                    <strong className="text-right whitespace-nowrap">
                                         PKR{" "}
                                         {Number(
                                             purchase.tax || 0
                                         ).toLocaleString()}
                                     </strong>
+
                                 </div>
+
 
                                 <hr />
 
-                                <div className="flex justify-between text-xl font-bold">
+
+                                <div className="flex justify-between gap-4 text-lg sm:text-xl font-bold">
+
                                     <span>
                                         Grand Total
                                     </span>
 
-                                    <span>
+                                    <span className="text-right whitespace-nowrap">
                                         PKR{" "}
                                         {Number(
                                             purchase.total || 0
                                         ).toLocaleString()}
                                     </span>
+
                                 </div>
 
                             </div>
