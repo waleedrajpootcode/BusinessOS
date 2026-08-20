@@ -1,15 +1,24 @@
 @import "tailwindcss";
+
 @import "./print.css";
 
-/* ===========================
-   BusinessOS Global Styles
-   =========================== */
+/* =========================================================
+   BusinessOS — GLOBAL RESPONSIVE FOUNDATION
+   ========================================================= */
+
+/* =========================
+   GLOBAL BOX SIZING
+========================= */
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
+
+/* =========================
+   ROOT
+========================= */
 
 html,
 body,
@@ -20,27 +29,243 @@ body,
   padding: 0;
 }
 
+/* Prevent accidental horizontal page scrolling */
+html {
+  width: 100%;
+  overflow-x: hidden;
+}
+
 body {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+
   font-family: Inter, system-ui, sans-serif;
+
   background-color: #f8fafc;
   color: #111827;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* =========================
+   FORM ELEMENTS
+========================= */
 
 button,
 input,
 textarea,
 select {
   font: inherit;
+  max-width: 100%;
 }
+
+input,
+textarea,
+select {
+  min-width: 0;
+}
+
+/* Prevent mobile browser zoom on form controls */
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+/* =========================
+   LINKS
+========================= */
 
 a {
   text-decoration: none;
   color: inherit;
 }
 
+/* =========================
+   IMAGES
+========================= */
+
 img {
   max-width: 100%;
+  height: auto;
   display: block;
+}
+
+/* =========================
+   TABLE SAFETY
+========================= */
+
+table {
+  max-width: 100%;
+}
+
+th,
+td {
+  word-break: break-word;
+}
+
+/* =========================
+   LONG TEXT / NUMBERS
+========================= */
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+td,
+th {
+  overflow-wrap: anywhere;
+}
+
+/* =========================
+   MOBILE CONTAINER SAFETY
+========================= */
+
+@media (max-width: 640px) {
+  .p-6 {
+    padding: 1rem;
+  }
+}
+
+/* =========================
+   RESPONSIVE TABLE WRAPPER
+========================= */
+
+.overflow-x-auto {
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* =========================
+   MOBILE BUTTON SAFETY
+========================= */
+
+@media (max-width: 640px) {
+  button {
+    max-width: 100%;
+  }
+}
+
+/* =========================
+   MOBILE FLEX SAFETY
+========================= */
+
+@media (max-width: 640px) {
+  .flex {
+    min-width: 0;
+  }
+
+  .flex > * {
+    min-width: 0;
+  }
+}
+
+/* =========================
+   MOBILE GRID SAFETY
+========================= */
+
+@media (max-width: 640px) {
+  .grid {
+    min-width: 0;
+  }
+
+  .grid > * {
+    min-width: 0;
+  }
+}
+
+/* =========================
+   MOBILE HEADINGS
+========================= */
+
+@media (max-width: 640px) {
+  h1 {
+    font-size: 1.75rem;
+    line-height: 1.25;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    line-height: 1.3;
+  }
+
+  h3 {
+    font-size: 1.2rem;
+    line-height: 1.35;
+  }
+}
+
+/* =========================
+   MOBILE SPACING
+========================= */
+
+@media (max-width: 640px) {
+  .space-y-5 > :not(:last-child) {
+    margin-bottom: 1rem;
+  }
+
+  .space-y-6 > :not(:last-child) {
+    margin-bottom: 1rem;
+  }
+}
+
+/* =========================
+   MOBILE CARD SAFETY
+========================= */
+
+@media (max-width: 640px) {
+  .rounded-xl {
+    max-width: 100%;
+  }
+}
+
+/* =========================
+   TOUCH FRIENDLY CONTROLS
+========================= */
+
+@media (max-width: 640px) {
+  button,
+  [role="button"],
+  select {
+    min-height: 44px;
+  }
+}
+
+/* =========================
+   MOBILE VIEWPORT SAFETY
+========================= */
+
+@media (max-width: 480px) {
+  .w-full {
+    max-width: 100%;
+  }
+}
+
+/* =========================
+   SAFE TEXT SELECTION
+========================= */
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* =========================
+   ACCESSIBILITY
+========================= */
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
 }

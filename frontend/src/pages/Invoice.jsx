@@ -65,7 +65,7 @@ function Invoice() {
     if (!invoice) {
         return (
             <Layout>
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                     Loading...
                 </div>
             </Layout>
@@ -74,19 +74,18 @@ function Invoice() {
 
     return (
         <Layout>
-
-            <div className="p-6 print-area">
+            <div className="w-full min-w-0 p-4 sm:p-6 print-area">
 
                 {/* =========================
                     ACTION BUTTONS
                 ========================= */}
 
-                <div className="flex justify-end gap-3 mb-6 print:hidden">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 mb-6 print:hidden">
 
                     <button
                         type="button"
                         onClick={() => window.print()}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
+                        className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
                     >
                         🖨️ Print Invoice
                     </button>
@@ -94,7 +93,7 @@ function Invoice() {
                     <button
                         type="button"
                         onClick={downloadPDF}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
+                        className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-semibold"
                     >
                         📄 Download PDF
                     </button>
@@ -106,25 +105,25 @@ function Invoice() {
                     INVOICE HEADER
                 ========================= */}
 
-                <div className="bg-white rounded-xl shadow p-6 print:shadow-none print:rounded-none print:p-3">
+                <div className="w-full min-w-0 bg-white rounded-xl shadow p-4 sm:p-6 print:shadow-none print:rounded-none print:p-3">
 
-                    <div className="flex items-center justify-between gap-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
                         {/* BUSINESS INFORMATION */}
 
-                        <div className="flex items-start gap-4">
+                        <div className="flex items-start gap-4 min-w-0">
 
                             {business?.logo && (
                                 <img
                                     src={business.logo}
                                     alt="Business Logo"
-                                    className="w-20 h-20 object-contain"
+                                    className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 object-contain"
                                 />
                             )}
 
-                            <div>
+                            <div className="min-w-0">
 
-                                <h1 className="text-3xl font-bold">
+                                <h1 className="text-2xl sm:text-3xl font-bold break-words">
                                     {business?.business_name ||
                                         "BusinessOS"}
                                 </h1>
@@ -134,19 +133,19 @@ function Invoice() {
                                 </p>
 
                                 {business?.address && (
-                                    <p className="text-sm text-gray-600 mt-2">
+                                    <p className="text-sm text-gray-600 mt-2 break-words">
                                         {business.address}
                                     </p>
                                 )}
 
                                 {business?.email && (
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-sm text-gray-600 break-all">
                                         {business.email}
                                     </p>
                                 )}
 
                                 {business?.phone && (
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-sm text-gray-600 break-words">
                                         {business.phone}
                                     </p>
                                 )}
@@ -158,9 +157,9 @@ function Invoice() {
 
                         {/* INVOICE INFORMATION */}
 
-                        <div className="text-right">
+                        <div className="text-left lg:text-right min-w-0">
 
-                            <h2 className="text-3xl font-bold text-blue-600 print:text-black">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-blue-600 print:text-black">
                                 INVOICE
                             </h2>
 
@@ -168,9 +167,9 @@ function Invoice() {
                                 Sales Invoice
                             </p>
 
-                            <div className="mt-4 space-y-1">
+                            <div className="mt-4 space-y-1 text-sm sm:text-base">
 
-                                <p>
+                                <p className="break-words">
                                     <strong>
                                         Invoice Number:
                                     </strong>{" "}
@@ -215,17 +214,17 @@ function Invoice() {
                     CUSTOMER INFORMATION
                 ========================= */}
 
-                <div className="mt-6 bg-white rounded-xl shadow p-6 print:mt-2 print:shadow-none print:rounded-none print:p-3">
+                <div className="w-full min-w-0 mt-6 bg-white rounded-xl shadow p-4 sm:p-6 print:mt-2 print:shadow-none print:rounded-none print:p-3">
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
 
-                        <div>
+                        <div className="min-w-0">
 
                             <p className="text-sm text-gray-500">
                                 Bill To
                             </p>
 
-                            <p className="text-lg font-semibold mt-1">
+                            <p className="text-lg font-semibold mt-1 break-words">
                                 {invoice.customers?.full_name ||
                                     "Walk-in Customer"}
                             </p>
@@ -234,13 +233,13 @@ function Invoice() {
 
 
                         {invoice.customers?.phone && (
-                            <div>
+                            <div className="min-w-0">
 
                                 <p className="text-sm text-gray-500">
                                     Customer Phone
                                 </p>
 
-                                <p className="text-lg font-semibold mt-1">
+                                <p className="text-lg font-semibold mt-1 break-words">
                                     {invoice.customers.phone}
                                 </p>
 
@@ -261,9 +260,11 @@ function Invoice() {
                 </h2>
 
 
-                <div className="mt-8 bg-white rounded-xl shadow overflow-hidden print:mt-2 print:shadow-none print:rounded-none">
+                {/* DESKTOP TABLE */}
 
-                    <table className="w-full">
+                <div className="hidden md:block w-full min-w-0 bg-white rounded-xl shadow overflow-hidden print:block print:mt-2 print:shadow-none print:rounded-none">
+
+                    <table className="w-full table-fixed">
 
                         <thead className="bg-gray-50 border-b">
 
@@ -273,15 +274,15 @@ function Invoice() {
                                     Product
                                 </th>
 
-                                <th className="p-4 text-center">
+                                <th className="p-4 text-center w-20">
                                     Qty
                                 </th>
 
-                                <th className="p-4 text-right">
+                                <th className="p-4 text-right w-36">
                                     Price
                                 </th>
 
-                                <th className="p-4 text-right">
+                                <th className="p-4 text-right w-40">
                                     Total
                                 </th>
 
@@ -299,39 +300,31 @@ function Invoice() {
                                     className="border-b"
                                 >
 
-                                    <td className="p-4 font-medium print:p-2">
-
+                                    <td className="p-4 font-medium break-words print:p-2">
                                         {item.products?.product_name ||
                                             item.product_name ||
                                             "-"}
-
                                     </td>
 
 
                                     <td className="p-4 text-center print:p-2">
-
                                         {item.quantity}
-
                                     </td>
 
 
-                                    <td className="p-4 text-right font-mono print:p-2">
-
+                                    <td className="p-4 text-right font-mono whitespace-nowrap print:p-2">
                                         PKR{" "}
                                         {Number(
                                             item.price || 0
                                         ).toLocaleString()}
-
                                     </td>
 
 
-                                    <td className="p-4 text-right font-semibold print:p-2">
-
+                                    <td className="p-4 text-right font-semibold whitespace-nowrap print:p-2">
                                         PKR{" "}
                                         {Number(
                                             item.total || 0
                                         ).toLocaleString()}
-
                                     </td>
 
                                 </tr>
@@ -345,21 +338,106 @@ function Invoice() {
                 </div>
 
 
+                {/* MOBILE CARDS */}
+
+                <div className="block md:hidden space-y-3 print:hidden">
+
+                    {items.map((item, index) => (
+
+                        <div
+                            key={item.id}
+                            className="bg-white rounded-xl shadow border p-4"
+                        >
+
+                            <div className="flex items-start justify-between gap-3">
+
+                                <div className="min-w-0">
+
+                                    <p className="text-xs text-gray-500">
+                                        Item #{index + 1}
+                                    </p>
+
+                                    <p className="font-semibold mt-1 break-words">
+                                        {item.products?.product_name ||
+                                            item.product_name ||
+                                            "-"}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div className="mt-4 grid grid-cols-1 gap-3">
+
+                                <div className="flex items-center justify-between gap-3">
+
+                                    <span className="text-sm text-gray-500">
+                                        Quantity
+                                    </span>
+
+                                    <span className="font-medium">
+                                        {item.quantity}
+                                    </span>
+
+                                </div>
+
+
+                                <div className="flex items-center justify-between gap-3">
+
+                                    <span className="text-sm text-gray-500">
+                                        Price
+                                    </span>
+
+                                    <span className="font-mono text-right whitespace-nowrap">
+                                        PKR{" "}
+                                        {Number(
+                                            item.price || 0
+                                        ).toLocaleString()}
+                                    </span>
+
+                                </div>
+
+
+                                <div className="flex items-center justify-between gap-3 border-t pt-3">
+
+                                    <span className="text-sm font-medium text-gray-600">
+                                        Total
+                                    </span>
+
+                                    <span className="font-semibold text-right whitespace-nowrap">
+                                        PKR{" "}
+                                        {Number(
+                                            item.total || 0
+                                        ).toLocaleString()}
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    ))}
+
+                </div>
+
+
                 {/* =========================
                     INVOICE SUMMARY
                 ========================= */}
 
                 <div className="mt-8 flex justify-end pb-8 print:mt-3 print:pb-2">
 
-                    <div className="w-96 bg-white rounded-xl shadow p-6 print:p-3 print:shadow-none print:rounded-none">
+                    <div className="w-full sm:w-96 max-w-full bg-white rounded-xl shadow p-4 sm:p-6 print:p-3 print:shadow-none print:rounded-none">
 
-                        <div className="flex justify-between py-2 print:py-1">
+                        <div className="flex justify-between gap-4 py-2 print:py-1">
 
                             <span>
                                 Subtotal
                             </span>
 
-                            <span>
+                            <span className="text-right whitespace-nowrap">
                                 PKR{" "}
                                 {Number(
                                     invoice.subtotal || 0
@@ -369,13 +447,13 @@ function Invoice() {
                         </div>
 
 
-                        <div className="flex justify-between py-2 print:py-1">
+                        <div className="flex justify-between gap-4 py-2 print:py-1">
 
                             <span>
                                 Discount
                             </span>
 
-                            <span>
+                            <span className="text-right whitespace-nowrap">
                                 PKR{" "}
                                 {Number(
                                     invoice.discount || 0
@@ -385,13 +463,13 @@ function Invoice() {
                         </div>
 
 
-                        <div className="flex justify-between py-2 print:py-1">
+                        <div className="flex justify-between gap-4 py-2 print:py-1">
 
                             <span>
                                 Tax
                             </span>
 
-                            <span>
+                            <span className="text-right whitespace-nowrap">
                                 PKR{" "}
                                 {Number(
                                     invoice.tax || 0
@@ -404,13 +482,13 @@ function Invoice() {
                         <hr className="my-4 print:my-2" />
 
 
-                        <div className="flex justify-between text-xl font-bold text-blue-600 print:text-black">
+                        <div className="flex justify-between gap-4 text-lg sm:text-xl font-bold text-blue-600 print:text-black">
 
                             <span>
                                 Grand Total
                             </span>
 
-                            <span>
+                            <span className="text-right whitespace-nowrap">
                                 PKR{" "}
                                 {Number(
                                     invoice.total || 0
@@ -424,7 +502,6 @@ function Invoice() {
                 </div>
 
             </div>
-
         </Layout>
     );
 }

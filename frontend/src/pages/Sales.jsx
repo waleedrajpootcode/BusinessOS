@@ -11,27 +11,51 @@ import {
 function Sales() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sales, setSales] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+
     async function loadSales() {
+        try {
+            const data = await getSales();
 
-        const data = await getSales();
-
-        setSales(data);
-
+            setSales(data || []);
+        } catch (error) {
+            console.error("Load Sales Error:", error);
+        }
     }
+
     useEffect(() => {
-
         loadSales();
-
     }, []);
 
+    const filteredSales = sales.filter((sale) => {
+        const search = searchTerm.trim().toLowerCase();
+
+        if (!search) {
+            return true;
+        }
+
+        const invoiceNumber = String(
+            sale.invoice_no || ""
+        ).toLowerCase();
+
+        const customerName = String(
+            sale.customers?.full_name || ""
+        ).toLowerCase();
+
+        return (
+            invoiceNumber.includes(search) ||
+            customerName.includes(search)
+        );
+    });
+
     return (
-        <div className="p-6">
+        <div className="p-4 sm:p-6 min-w-0">
 
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-                <div>
-                    <h1 className="text-3xl font-bold">
+                <div className="min-w-0">
+                    <h1 className="text-2xl sm:text-3xl font-bold">
                         Sales
                     </h1>
 
@@ -49,23 +73,39 @@ function Sales() {
             </div>
 
             {/* Search */}
-            <div className="mt-8">
+            <div className="mt-6 sm:mt-8">
+
                 <input
                     type="text"
-                    placeholder="Search Sales..."
-                    className="w-full border rounded-lg p-3"
+                    value={searchTerm}
+                    onChange={(e) =>
+                        setSearchTerm(e.target.value)
+                    }
+                    placeholder="Search by invoice or customer..."
+                    className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
                 />
+
             </div>
+
+            {/* Search Result Info */}
+            {searchTerm.trim() && (
+                <p className="mt-3 text-sm text-gray-500">
+                    Showing {filteredSales.length} of {sales.length} sales
+                </p>
+            )}
 
             {/* Table */}
             <SalesTable
-                sales={sales}
+                sales={filteredSales}
             />
+
+            {/* New Sale Modal */}
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 title="Create New Sale"
             >
+
                 <SaleForm
                     onSuccess={() => {
 
@@ -73,15 +113,19 @@ function Sales() {
 
                         loadSales();
 
+                        setSearchTerm("");
+
                     }}
                 />
 
                 <div className="flex justify-end mt-4">
+
                     <Button
                         onClick={() => setIsModalOpen(false)}
                     >
                         Close
                     </Button>
+
                 </div>
 
             </Modal>
