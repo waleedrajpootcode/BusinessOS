@@ -5,6 +5,7 @@ import { BusinessProvider } from "./context/BusinessContext";
 
 
 import "./index.css";
+import "./styles/businessos-theme.css";
 
 import App from "./App.jsx";
 
