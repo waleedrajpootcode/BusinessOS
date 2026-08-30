@@ -269,3 +269,103 @@ a:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
+/* =========================================================
+   BusinessOS — PREMIUM SAAS DESIGN SYSTEM
+   RRAW Mindset Brand Foundation
+   ========================================================= */
+
+:root {
+  --bos-black: #0b0b0f;
+  --bos-black-soft: #15151b;
+
+  --bos-gold: #d4af37;
+  --bos-gold-light: #f3d675;
+  --bos-gold-dark: #a88418;
+
+  --bos-surface: #ffffff;
+  --bos-surface-soft: #f8f9fb;
+
+  --bos-text: #111827;
+  --bos-text-muted: #6b7280;
+
+  --bos-border: #e5e7eb;
+
+  --bos-success: #16a34a;
+  --bos-danger: #dc2626;
+  --bos-warning: #d97706;
+
+  --bos-radius: 14px;
+
+  --bos-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --bos-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+/* Premium application background */
+
+body {
+  background: var(--bos-surface-soft);
+  color: var(--bos-text);
+}
+
+/* Better text rendering */
+
+body,
+button,
+input,
+textarea,
+select {
+  letter-spacing: -0.01em;
+}
+
+/* Premium scrollbar */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f3f5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c5c8ce;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Selection */
+
+::selection {
+  background: rgba(212, 175, 55, 0.25);
+  color: #111827;
+}
+
+/* Premium focus ring */
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--bos-gold);
+  outline-offset: 2px;
+}
+
+/* Smooth UI */
+
+button,
+a,
+input,
+textarea,
+select {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}

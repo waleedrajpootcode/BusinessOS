@@ -1,0 +1,130 @@
+/* =========================================================
+   BusinessOS — Master SaaS Theme
+   RRAW Mindset Brand System
+   Central UI Design Tokens
+   ========================================================= */
+
+:root {
+  /* =========================
+     BRAND
+  ========================= */
+
+  --bos-brand-primary: #d4af37;
+  --bos-brand-light: #f3d675;
+  --bos-brand-dark: #a88418;
+
+  /* =========================
+     APPLICATION SURFACES
+  ========================= */
+
+  --bos-bg: #f6f7f9;
+  --bos-surface: #ffffff;
+  --bos-surface-soft: #fafafa;
+  --bos-surface-dark: #0b0b0f;
+  --bos-surface-dark-soft: #15151b;
+
+  /* =========================
+     TEXT
+  ========================= */
+
+  --bos-text-primary: #111827;
+  --bos-text-secondary: #475569;
+  --bos-text-muted: #64748b;
+  --bos-text-inverse: #ffffff;
+
+  /* =========================
+     BORDERS
+  ========================= */
+
+  --bos-border: #e2e8f0;
+  --bos-border-strong: #cbd5e1;
+  --bos-border-brand: rgba(212, 175, 55, 0.45);
+
+  /* =========================
+     STATUS
+  ========================= */
+
+  --bos-success: #16a34a;
+  --bos-success-soft: #f0fdf4;
+
+  --bos-danger: #dc2626;
+  --bos-danger-soft: #fef2f2;
+
+  --bos-warning: #d97706;
+  --bos-warning-soft: #fffbeb;
+
+  --bos-info: #2563eb;
+  --bos-info-soft: #eff6ff;
+
+  /* =========================
+     RADIUS
+  ========================= */
+
+  --bos-radius-sm: 8px;
+  --bos-radius-md: 12px;
+  --bos-radius-lg: 16px;
+  --bos-radius-xl: 20px;
+
+  /* =========================
+     SHADOWS
+  ========================= */
+
+  --bos-shadow-sm:
+    0 2px 8px rgba(15, 23, 42, 0.06);
+
+  --bos-shadow-md:
+    0 8px 24px rgba(15, 23, 42, 0.08);
+
+  --bos-shadow-lg:
+    0 16px 40px rgba(15, 23, 42, 0.12);
+
+  /* =========================
+     TRANSITIONS
+  ========================= */
+
+  --bos-transition-fast:
+    160ms ease;
+
+  --bos-transition:
+    220ms ease;
+
+  /* =========================
+     FOCUS
+  ========================= */
+
+  --bos-focus-ring:
+    0 0 0 3px rgba(212, 175, 55, 0.22);
+}
+
+/* =========================================================
+   BusinessOS — Global Theme Helpers
+   ========================================================= */
+
+.bos-app {
+  background: var(--bos-bg);
+  color: var(--bos-text-primary);
+}
+
+.bos-surface {
+  background: var(--bos-surface);
+  border-color: var(--bos-border);
+  box-shadow: var(--bos-shadow-sm);
+}
+
+.bos-surface-dark {
+  background: var(--bos-surface-dark);
+  color: var(--bos-text-inverse);
+}
+
+.bos-brand-text {
+  color: var(--bos-brand-primary);
+}
+
+.bos-brand-bg {
+  background: var(--bos-brand-primary);
+  color: var(--bos-surface-dark);
+}
+
+.bos-focus {
+  box-shadow: var(--bos-focus-ring);
+}

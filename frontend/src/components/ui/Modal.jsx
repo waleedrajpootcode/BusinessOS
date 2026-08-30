@@ -7,45 +7,82 @@ function Modal({ isOpen, onClose, title, children }) {
         fixed
         inset-0
         z-50
-        bg-black/50
         flex
         items-end
-        sm:items-center
         justify-center
+        bg-slate-950/60
+        backdrop-blur-sm
         p-0
+        sm:items-center
         sm:p-4
       "
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="businessos-modal-title"
     >
       <div
         className="
-          bg-white
-          rounded-t-2xl
-          sm:rounded-xl
-          shadow-xl
+          flex
           w-full
           max-w-3xl
           max-h-[95dvh]
-          sm:max-h-[90dvh]
-          flex
           flex-col
           overflow-hidden
+          rounded-t-2xl
+          border
+          border-slate-200
+          bg-white
+          shadow-2xl
+          sm:max-h-[90dvh]
+          sm:rounded-2xl
         "
       >
-
         {/* Header */}
         <div
           className="
+            relative
             flex
+            shrink-0
             items-center
             justify-between
-            gap-3
-            p-4
-            sm:p-6
+            gap-4
             border-b
-            shrink-0
+            border-slate-200
+            bg-white
+            px-4
+            py-4
+            sm:px-6
+            sm:py-5
           "
         >
-          <h2 className="text-xl sm:text-2xl font-bold min-w-0 break-words">
+          {/* Brand accent */}
+          <div
+            className="
+              absolute
+              left-0
+              top-0
+              h-full
+              w-1
+              bg-gradient-to-b
+              from-yellow-400
+              via-yellow-500
+              to-yellow-700
+            "
+          />
+
+          <h2
+            id="businessos-modal-title"
+            className="
+              min-w-0
+              break-words
+              pl-2
+              text-lg
+              font-bold
+              tracking-tight
+              text-slate-900
+              sm:text-xl
+            "
+          >
             {title}
           </h2>
 
@@ -54,38 +91,48 @@ function Modal({ isOpen, onClose, title, children }) {
             onClick={onClose}
             aria-label="Close modal"
             className="
-              shrink-0
+              flex
               min-h-11
               min-w-11
-              flex
+              shrink-0
               items-center
               justify-center
-              rounded-lg
-              text-gray-500
+              rounded-xl
+              border
+              border-slate-200
+              bg-white
+              text-xl
+              font-medium
+              text-slate-500
+              transition-all
+              duration-200
+              hover:border-red-200
+              hover:bg-red-50
               hover:text-red-600
-              hover:bg-gray-100
-              text-2xl
-              transition
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-yellow-400
+              focus-visible:ring-offset-2
             "
           >
-            ✕
+            ×
           </button>
         </div>
 
         {/* Body */}
         <div
           className="
+            min-h-0
+            flex-1
+            overflow-x-hidden
+            overflow-y-auto
+            bg-slate-50/50
             p-4
             sm:p-6
-            overflow-y-auto
-            overflow-x-hidden
-            flex-1
-            min-h-0
           "
         >
           {children}
         </div>
-
       </div>
     </div>
   );
