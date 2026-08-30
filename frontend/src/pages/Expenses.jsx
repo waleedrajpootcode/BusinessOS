@@ -12,6 +12,7 @@ import {
 function Expenses() {
 
     const [expenses, setExpenses] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingExpense, setEditingExpense] = useState(null);
 
@@ -21,9 +22,9 @@ function Expenses() {
     }, []);
 
     async function loadExpenses() {
-        const data = await getExpenses();
+    const data = await getExpenses();
         setExpenses(data);
-    }
+}
 
     async function handleDelete(id) {
 
@@ -39,6 +40,22 @@ function Expenses() {
         loadExpenses();
 
     }
+
+    const filteredExpenses = expenses.filter((expense) => {
+        const search = searchTerm.toLowerCase();
+
+        return (
+            String(expense.expense_name || "")
+                .toLowerCase()
+                .includes(search) ||
+            String(expense.category || "")
+                .toLowerCase()
+                .includes(search) ||
+            String(expense.amount || "")
+                .toLowerCase()
+                .includes(search)
+        );
+    });
 
     return (
         <div className="p-6">
@@ -73,6 +90,8 @@ function Expenses() {
                 <input
                     type="text"
                     placeholder="Search Expenses..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full border rounded-lg p-3"
                 />
 
@@ -81,7 +100,7 @@ function Expenses() {
             <div className="mt-8 bg-white rounded-xl shadow border overflow-hidden">
 
                 <ExpenseTable
-                    expenses={expenses}
+                    expenses={filteredExpenses}
                     onEdit={(expense) => {
                         setEditingExpense(expense);
                         setIsModalOpen(true);

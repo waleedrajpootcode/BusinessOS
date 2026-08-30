@@ -1,4 +1,3 @@
-import "./App.css";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -14,7 +13,6 @@ import Purchases from "./pages/Purchases";
 import Inventory from "./pages/Inventory";
 import Expenses from "./pages/Expenses";
 import Reports from "./pages/Reports";
-import Settings from "./pages/Settings";
 import AdminRoute from "./components/AdminRoute";
 import Invoice from "./pages/Invoice";
 import Users from "./pages/Users";
@@ -175,17 +173,7 @@ function App() {
           }
         />
 
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <AdminRoute>
-                <Settings />
-              </AdminRoute>
-            </ProtectedRoute>
-          }
-        />
-
+        
         {/* Public Customer Invoice */}
         <Route
           path="/invoice/:id"

@@ -502,30 +502,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                 </Link>
               </li>
 
-
-              {/* Settings */}
-
-              <li>
-                <Link
-                  to="/settings"
-                  onClick={handleNavigation}
-                  className={getNavClass("/settings")}
-                >
-                  {location.pathname === "/settings" && (
-                    <span className="absolute left-0 top-2 bottom-0 w-0.5 rounded-full bg-amber-400" />
-                  )}
-
-                  <Settings
-                    size={19}
-                    className="shrink-0"
-                  />
-
-                  <span className="truncate">
-                    Settings
-                  </span>
-                </Link>
-              </li>
-
+            
             </ul>
 
           </>

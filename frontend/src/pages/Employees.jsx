@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import Button from "../components/ui/Button";
+import Modal from "../components/ui/Modal";
 import AddEmployeeModal from "../components/employees/AddEmployeeModal";
 import Layout from "../components/dashboard/Layout";
 import EmployeesTable from "../components/employees/EmployeesTable";
-import { deleteEmployee } from "../services/employees";
-
 import {
+    deleteEmployee,
     getEmployees,
 } from "../services/employees";
 
@@ -13,15 +14,12 @@ function Employees() {
     const [employees, setEmployees] = useState([]);
     const [openModal, setOpenModal] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
-    const [deleteId, setDeleteId] = useState(null);
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const employeesPerPage = 10;
 
     useEffect(() => {
-
         loadEmployees();
-
     }, []);
 
     const filteredEmployees = employees.filter((employee) => {
@@ -59,13 +57,14 @@ function Employees() {
         setEmployees(data);
 
     }
+
     function handleEdit(employee) {
 
         setSelectedEmployee(employee);
-
         setOpenModal(true);
 
     }
+
     async function handleDelete(id) {
 
         const confirmDelete = window.confirm(
@@ -78,7 +77,7 @@ function Employees() {
 
             await deleteEmployee(id);
 
-            alert("Employee Deleted Successfully ✅");
+            alert("Employee Deleted Successfully");
 
             loadEmployees();
 
@@ -96,56 +95,63 @@ function Employees() {
 
             <div className="p-6">
 
-                <div className="flex justify-between items-center">
+                {/* Header */}
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
 
                     <div>
 
                         <h1 className="text-3xl font-bold">
-
                             Employees
-
                         </h1>
 
-                        <div className="mt-6 mb-6">
-
-                            <input
-                                type="text"
-                                placeholder="🔍 Search Employee..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="w-full md:w-96 border rounded-lg p-3"
-                            />
-
-                        </div>
-
                         <p className="text-gray-500 mt-2">
-
                             Manage your employees.
-
                         </p>
 
                     </div>
 
-                    <button
-                        onClick={() => setOpenModal(true)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg"
+                    <Button
+                        onClick={() => {
+                            setSelectedEmployee(null);
+                            setOpenModal(true);
+                        }}
                     >
                         + Add Employee
-                    </button>
+                    </Button>
 
                 </div>
 
+                {/* Search */}
+                <div className="mt-8">
+
+                    <input
+                        type="text"
+                        placeholder="Search Employee..."
+                        value={search}
+                        onChange={(e) => {
+                            setSearch(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="w-full md:w-96 border rounded-lg p-3"
+                    />
+
+                </div>
+
+                {/* Employees Table */}
                 <EmployeesTable
                     employees={currentEmployees}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                 />
 
+                {/* Pagination */}
                 <div className="flex items-center justify-between mt-6">
 
                     <button
                         disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(currentPage - 1)}
+                        onClick={() =>
+                            setCurrentPage(currentPage - 1)
+                        }
                         className="px-4 py-2 rounded bg-gray-200 disabled:opacity-50"
                     >
                         ◀ Previous
@@ -156,8 +162,13 @@ function Employees() {
                     </span>
 
                     <button
-                        disabled={currentPage === totalPages || totalPages === 0}
-                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={
+                            currentPage === totalPages ||
+                            totalPages === 0
+                        }
+                        onClick={() =>
+                            setCurrentPage(currentPage + 1)
+                        }
                         className="px-4 py-2 rounded bg-gray-200 disabled:opacity-50"
                     >
                         Next ▶
@@ -165,18 +176,29 @@ function Employees() {
 
                 </div>
 
-                <AddEmployeeModal
-                    open={openModal}
+                {/* Employee Modal */}
+                <Modal
+                    isOpen={openModal}
                     onClose={() => {
-
                         setOpenModal(false);
-
                         setSelectedEmployee(null);
-
                     }}
-                    onSaved={loadEmployees}
-                    employee={selectedEmployee}
-                />
+                    title={
+                        selectedEmployee
+                            ? "Edit Employee"
+                            : "Add Employee"
+                    }
+                >
+                    <AddEmployeeModal
+                        open={true}
+                        onClose={() => {
+                            setOpenModal(false);
+                            setSelectedEmployee(null);
+                        }}
+                        onSaved={loadEmployees}
+                        employee={selectedEmployee}
+                    />
+                </Modal>
 
             </div>
 
