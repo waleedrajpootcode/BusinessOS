@@ -1,8 +1,8 @@
-import './App.css'
-import Home from './pages/Home'
-import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import { Routes, Route } from 'react-router-dom'
+import "./App.css";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Products from "./pages/Products";
 import Customers from "./pages/Customers";
@@ -25,13 +25,14 @@ import PurchaseDetails from "./pages/PurchaseDetails";
 import EditPurchase from "./pages/EditPurchase";
 
 function App() {
-
-
   return (
     <>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+
+        {/* Protected Business Routes */}
         <Route
           path="/dashboard"
           element={
@@ -39,8 +40,8 @@ function App() {
               <Dashboard />
             </ProtectedRoute>
           }
-
         />
+
         <Route
           path="/products"
           element={
@@ -49,10 +50,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/customers"
-          element={<Customers />}
+          element={
+            <ProtectedRoute>
+              <Customers />
+            </ProtectedRoute>
+          }
         />
+
         <Route
           path="/customer-ledger/:id"
           element={
@@ -73,16 +80,31 @@ function App() {
 
         <Route
           path="/sales"
-          element={<Sales />}
+          element={
+            <ProtectedRoute>
+              <Sales />
+            </ProtectedRoute>
+          }
         />
+
         <Route
           path="/suppliers"
-          element={<Suppliers />}
+          element={
+            <ProtectedRoute>
+              <Suppliers />
+            </ProtectedRoute>
+          }
         />
+
         <Route
           path="/purchases"
-          element={<Purchases />}
+          element={
+            <ProtectedRoute>
+              <Purchases />
+            </ProtectedRoute>
+          }
         />
+
         <Route
           path="/purchases/:id"
           element={
@@ -91,19 +113,35 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/purchases/:id/edit"
-          element={<EditPurchase />}
+          element={
+            <ProtectedRoute>
+              <EditPurchase />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/inventory"
-          element={<Inventory />}
+          element={
+            <ProtectedRoute>
+              <Inventory />
+            </ProtectedRoute>
+          }
         />
+
         <Route
           path="/expenses"
-          element={<Expenses />}
+          element={
+            <ProtectedRoute>
+              <Expenses />
+            </ProtectedRoute>
+          }
         />
+
+        {/* Admin Only Routes */}
         <Route
           path="/reports"
           element={
@@ -148,11 +186,13 @@ function App() {
           }
         />
 
+        {/* Public Customer Invoice */}
         <Route
           path="/invoice/:id"
           element={<Invoice />}
         />
 
+        {/* Protected Business Setup */}
         <Route
           path="/business-setup"
           element={
@@ -170,10 +210,9 @@ function App() {
             </ProtectedRoute>
           }
         />
-
       </Routes>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

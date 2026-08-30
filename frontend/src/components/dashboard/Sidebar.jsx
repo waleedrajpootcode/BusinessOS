@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { Link, useLocation } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
 
 function Sidebar({ sidebarOpen, setSidebarOpen }) {
   const { role } = useAuth();
@@ -29,6 +30,17 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
   function handleNavigation() {
     setSidebarOpen(false);
   }
+
+  async function handleLogout() {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    console.error("Logout Error:", error);
+    return;
+  }
+
+  setSidebarOpen(false);
+}
 
   function getNavClass(path) {
     const isActive = location.pathname === path;
@@ -582,24 +594,25 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
         "
       >
 
-        <button
-          type="button"
-          className="
-            flex
-            items-center
-            gap-3
-            w-full
-            min-h-11
-            px-4
-            py-3
-            rounded-xl
-            text-slate-300
-            hover:bg-red-500/10
-            hover:text-red-400
-            transition-all
-            duration-200
-          "
-        >
+        <button 
+  type="button" 
+  onClick={handleLogout}
+  className=" 
+    flex 
+    items-center 
+    gap-3 
+    w-full 
+    min-h-11 
+    px-4 
+    py-3 
+    rounded-xl 
+    text-slate-300 
+    hover:bg-red-500/10 
+    hover:text-red-400 
+    transition-all 
+    duration-200 
+  " 
+>
           <LogOut
             size={19}
             className="shrink-0"
