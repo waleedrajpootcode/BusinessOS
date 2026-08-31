@@ -14,7 +14,6 @@ import { useEffect, useState } from "react";
 import { getCategories } from "../../services/categories";
 import ProductUnitSettings from "./ProductUnitSettings";
 
-
 function ProductForm({
   product = null,
   onSuccess,
@@ -36,19 +35,19 @@ function ProductForm({
   );
 
   const [minimumStock, setMinimumStock] = useState(
-    product?.minimum_stock || 5
+    product?.minimum_stock ?? 5
   );
 
   const [price, setPrice] = useState(
-    product?.price || ""
+    product?.price ?? ""
   );
 
   const [stock, setStock] = useState(
-    product?.stock || ""
+    product?.stock ?? ""
   );
 
   const [costPrice, setCostPrice] = useState(
-    product?.cost_price || ""
+    product?.cost_price ?? ""
   );
 
   const [categories, setCategories] = useState([]);
@@ -60,15 +59,18 @@ function ProductForm({
   const [alertType, setAlertType] = useState("success");
 
   const [unitSettings, setUnitSettings] = useState({
-  enabled: false,
-  unit_type: "",
-  base_unit: "",
-  selling_unit: "",
-  conversion_factor: 1,
-});
+    enabled: false,
+    unit_type: "",
+    base_unit: "",
+    selling_unit: "",
+    conversion_factor: 1,
+  });
+
   const [unitLoading, setUnitLoading] = useState(false);
 
-
+  /*
+   * Load categories
+   */
   useEffect(() => {
     async function loadCategories() {
       try {
@@ -85,7 +87,7 @@ function ProductForm({
 
         setAlertMessage(
           error.message ||
-          "Failed to load categories."
+            "Failed to load categories."
         );
       }
     }
@@ -93,42 +95,51 @@ function ProductForm({
     loadCategories();
   }, []);
 
-
+  /*
+   * Load existing product unit settings
+   * when editing a product.
+   */
   useEffect(() => {
     async function loadProductUnit() {
       if (!product?.id) {
         setUnitSettings({
-  enabled: false,
-  unit_type: "",
-  base_unit: "",
-  selling_unit: "",
-  conversion_factor: 1,
-});
+          enabled: false,
+          unit_type: "",
+          base_unit: "",
+          selling_unit: "",
+          conversion_factor: 1,
+        });
+
         return;
       }
 
       try {
         setUnitLoading(true);
 
-        const data = await getProductUnit(product.id);
+        const data = await getProductUnit(
+          product.id
+        );
 
         if (data) {
-setUnitSettings({
-  enabled: true,
-  unit_type: data.unit_type || "",
-  base_unit: data.base_unit || "",
-  selling_unit: data.selling_unit || "",
-  conversion_factor:
-    Number(data.conversion_factor) || 1,
-});
+          setUnitSettings({
+            enabled: true,
+            unit_type: data.unit_type || "",
+            base_unit: data.base_unit || "",
+            selling_unit:
+              data.selling_unit ||
+              data.base_unit ||
+              "",
+            conversion_factor:
+              Number(data.conversion_factor) || 1,
+          });
         } else {
-setUnitSettings({
-  enabled: false,
-  unit_type: "",
-  base_unit: "",
-  selling_unit: "",
-  conversion_factor: 1,
-});
+          setUnitSettings({
+            enabled: false,
+            unit_type: "",
+            base_unit: "",
+            selling_unit: "",
+            conversion_factor: 1,
+          });
         }
       } catch (error) {
         console.error(
@@ -140,7 +151,7 @@ setUnitSettings({
 
         setAlertMessage(
           error.message ||
-          "Failed to load product unit settings."
+            "Failed to load product unit settings."
         );
       } finally {
         setUnitLoading(false);
@@ -150,7 +161,9 @@ setUnitSettings({
     loadProductUnit();
   }, [product?.id]);
 
-
+  /*
+   * Submit product
+   */
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -160,7 +173,9 @@ setUnitSettings({
       return;
     }
 
-
+    /*
+     * Product validation
+     */
     if (!productName.trim()) {
       setAlertType("error");
 
@@ -170,7 +185,6 @@ setUnitSettings({
 
       return;
     }
-
 
     if (
       costPrice === "" ||
@@ -185,7 +199,6 @@ setUnitSettings({
       return;
     }
 
-
     if (
       price === "" ||
       Number(price) < 0
@@ -198,7 +211,6 @@ setUnitSettings({
 
       return;
     }
-
 
     if (
       stock === "" ||
@@ -213,7 +225,6 @@ setUnitSettings({
       return;
     }
 
-
     if (
       minimumStock === "" ||
       Number(minimumStock) < 0
@@ -227,23 +238,29 @@ setUnitSettings({
       return;
     }
 
-
+    /*
+     * Unit validation
+     *
+     * User only selects Selling Unit.
+     * Base Unit is automatically handled
+     * by ProductUnitSettings.
+     */
     if (unitSettings.enabled) {
-      if (!unitSettings.base_unit) {
+      if (!unitSettings.unit_type) {
         setAlertType("error");
 
         setAlertMessage(
-          "Please select a base unit."
+          "Please select a selling unit."
         );
 
         return;
       }
 
-      if (!unitSettings.unit_type) {
+      if (!unitSettings.selling_unit) {
         setAlertType("error");
 
         setAlertMessage(
-          "Please select a default selling unit."
+          "Please select a selling unit."
         );
 
         return;
@@ -263,11 +280,13 @@ setUnitSettings({
       }
     }
 
-
     setIsSubmitting(true);
 
-
     try {
+      /*
+       * Generate barcode automatically
+       * for new products when barcode is empty.
+       */
       let finalBarcode = barcode.trim();
 
       if (!product && !finalBarcode) {
@@ -275,7 +294,9 @@ setUnitSettings({
           await generateInternalBarcode();
       }
 
-
+      /*
+       * Product payload
+       */
       const productData = {
         product_name: productName.trim(),
         sku: sku.trim(),
@@ -287,32 +308,36 @@ setUnitSettings({
         minimum_stock: Number(minimumStock),
       };
 
-
       let savedProductId;
 
-
+      /*
+       * UPDATE PRODUCT
+       */
       if (product) {
-        const updatedData = await updateProduct(
+        await updateProduct(
           product.id,
           productData
         );
 
-        savedProductId =
-          Number(product.id);
-
+        savedProductId = Number(product.id);
 
         setAlertType("success");
 
         setAlertMessage(
           "Product Updated Successfully ✅"
         );
-      } else {
+      }
+
+      /*
+       * ADD PRODUCT
+       */
+      else {
         const addedData =
           await addProduct(productData);
 
-        savedProductId =
-          Number(addedData?.[0]?.id);
-
+        savedProductId = Number(
+          addedData?.[0]?.id
+        );
 
         setAlertType("success");
 
@@ -321,41 +346,58 @@ setUnitSettings({
         );
       }
 
-
+      /*
+       * Make sure product ID exists
+       */
       if (!savedProductId) {
         throw new Error(
           "Product was saved, but its ID could not be found."
         );
       }
 
-
+      /*
+       * SAVE UNIT SETTINGS
+       *
+       * The selected selling unit is passed.
+       * ProductUnitSettings already maps the
+       * selected unit to the correct unit type
+       * and base unit.
+       */
       if (unitSettings.enabled) {
-  await saveProductUnit(
-    savedProductId,
-    {
-      unit_type:
-        unitSettings.unit_type,
+        await saveProductUnit(
+          savedProductId,
+          {
+            unit_type:
+              unitSettings.unit_type,
 
-      base_unit:
-        unitSettings.base_unit,
+            base_unit:
+              unitSettings.base_unit ||
+              unitSettings.selling_unit,
 
-      selling_unit:
-        unitSettings.selling_unit,
+            selling_unit:
+              unitSettings.selling_unit,
 
-      conversion_factor:
-        Number(
-          unitSettings.conversion_factor
-        ),
-    }
-  );
-}
- else {
+            conversion_factor:
+              Number(
+                unitSettings.conversion_factor
+              ),
+          }
+        );
+      }
+
+      /*
+       * If unit settings are disabled,
+       * remove any existing unit configuration.
+       */
+      else {
         await deleteProductUnit(
           savedProductId
         );
       }
 
-
+      /*
+       * Reset form after successful save
+       */
       setProductName("");
       setSku("");
       setBarcode("");
@@ -365,28 +407,30 @@ setUnitSettings({
       setCostPrice("");
       setMinimumStock(5);
 
-  setUnitSettings({
-  enabled: false,
-  unit_type: "",
-  base_unit: "",
-  selling_unit: "",
-  conversion_factor: 1,
-});
+      setUnitSettings({
+        enabled: false,
+        unit_type: "",
+        base_unit: "",
+        selling_unit: "",
+        conversion_factor: 1,
+      });
 
-
+      /*
+       * Notify parent
+       */
       if (onSuccess) {
         onSuccess();
       }
-
     } catch (error) {
       console.error(
         "Product Error:",
         error
       );
 
-
+      /*
+       * Duplicate errors
+       */
       if (error.code === "23505") {
-
         if (
           error.message?.includes(
             "products_sku_unique"
@@ -400,7 +444,6 @@ setUnitSettings({
 
           return;
         }
-
 
         if (
           error.message?.includes(
@@ -416,7 +459,6 @@ setUnitSettings({
           return;
         }
 
-
         if (
           error.message?.includes(
             "product_units_product_id_unique"
@@ -431,7 +473,6 @@ setUnitSettings({
           return;
         }
 
-
         setAlertType("error");
 
         setAlertMessage(
@@ -441,31 +482,29 @@ setUnitSettings({
         return;
       }
 
-
+      /*
+       * General error
+       */
       setAlertType("error");
 
       setAlertMessage(
         error.message ||
-        "Failed to save product."
+          "Failed to save product."
       );
-
     } finally {
       setIsSubmitting(false);
     }
   }
-
 
   return (
     <form
       onSubmit={handleSubmit}
       className="space-y-4"
     >
-
       <AlertMessage
         type={alertType}
         message={alertMessage}
       />
-
 
       <input
         type="text"
@@ -477,7 +516,6 @@ setUnitSettings({
         className="w-full border rounded-lg p-3"
       />
 
-
       <input
         type="text"
         placeholder="SKU"
@@ -488,7 +526,6 @@ setUnitSettings({
         className="w-full border rounded-lg p-3"
       />
 
-
       <input
         type="text"
         placeholder="Barcode"
@@ -498,7 +535,6 @@ setUnitSettings({
         }
         className="w-full border rounded-lg p-3"
       />
-
 
       <select
         value={category}
@@ -521,7 +557,6 @@ setUnitSettings({
         ))}
       </select>
 
-
       <input
         type="number"
         placeholder="Cost Price"
@@ -531,7 +566,6 @@ setUnitSettings({
         }
         className="w-full border rounded-lg p-3"
       />
-
 
       <input
         type="number"
@@ -543,7 +577,6 @@ setUnitSettings({
         className="w-full border rounded-lg p-3"
       />
 
-
       <input
         type="number"
         placeholder="Stock"
@@ -553,7 +586,6 @@ setUnitSettings({
         }
         className="w-full border rounded-lg p-3"
       />
-
 
       <input
         type="number"
@@ -565,17 +597,18 @@ setUnitSettings({
         className="w-full border rounded-lg p-3"
       />
 
-
       {!unitLoading && (
         <ProductUnitSettings
-          key={product?.id || "new-product"}
+          key={
+            product?.id ||
+            "new-product"
+          }
           value={unitSettings}
           onChange={(settings) =>
             setUnitSettings(settings)
           }
         />
       )}
-
 
       <div className="flex justify-end">
         <Button
@@ -594,10 +627,8 @@ setUnitSettings({
               : "Save Product"}
         </Button>
       </div>
-
     </form>
   );
 }
-
 
 export default ProductForm;
