@@ -145,3 +145,85 @@ export async function generateInternalBarcode() {
 
   return data;
 }
+export async function getProductUnit(productId) {
+  const { data, error } = await supabase
+    .from("product_units")
+    .select(`
+      id,
+      business_id,
+      product_id,
+      unit_type,
+      base_unit,
+      conversion_factor,
+      is_default
+    `)
+    .eq("product_id", Number(productId))
+    .maybeSingle();
+
+  if (error) {
+    console.error("Get Product Unit Error:", error);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function saveProductUnit(productId, unitSettings) {
+  const businessId = await getCurrentBusinessId();
+
+  if (!businessId) {
+    throw new Error(
+      "Business information is not available."
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("product_units")
+    .upsert(
+      {
+        business_id: businessId,
+        product_id: Number(productId),
+
+        unit_type: unitSettings.unit_type,
+
+        base_unit: unitSettings.base_unit,
+
+        selling_unit: unitSettings.selling_unit,
+
+        conversion_factor: Number(
+          unitSettings.conversion_factor
+        ),
+
+        is_default: true,
+      },
+      {
+        onConflict: "product_id",
+      }
+    )
+    .select()
+    .single();
+
+  if (error) {
+    console.error(
+      "Save Product Unit Error:",
+      error
+    );
+
+    throw error;
+  }
+
+  return data;
+}
+export async function deleteProductUnit(productId) {
+  const { error } = await supabase
+    .from("product_units")
+    .delete()
+    .eq("product_id", Number(productId));
+
+  if (error) {
+    console.error("Delete Product Unit Error:", error);
+    throw error;
+  }
+
+  return true;
+}
