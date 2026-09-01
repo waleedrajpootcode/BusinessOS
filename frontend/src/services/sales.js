@@ -3,15 +3,53 @@ import { supabase } from "../lib/supabase";
 export async function getProductsForSale() {
   const { data, error } = await supabase
     .from("products")
-    .select("id, product_name, cost_price, price, stock")
+    .select(`
+      id,
+      product_name,
+      cost_price,
+      price,
+      stock,
+      product_units!product_units_business_product_fk (
+        unit_type,
+        base_unit,
+        selling_unit,
+        conversion_factor,
+        is_default
+      )
+    `)
     .order("product_name");
 
   if (error) {
-    console.error(error);
+    console.error("Get Products For Sale Error:", error);
     return [];
   }
 
-  return data;
+  return (data || []).map((product) => {
+    const unit = product.product_units?.[0] || null;
+
+    return {
+      ...product,
+
+      unit_type: unit?.unit_type || "piece",
+      base_unit: unit?.base_unit || "pcs",
+      selling_unit: unit?.selling_unit || "pcs",
+      conversion_factor:
+        Number(unit?.conversion_factor) || 1,
+
+      // Product without unit settings = Pieces
+      is_weight:
+        unit?.unit_type === "weight",
+
+      is_volume:
+        unit?.unit_type === "volume",
+
+      is_length:
+        unit?.unit_type === "length",
+
+      is_piece:
+        !unit || unit?.unit_type === "piece",
+    };
+  });
 }
 
 export async function getCustomersForSale() {
