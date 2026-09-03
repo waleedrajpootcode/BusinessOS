@@ -21,6 +21,8 @@ import BusinessSettings from "./pages/BusinessSettings";
 import Employees from "./pages/Employees";
 import PurchaseDetails from "./pages/PurchaseDetails";
 import EditPurchase from "./pages/EditPurchase";
+import AIAdvisor from "./pages/AIAdvisor";
+import AIAssistantWidget from "./components/ai/AIAssistantWidget";
 
 function App() {
   return (
@@ -36,6 +38,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/ai-advisor"
+          element={
+            <ProtectedRoute>
+              <AIAdvisor />
             </ProtectedRoute>
           }
         />
@@ -173,7 +184,6 @@ function App() {
           }
         />
 
-        
         {/* Public Customer Invoice */}
         <Route
           path="/invoice/:id"
@@ -199,6 +209,11 @@ function App() {
           }
         />
       </Routes>
+
+      {/* Global AI Assistant */}
+      <ProtectedRoute>
+        <AIAssistantWidget />
+      </ProtectedRoute>
     </>
   );
 }

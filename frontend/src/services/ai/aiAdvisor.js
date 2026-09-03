@@ -24,10 +24,6 @@ import {
 } from "./businessInsights";
 
 
-/* ===========================
-   Business Health
-=========================== */
-
 function calculateBusinessHealth({
   revenue,
   netProfit,
@@ -41,6 +37,7 @@ function calculateBusinessHealth({
   const safeReceivable = Number(totalReceivable || 0);
   const safeLowStock = Number(lowStockCount || 0);
 
+
   if (safeRevenue <= 0) {
     return {
       status: "attention",
@@ -49,6 +46,7 @@ function calculateBusinessHealth({
         "There is not enough sales data yet to determine a healthy business trend.",
     };
   }
+
 
   if (safeProfit <= 0) {
     return {
@@ -59,6 +57,7 @@ function calculateBusinessHealth({
     };
   }
 
+
   if (safeReceivable > safeRevenue * 0.5) {
     return {
       status: "attention",
@@ -67,6 +66,7 @@ function calculateBusinessHealth({
         "Customer receivables are high compared with total revenue.",
     };
   }
+
 
   if (
     safeLowStock > 0 &&
@@ -80,6 +80,7 @@ function calculateBusinessHealth({
     };
   }
 
+
   return {
     status: "healthy",
     label: "Stable",
@@ -89,10 +90,6 @@ function calculateBusinessHealth({
 }
 
 
-/* ===========================
-   Recommendations
-=========================== */
-
 function buildRecommendations({
   summary,
   inventory,
@@ -100,13 +97,24 @@ function buildRecommendations({
 }) {
   const recommendations = [];
 
-  const revenue = Number(summary?.revenue || 0);
-  const expenses = Number(summary?.expenses || 0);
-  const netProfit = Number(summary?.netProfit || 0);
+
+  const revenue = Number(
+    summary?.revenue || 0
+  );
+
+  const expenses = Number(
+    summary?.expenses || 0
+  );
+
+  const netProfit = Number(
+    summary?.netProfit || 0
+  );
+
 
   const receivable = Number(
     summary?.receivables?.totalReceivable || 0
   );
+
 
   const lowStockProducts = Array.isArray(
     inventory?.lowStockProducts
@@ -114,11 +122,13 @@ function buildRecommendations({
     ? inventory.lowStockProducts
     : [];
 
+
   const customerAccounts = Array.isArray(
     payments?.customerAccounts
   )
     ? payments.customerAccounts
     : [];
+
 
   if (customerAccounts.length > 0) {
     recommendations.push({
@@ -129,6 +139,7 @@ function buildRecommendations({
     });
   }
 
+
   if (lowStockProducts.length > 0) {
     recommendations.push({
       type: "inventory",
@@ -137,6 +148,7 @@ function buildRecommendations({
         "Review low-stock products and replenish items that are selling consistently.",
     });
   }
+
 
   if (
     revenue > 0 &&
@@ -150,6 +162,7 @@ function buildRecommendations({
     });
   }
 
+
   if (
     revenue > 0 &&
     receivable > revenue * 0.5
@@ -162,7 +175,11 @@ function buildRecommendations({
     });
   }
 
-  if (netProfit > 0 && recommendations.length === 0) {
+
+  if (
+    netProfit > 0 &&
+    recommendations.length === 0
+  ) {
     recommendations.push({
       type: "general",
       priority: "low",
@@ -171,13 +188,10 @@ function buildRecommendations({
     });
   }
 
+
   return recommendations;
 }
 
-
-/* ===========================
-   Full Business Analysis
-=========================== */
 
 export async function analyzeBusiness() {
   const [
@@ -200,6 +214,7 @@ export async function analyzeBusiness() {
     getPaymentInsights(),
   ]);
 
+
   const health = calculateBusinessHealth({
     revenue: summary?.revenue,
     netProfit: summary?.netProfit,
@@ -210,33 +225,26 @@ export async function analyzeBusiness() {
       inventory?.lowStockProducts?.length || 0,
   });
 
-  const recommendations = buildRecommendations({
-    summary,
-    inventory,
-    payments,
-  });
+
+  const recommendations =
+    buildRecommendations({
+      summary,
+      inventory,
+      payments,
+    });
+
 
   return {
     success: true,
-
     health,
-
     summary,
-
     sales,
-
     expenses,
-
     profit,
-
     inventory,
-
     customers,
-
     suppliers,
-
     payments,
-
     recommendations,
   };
 }

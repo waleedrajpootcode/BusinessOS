@@ -16,6 +16,7 @@ import {
   UserCog,
   BadgePlus,
   Building2,
+  Sparkles,
   X,
 } from "lucide-react";
 
@@ -32,15 +33,15 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
   }
 
   async function handleLogout() {
-  const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
 
-  if (error) {
-    console.error("Logout Error:", error);
-    return;
+    if (error) {
+      console.error("Logout Error:", error);
+      return;
+    }
+
+    setSidebarOpen(false);
   }
-
-  setSidebarOpen(false);
-}
 
   function getNavClass(path) {
     const isActive = location.pathname === path;
@@ -58,10 +59,9 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
       rounded-xl
       transition-all
       duration-200
-      ${
-        isActive
-          ? "bg-amber-400/10 text-amber-300 shadow-sm"
-          : "text-slate-300 hover:bg-white/5 hover:text-white"
+      ${isActive
+        ? "bg-amber-400/10 text-amber-300 shadow-sm"
+        : "text-slate-300 hover:bg-white/5 hover:text-white"
       }
     `;
   }
@@ -252,6 +252,39 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
               <span className="truncate font-medium">
                 Dashboard
+              </span>
+            </Link>
+          </li>
+
+          {/* AI Business Advisor */}
+
+          <li>
+            <Link
+              to="/ai-advisor"
+              onClick={handleNavigation}
+              className={getNavClass("/ai-advisor")}
+            >
+              {location.pathname === "/ai-advisor" && (
+                <span
+                  className="
+                  absolute
+                  left-0
+                  top-2
+                  bottom-2
+                  w-0.5
+                  rounded-full
+                  bg-amber-400
+                "
+                />
+              )}
+
+              <Sparkles
+                size={19}
+                className="shrink-0"
+              />
+
+              <span className="truncate">
+                AI Advisor
               </span>
             </Link>
           </li>
@@ -502,7 +535,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
                 </Link>
               </li>
 
-            
+
             </ul>
 
           </>
@@ -571,10 +604,10 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
         "
       >
 
-        <button 
-  type="button" 
-  onClick={handleLogout}
-  className=" 
+        <button
+          type="button"
+          onClick={handleLogout}
+          className=" 
     flex 
     items-center 
     gap-3 
@@ -588,8 +621,8 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
     hover:text-red-400 
     transition-all 
     duration-200 
-  " 
->
+  "
+        >
           <LogOut
             size={19}
             className="shrink-0"

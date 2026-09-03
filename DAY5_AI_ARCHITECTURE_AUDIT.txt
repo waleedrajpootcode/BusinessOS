@@ -1,0 +1,1862 @@
+
+============================================================
+FILE: frontend\src\services\ai\queryRouter.js
+============================================================
+
+/**
+ * BusinessOS AI Query Router
+ *
+ * Day 5 — Natural-language query foundation.
+ *
+ * IMPORTANT:
+ * - Read-only routing only.
+ * - No arbitrary SQL.
+ * - No database writes.
+ * - No AI provider/API key.
+ * - Only approved BusinessOS insight functions.
+ */
+
+import {
+  getBusinessSummary,
+  getSalesInsights,
+  getExpenseInsights,
+  getProfitInsights,
+  getInventoryInsights,
+  getCustomerInsights,
+  getSupplierInsights,
+  getPaymentInsights,
+} from "./businessInsights";
+
+import {
+  searchMarketIntelligence,
+} from "./marketIntelligence";
+
+
+function normalizeQuery(query) {
+  return String(query || "")
+    .trim()
+    .toLowerCase();
+}
+
+
+function matchesAny(query, keywords) {
+  return keywords.some((keyword) =>
+    query.includes(keyword)
+  );
+}
+
+
+/* ===========================
+   Query Classification
+=========================== */
+
+function classifyQuery(query) {
+  /* ===========================
+     Payment queries first
+     because they can also contain
+     customer/supplier keywords.
+  =========================== */
+
+  if (
+    matchesAny(query, [
+      "customer payment",
+      "customer payments",
+      "payment outstanding",
+      "payments outstanding",
+      "payment due",
+      "payments due",
+      "total payment",
+      "total payments",
+      "receivable",
+      "receivables",
+      "outstanding",
+      "udhaar",
+      "lena",
+      "dena",
+    ])
+  ) {
+    return "payments";
+  }
+
+  /* ===========================
+     Market Intelligence
+  =========================== */
+
+ if (
+  matchesAny(query, [
+    "market trend",
+    "market trends",
+    "business trend",
+    "business trends",
+    "retail trend",
+    "retail trends",
+
+    "market mein kya",
+    "market me kya",
+    "market main kya",
+
+    "market mein kya chal",
+    "market me kya chal",
+    "market main kya chal",
+
+    "aaj kal market",
+    "aajkal market",
+    "aaj kal business",
+    "aajkal business",
+
+    "aaj kal retail",
+    "aajkal retail",
+    "aaj kal pakistan retail",
+    "aajkal pakistan retail",
+
+    "pakistan retail market",
+    "pakistan market trend",
+    "pakistan business trend",
+
+    "world mein kya trend",
+    "world me kya trend",
+    "world main kya trend",
+
+    "duniya mein kya trend",
+    "duniya me kya trend",
+    "duniya main kya trend",
+
+    "abhi market mein",
+    "abhi market me",
+    "abhi market main",
+    "abhi business mein",
+    "abhi business me",
+    "abhi business main",
+  ])
+) {
+  return "market";
+}
+
+
+  /* ===========================
+     Profit
+  =========================== */
+
+  if (
+    matchesAny(query, [
+      "net profit",
+      "profit",
+      "munafa",
+      "munafa kitna",
+      "profit kitna",
+    ])
+  ) {
+    return "profit";
+  }
+
+
+  /* ===========================
+     Expenses
+  =========================== */
+
+  if (
+    matchesAny(query, [
+      "expense",
+      "expenses",
+      "kharcha",
+      "kharchay",
+      "kharch",
+    ])
+  ) {
+    return "expenses";
+  }
+
+
+  /* ===========================
+     Sales
+  =========================== */
+
+  if (
+    matchesAny(query, [
+      "sales",
+      "sale",
+      "revenue",
+      "bikri",
+      "sales kitni",
+    ])
+  ) {
+    return "sales";
+  }
+
+
+  /* ===========================
+     Inventory
+  =========================== */
+
+  if (
+    matchesAny(query, [
+      "low stock",
+      "low-stock",
+      "stock low",
+      "inventory",
+      "stock",
+      "maal",
+    ])
+  ) {
+    return "inventory";
+  }
+
+
+  /* ===========================
+     Customer
+  =========================== */
+
+  if (
+    matchesAny(query, [
+      "customer",
+      "customers",
+      "client",
+      "clients",
+      "customer outstanding",
+      "customer due",
+      "customers due",
+    ])
+  ) {
+    return "customers";
+  }
+
+
+  /* ===========================
+     Supplier
+  =========================== */
+
+  if (
+    matchesAny(query, [
+      "supplier",
+      "suppliers",
+      "vendor",
+      "vendors",
+    ])
+  ) {
+    return "suppliers";
+  }
+
+
+  /* ===========================
+     General Payment Queries
+  =========================== */
+
+  if (
+    matchesAny(query, [
+      "payment",
+      "payments",
+      "due",
+    ])
+  ) {
+    return "payments";
+  }
+
+
+  /* ===========================
+     Business Summary
+  =========================== */
+
+  if (
+    matchesAny(query, [
+      "summary",
+      "business summary",
+      "business overview",
+      "overall business",
+      "overall",
+      "business kaisa",
+      "business kaise",
+    ])
+  ) {
+    return "summary";
+  }
+
+
+  return "unknown";
+}
+
+
+/* ===========================
+   Safe Query Execution
+=========================== */
+
+export async function routeBusinessQuery(query) {
+  const normalizedQuery = normalizeQuery(query);
+
+  if (!normalizedQuery) {
+    return {
+      success: false,
+      type: "empty_query",
+      message: "Please enter a business question.",
+    };
+  }
+
+  const intent = classifyQuery(normalizedQuery);
+
+  try {
+    switch (intent) {
+      case "sales":
+        return {
+          success: true,
+          intent,
+          data: await getSalesInsights(),
+        };
+
+      case "expenses":
+        return {
+          success: true,
+          intent,
+          data: await getExpenseInsights(),
+        };
+
+      case "profit":
+        return {
+          success: true,
+          intent,
+          data: await getProfitInsights(),
+        };
+
+      case "inventory":
+        return {
+          success: true,
+          intent,
+          data: await getInventoryInsights(),
+        };
+
+      case "customers":
+        return {
+          success: true,
+          intent,
+          data: await getCustomerInsights(),
+        };
+
+      case "suppliers":
+        return {
+          success: true,
+          intent,
+          data: await getSupplierInsights(),
+        };
+
+              case "market": {
+  let marketTopic = normalizedQuery;
+
+  marketTopic = marketTopic
+    .replace(
+      /^(aaj kal|aajkal|abhi|currently)\s+/,
+      ""
+    )
+    .replace(
+      /\b(kya trend chal raha hai|kya trend chal raha|kya trends chal rahe hain|kya trends chal rahe|kya trend hai|kya trends hain|kya chal raha hai|kya chal rahi hai|kya chal rahe hain)\b/g,
+      ""
+    )
+    .replace(
+      /\b(mujhe batao|batao|batayein|bata dein|please|right now|currently)\b/g,
+      ""
+    )
+    .replace(/\?+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!marketTopic) {
+    marketTopic = "business market trends";
+  }
+
+  return {
+    success: true,
+    intent,
+    data: await searchMarketIntelligence(
+      marketTopic
+    ),
+  };
+}
+
+      case "payments":
+        return {
+          success: true,
+          intent,
+          data: await getPaymentInsights(),
+        };
+
+      case "summary":
+        return {
+          success: true,
+          intent,
+          data: await getBusinessSummary(),
+        };
+
+      default:
+        return {
+          success: false,
+          type: "unknown_query",
+          message:
+            "I could not understand that business question yet.",
+        };
+    }
+  } catch (error) {
+    console.error(
+      "BusinessOS AI Query Router Error:",
+      error
+    );
+
+    return {
+      success: false,
+      type: "query_error",
+      message:
+        "I could not retrieve the requested business information.",
+    };
+  }
+}
+
+
+============================================================
+FILE: frontend\src\services\ai\queryResponse.js
+============================================================
+
+/**
+ * BusinessOS AI Query Response
+ *
+ * Day 5 — Human-friendly natural-language query responses.
+ *
+ * IMPORTANT:
+ * - Uses only data returned by the safe Query Router.
+ * - No database access.
+ * - No database writes.
+ * - No arbitrary SQL.
+ * - No fabricated financial numbers.
+ */
+
+function formatAmount(value) {
+  const amount = Number(value || 0);
+
+  return amount.toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+  });
+}
+
+
+function formatCount(value) {
+  return Number(value || 0).toLocaleString("en-US");
+}
+
+
+/* ===========================
+   Sales
+=========================== */
+
+function buildSalesResponse(data) {
+  const revenue = Number(data?.revenue || 0);
+  const profit = Number(data?.profit || 0);
+
+  return (
+    `Your recorded sales revenue is PKR ${formatAmount(revenue)}, ` +
+    `with sales profit of PKR ${formatAmount(profit)}.`
+  );
+}
+
+
+/* ===========================
+   Expenses
+=========================== */
+
+function buildExpenseResponse(data) {
+  const expenses = Number(
+    data?.totalExpenses || 0
+  );
+
+  return (
+    `Your recorded business expenses are ` +
+    `PKR ${formatAmount(expenses)}.`
+  );
+}
+
+
+/* ===========================
+   Profit
+=========================== */
+
+function buildProfitResponse(data) {
+  const salesProfit = Number(
+    data?.salesProfit || 0
+  );
+
+  const expenses = Number(
+    data?.expenses || 0
+  );
+
+  const netProfit = Number(
+    data?.netProfit || 0
+  );
+
+  return (
+    `Your sales profit is PKR ${formatAmount(salesProfit)}, ` +
+    `expenses are PKR ${formatAmount(expenses)}, ` +
+    `and current net profit is PKR ${formatAmount(netProfit)}.`
+  );
+}
+
+
+/* ===========================
+   Inventory
+=========================== */
+
+function buildInventoryResponse(data) {
+  const lowStockProducts = Array.isArray(
+    data?.lowStockProducts
+  )
+    ? data.lowStockProducts
+    : [];
+
+  const topSellingProducts = Array.isArray(
+    data?.topSellingProducts
+  )
+    ? data.topSellingProducts
+    : [];
+
+  if (lowStockProducts.length === 0) {
+    return (
+      `I found no products currently marked as low stock. ` +
+      `${formatCount(topSellingProducts.length)} top-selling product record(s) ` +
+      `are available.`
+    );
+  }
+
+  const names = lowStockProducts
+    .slice(0, 5)
+    .map((product) => product?.product_name)
+    .filter(Boolean);
+
+  const productList =
+    names.length > 0
+      ? ` Products to review: ${names.join(", ")}.`
+      : "";
+
+  return (
+    `${formatCount(lowStockProducts.length)} product(s) ` +
+    `are currently marked as low stock.` +
+    productList
+  );
+}
+
+
+/* ===========================
+   Customers
+=========================== */
+
+function buildCustomerResponse(data) {
+  const customerReceivables = Array.isArray(
+    data?.customerReceivables
+  )
+    ? data.customerReceivables
+    : [];
+
+  const topCustomers = Array.isArray(
+    data?.topCustomers
+  )
+    ? data.topCustomers
+    : [];
+
+  if (customerReceivables.length === 0) {
+    return (
+      "There are currently no customer receivable records " +
+      "available for analysis."
+    );
+  }
+
+  const outstandingCustomers =
+    customerReceivables.filter(
+      (customer) =>
+        Number(customer?.outstanding || 0) > 0
+    );
+
+  return (
+    `${formatCount(outstandingCustomers.length)} customer account(s) ` +
+    `currently have outstanding balances. ` +
+    `${formatCount(topCustomers.length)} top customer record(s) ` +
+    `are also available.`
+  );
+}
+
+
+/* ===========================
+   Suppliers
+=========================== */
+
+function buildSupplierResponse(data) {
+  const totalSuppliers = Number(
+    data?.totalSuppliers || 0
+  );
+
+  const totalPaid = Number(
+    data?.totalPaid || 0
+  );
+
+  return (
+    `There are ${formatCount(totalSuppliers)} supplier(s) ` +
+    `in the available business data, with recorded supplier payments ` +
+    `of PKR ${formatAmount(totalPaid)}.`
+  );
+}
+
+
+/* ===========================
+   Payments
+=========================== */
+
+function buildPaymentResponse(data) {
+  const customer = data?.customer;
+
+  if (!customer) {
+    return (
+      "Customer payment information is currently unavailable."
+    );
+  }
+
+  const totalReceivable = Number(
+    customer?.totalReceivable || 0
+  );
+
+  const totalCollected = Number(
+    customer?.totalCollected || 0
+  );
+
+  const customersWithDue = Number(
+    customer?.customersWithDue || 0
+  );
+
+  if (
+    totalReceivable <= 0 &&
+    customersWithDue <= 0
+  ) {
+    return (
+      "There are currently no customer outstanding payments " +
+      "in the available business data."
+    );
+  }
+
+  return (
+    `Customers currently owe PKR ${formatAmount(totalReceivable)}. ` +
+    `PKR ${formatAmount(totalCollected)} has been collected, ` +
+    `and ${formatCount(customersWithDue)} customer account(s) ` +
+    `have outstanding dues.`
+  );
+}
+
+
+/* ===========================
+   Business Summary
+=========================== */
+
+function buildSummaryResponse(data) {
+  const revenue = Number(
+    data?.revenue || 0
+  );
+
+  const salesProfit = Number(
+    data?.salesProfit || 0
+  );
+
+  const purchases = Number(
+    data?.purchases || 0
+  );
+
+  const expenses = Number(
+    data?.expenses || 0
+  );
+
+  const netProfit = Number(
+    data?.netProfit || 0
+  );
+
+  const receivable = Number(
+    data?.receivables?.totalReceivable || 0
+  );
+
+  return (
+    `Your business currently has revenue of ` +
+    `PKR ${formatAmount(revenue)}, sales profit of ` +
+    `PKR ${formatAmount(salesProfit)}, purchases of ` +
+    `PKR ${formatAmount(purchases)}, expenses of ` +
+    `PKR ${formatAmount(expenses)}, and net profit of ` +
+    `PKR ${formatAmount(netProfit)}. ` +
+    `Customer outstanding is PKR ${formatAmount(receivable)}.`
+  );
+}
+
+function buildMarketResponse(data) {
+  if (!data?.success) {
+    return (
+      data?.message ||
+      "Fresh market information is currently unavailable."
+    );
+  }
+
+  const articles = Array.isArray(data?.articles)
+    ? data.articles
+    : [];
+
+  if (articles.length === 0) {
+    return (
+      `I could not find fresh market information for "${data?.topic || "this topic"}" right now.`
+    );
+  }
+
+  const articleLines = articles
+    .slice(0, 5)
+    .map((article, index) => {
+      const title = String(
+        article?.title || "Untitled article"
+      ).trim();
+
+      const source = String(
+        article?.source || "Unknown source"
+      ).trim();
+
+      return `${index + 1}. ${title} — ${source}`;
+    });
+
+  return (
+    `Here are some recent market signals related to "${data?.topic || "your topic"}":\n\n` +
+    articleLines.join("\n") +
+    `\n\nThese are external market-news signals. Use them as market context rather than as guaranteed business recommendations.`
+  );
+}
+
+
+/* ===========================
+   Public API
+=========================== */
+
+export function buildQueryResponse(result) {
+  if (!result?.success) {
+    return {
+      success: false,
+      message:
+        result?.message ||
+        "I could not understand or retrieve that business information.",
+    };
+  }
+
+
+  let message;
+
+
+  switch (result.intent) {
+    case "sales":
+      message = buildSalesResponse(result.data);
+      break;
+
+    case "expenses":
+      message = buildExpenseResponse(result.data);
+      break;
+
+    case "profit":
+      message = buildProfitResponse(result.data);
+      break;
+
+    case "inventory":
+      message = buildInventoryResponse(result.data);
+      break;
+
+    case "customers":
+      message = buildCustomerResponse(result.data);
+      break;
+
+    case "suppliers":
+      message = buildSupplierResponse(result.data);
+      break;
+
+    case "payments":
+      message = buildPaymentResponse(result.data);
+      break;
+
+    case "market":
+      message = buildMarketResponse(result.data);
+      break;
+
+    case "summary":
+      message = buildSummaryResponse(result.data);
+      break;
+
+    default:
+      return {
+        success: false,
+        message:
+          "I do not have a response format for that business question yet.",
+      };
+  }
+
+
+  return {
+    success: true,
+    intent: result.intent,
+    message,
+  };
+}
+
+
+============================================================
+FILE: frontend\src\services\ai\businessInsights.js
+============================================================
+
+import {
+  getTotalRevenue,
+  getTotalSalesProfit,
+  getTotalPurchases,
+  getTotalExpenses,
+  getNetProfit,
+  getMonthlyRevenue,
+  getTopSellingProducts,
+  getLowStockProducts,
+  getTopCustomers,
+  getMonthlySalesCount,
+  getReceivablesSummary,
+  getCustomerReceivables,
+} from "../reports";
+
+import { getSuppliers } from "../suppliers";
+import { getAllSupplierPayments } from "../supplierPayments";
+
+/**
+ * BusinessOS AI Business Insights
+ *
+ * Day 5 foundation.
+ *
+ * IMPORTANT:
+ * - Read-only only.
+ * - Uses existing BusinessOS services.
+ * - No database writes.
+ * - No arbitrary SQL.
+ * - No AI provider/API key here.
+ */
+
+/* ===========================
+   Business Summary
+=========================== */
+
+export async function getBusinessSummary() {
+  const [
+    totalRevenue,
+    totalSalesProfit,
+    totalPurchases,
+    totalExpenses,
+    netProfit,
+    receivables,
+  ] = await Promise.all([
+    getTotalRevenue(),
+    getTotalSalesProfit(),
+    getTotalPurchases(),
+    getTotalExpenses(),
+    getNetProfit(),
+    getReceivablesSummary(),
+  ]);
+
+  return {
+    revenue: Number(totalRevenue || 0),
+    salesProfit: Number(totalSalesProfit || 0),
+    purchases: Number(totalPurchases || 0),
+    expenses: Number(totalExpenses || 0),
+    netProfit: Number(netProfit || 0),
+
+    receivables: {
+      totalReceivable: Number(
+        receivables?.totalReceivable || 0
+      ),
+      totalCollected: Number(
+        receivables?.totalCollected || 0
+      ),
+      customersWithDue: Number(
+        receivables?.customersWithDue || 0
+      ),
+    },
+  };
+}
+
+
+/* ===========================
+   Sales Insights
+=========================== */
+
+export async function getSalesInsights() {
+  const [
+    revenue,
+    salesProfit,
+    monthlyRevenue,
+    monthlySales,
+    topProducts,
+  ] = await Promise.all([
+    getTotalRevenue(),
+    getTotalSalesProfit(),
+    getMonthlyRevenue(),
+    getMonthlySalesCount(),
+    getTopSellingProducts(),
+  ]);
+
+  return {
+    revenue: Number(revenue || 0),
+    profit: Number(salesProfit || 0),
+
+    monthlyRevenue: Array.isArray(monthlyRevenue)
+      ? monthlyRevenue
+      : [],
+
+    monthlySales: Array.isArray(monthlySales)
+      ? monthlySales
+      : [],
+
+    topProducts: Array.isArray(topProducts)
+      ? topProducts
+      : [],
+  };
+}
+
+
+/* ===========================
+   Expense Insights
+=========================== */
+
+export async function getExpenseInsights() {
+  const expenses = await getTotalExpenses();
+
+  return {
+    totalExpenses: Number(expenses || 0),
+  };
+}
+
+
+/* ===========================
+   Profit Insights
+=========================== */
+
+export async function getProfitInsights() {
+  const [
+    salesProfit,
+    expenses,
+    netProfit,
+  ] = await Promise.all([
+    getTotalSalesProfit(),
+    getTotalExpenses(),
+    getNetProfit(),
+  ]);
+
+  return {
+    salesProfit: Number(salesProfit || 0),
+    expenses: Number(expenses || 0),
+    netProfit: Number(netProfit || 0),
+  };
+}
+
+
+/* ===========================
+   Inventory Insights
+=========================== */
+
+export async function getInventoryInsights() {
+  const [
+    lowStockProducts,
+    topProducts,
+  ] = await Promise.all([
+    getLowStockProducts(),
+    getTopSellingProducts(),
+  ]);
+
+  return {
+    lowStockProducts: Array.isArray(lowStockProducts)
+      ? lowStockProducts
+      : [],
+
+    topSellingProducts: Array.isArray(topProducts)
+      ? topProducts
+      : [],
+  };
+}
+
+
+/* ===========================
+   Customer Insights
+=========================== */
+
+export async function getCustomerInsights() {
+  const [
+    topCustomers,
+    customerReceivables,
+  ] = await Promise.all([
+    getTopCustomers(),
+    getCustomerReceivables(),
+  ]);
+
+  return {
+    topCustomers: Array.isArray(topCustomers)
+      ? topCustomers
+      : [],
+
+    customerReceivables: Array.isArray(
+      customerReceivables
+    )
+      ? customerReceivables
+      : [],
+  };
+}
+
+
+/* ===========================
+   Supplier Insights
+=========================== */
+
+export async function getSupplierInsights() {
+  const [
+    suppliers,
+    supplierPayments,
+  ] = await Promise.all([
+    getSuppliers(),
+    getAllSupplierPayments(),
+  ]);
+
+  const totalSuppliers = Array.isArray(suppliers)
+    ? suppliers.length
+    : 0;
+
+  const totalPaid = Array.isArray(supplierPayments)
+    ? supplierPayments.reduce(
+        (sum, payment) =>
+          sum + Number(payment.amount || 0),
+        0
+      )
+    : 0;
+
+  return {
+    totalSuppliers,
+    totalPaid,
+    recentPayments: Array.isArray(
+      supplierPayments
+    )
+      ? supplierPayments.slice(0, 10)
+      : [],
+  };
+}
+
+
+/* ===========================
+   Payment Insights
+=========================== */
+
+export async function getPaymentInsights() {
+  const [
+    receivables,
+    customerReceivables,
+  ] = await Promise.all([
+    getReceivablesSummary(),
+    getCustomerReceivables(),
+  ]);
+
+  return {
+    customer: {
+      totalReceivable: Number(
+        receivables?.totalReceivable || 0
+      ),
+
+      totalCollected: Number(
+        receivables?.totalCollected || 0
+      ),
+
+      customersWithDue: Number(
+        receivables?.customersWithDue || 0
+      ),
+    },
+
+    customerAccounts: Array.isArray(
+      customerReceivables
+    )
+      ? customerReceivables
+      : [],
+  };
+}
+
+
+============================================================
+FILE: frontend\src\services\ai\aiAdvisor.js
+============================================================
+
+/**
+ * BusinessOS AI Advisor
+ *
+ * Day 5 — AI Business Advisor foundation.
+ *
+ * IMPORTANT:
+ * - Read-only analysis only.
+ * - Uses approved BusinessOS insight functions.
+ * - No database writes.
+ * - No arbitrary SQL.
+ * - No AI provider/API key.
+ * - No financial action execution.
+ */
+
+import {
+  getBusinessSummary,
+  getSalesInsights,
+  getExpenseInsights,
+  getProfitInsights,
+  getInventoryInsights,
+  getCustomerInsights,
+  getSupplierInsights,
+  getPaymentInsights,
+} from "./businessInsights";
+
+
+function calculateBusinessHealth({
+  revenue,
+  netProfit,
+  expenses,
+  totalReceivable,
+  lowStockCount,
+}) {
+  const safeRevenue = Number(revenue || 0);
+  const safeProfit = Number(netProfit || 0);
+  const safeExpenses = Number(expenses || 0);
+  const safeReceivable = Number(totalReceivable || 0);
+  const safeLowStock = Number(lowStockCount || 0);
+
+
+  if (safeRevenue <= 0) {
+    return {
+      status: "attention",
+      label: "Needs Attention",
+      reason:
+        "There is not enough sales data yet to determine a healthy business trend.",
+    };
+  }
+
+
+  if (safeProfit <= 0) {
+    return {
+      status: "critical",
+      label: "Needs Attention",
+      reason:
+        "The current business data shows no positive net profit.",
+    };
+  }
+
+
+  if (safeReceivable > safeRevenue * 0.5) {
+    return {
+      status: "attention",
+      label: "Watch Cash Collection",
+      reason:
+        "Customer receivables are high compared with total revenue.",
+    };
+  }
+
+
+  if (
+    safeLowStock > 0 &&
+    safeExpenses > safeRevenue * 0.2
+  ) {
+    return {
+      status: "attention",
+      label: "Monitor Closely",
+      reason:
+        "There are low-stock products while expenses are also significant.",
+    };
+  }
+
+
+  return {
+    status: "healthy",
+    label: "Stable",
+    reason:
+      "The available business data shows positive net profit and no immediate critical issue.",
+  };
+}
+
+
+function buildRecommendations({
+  summary,
+  inventory,
+  payments,
+}) {
+  const recommendations = [];
+
+
+  const revenue = Number(
+    summary?.revenue || 0
+  );
+
+  const expenses = Number(
+    summary?.expenses || 0
+  );
+
+  const netProfit = Number(
+    summary?.netProfit || 0
+  );
+
+
+  const receivable = Number(
+    summary?.receivables?.totalReceivable || 0
+  );
+
+
+  const lowStockProducts = Array.isArray(
+    inventory?.lowStockProducts
+  )
+    ? inventory.lowStockProducts
+    : [];
+
+
+  const customerAccounts = Array.isArray(
+    payments?.customerAccounts
+  )
+    ? payments.customerAccounts
+    : [];
+
+
+  if (customerAccounts.length > 0) {
+    recommendations.push({
+      type: "payments",
+      priority: "high",
+      message:
+        "Follow up with customers who have outstanding payments.",
+    });
+  }
+
+
+  if (lowStockProducts.length > 0) {
+    recommendations.push({
+      type: "inventory",
+      priority: "high",
+      message:
+        "Review low-stock products and replenish items that are selling consistently.",
+    });
+  }
+
+
+  if (
+    revenue > 0 &&
+    expenses > revenue * 0.2
+  ) {
+    recommendations.push({
+      type: "expenses",
+      priority: "medium",
+      message:
+        "Review operating expenses and identify areas where unnecessary costs can be reduced.",
+    });
+  }
+
+
+  if (
+    revenue > 0 &&
+    receivable > revenue * 0.5
+  ) {
+    recommendations.push({
+      type: "cash_flow",
+      priority: "high",
+      message:
+        "Customer receivables are relatively high, so improving payment collection may help cash flow.",
+    });
+  }
+
+
+  if (
+    netProfit > 0 &&
+    recommendations.length === 0
+  ) {
+    recommendations.push({
+      type: "general",
+      priority: "low",
+      message:
+        "Continue monitoring sales, expenses, inventory and customer payments regularly.",
+    });
+  }
+
+
+  return recommendations;
+}
+
+
+export async function analyzeBusiness() {
+  const [
+    summary,
+    sales,
+    expenses,
+    profit,
+    inventory,
+    customers,
+    suppliers,
+    payments,
+  ] = await Promise.all([
+    getBusinessSummary(),
+    getSalesInsights(),
+    getExpenseInsights(),
+    getProfitInsights(),
+    getInventoryInsights(),
+    getCustomerInsights(),
+    getSupplierInsights(),
+    getPaymentInsights(),
+  ]);
+
+
+  const health = calculateBusinessHealth({
+    revenue: summary?.revenue,
+    netProfit: summary?.netProfit,
+    expenses: summary?.expenses,
+    totalReceivable:
+      summary?.receivables?.totalReceivable,
+    lowStockCount:
+      inventory?.lowStockProducts?.length || 0,
+  });
+
+
+  const recommendations =
+    buildRecommendations({
+      summary,
+      inventory,
+      payments,
+    });
+
+
+  return {
+    success: true,
+    health,
+    summary,
+    sales,
+    expenses,
+    profit,
+    inventory,
+    customers,
+    suppliers,
+    payments,
+    recommendations,
+  };
+}
+
+
+============================================================
+FILE: frontend\src\services\ai\marketIntelligence.js
+============================================================
+
+/**
+ * BusinessOS Frontend Market Intelligence
+ *
+ * Day 5 — Safe frontend gateway to the BusinessOS backend.
+ *
+ * IMPORTANT:
+ * - No API key in frontend.
+ * - No direct GNews request.
+ * - Backend controls the external provider.
+ * - Read-only external information.
+ * - Graceful error handling.
+ */
+
+const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL ||
+  "http://localhost:5000";
+
+const REQUEST_TIMEOUT_MS = 10000;
+const MAX_TOPIC_LENGTH = 120;
+
+function normalizeTopic(topic) {
+  return String(topic || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .slice(0, MAX_TOPIC_LENGTH);
+}
+
+export async function searchMarketIntelligence(
+  topic,
+  options = {}
+) {
+  const normalizedTopic = normalizeTopic(topic);
+
+  if (!normalizedTopic) {
+    return {
+      success: false,
+      type: "empty_topic",
+      message:
+        "Please provide a business or market topic.",
+      articles: [],
+    };
+  }
+
+  const timespan =
+    String(options?.timespan || "1day");
+
+  const params = new URLSearchParams({
+    topic: normalizedTopic,
+    timespan,
+  });
+
+  const controller = new AbortController();
+
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(
+      `${BACKEND_URL}/api/market-intelligence?${params.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+        signal: controller.signal,
+      }
+    );
+
+    let data = null;
+
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
+if (!response.ok) {
+  return {
+    success: false,
+    type:
+      data?.type ||
+      "market_backend_error",
+    status: response.status,
+    message:
+      data?.message ||
+      "Market information is temporarily unavailable.",
+    articles: [],
+  };
+}
+
+    return {
+      success: data?.success === true,
+      type: data?.type || null,
+      topic: data?.topic || normalizedTopic,
+      query: data?.query || null,
+      source: data?.source || null,
+      timespan: data?.timespan || timespan,
+      articles: Array.isArray(data?.articles)
+        ? data.articles
+        : [],
+      message: data?.message || null,
+    };
+  } catch (error) {
+    console.error(
+      "BusinessOS Frontend Market Intelligence Error:",
+      error
+    );
+
+    if (error?.name === "AbortError") {
+      return {
+        success: false,
+        type: "market_timeout",
+        message:
+          "Market information request timed out.",
+        articles: [],
+      };
+    }
+
+    return {
+      success: false,
+      type: "market_network_error",
+      message:
+        "Market information could not be retrieved right now.",
+      articles: [],
+    };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+
+============================================================
+FILE: backend\src\services\marketProvider.js
+============================================================
+
+/**
+ * BusinessOS Market Provider
+ *
+ * Day 5 — External market provider adapter.
+ *
+ * IMPORTANT:
+ * - Server-side only.
+ * - API credentials never exposed to frontend.
+ * - Provider can be replaced without changing AI architecture.
+ * - No database writes.
+ */
+
+const MAX_RESULTS = 8;
+const REQUEST_TIMEOUT_MS = 8000;
+
+function normalizeProviderArticles(articles) {
+  if (!Array.isArray(articles)) {
+    return [];
+  }
+
+  return articles
+    .slice(0, MAX_RESULTS)
+    .map((article) => ({
+      title: String(article?.title || "").trim(),
+      description: String(article?.description || "").trim(),
+      url: String(article?.url || "").trim(),
+      source: String(
+        article?.source?.name ||
+        article?.source ||
+        ""
+      ).trim(),
+      publishedAt: String(
+        article?.publishedAt || ""
+      ).trim(),
+    }))
+    .filter(
+      (article) =>
+        article.title &&
+        article.url
+    );
+}
+
+async function fetchMarketArticles({
+  query,
+  timespan = "1day",
+} = {}) {
+  if (!query) {
+    return {
+      success: false,
+      type: "empty_query",
+      message:
+        "A market search query is required.",
+      articles: [],
+    };
+  }
+
+  const apiKey = process.env.GNEWS_API_KEY;
+
+  if (!apiKey) {
+    return {
+      success: false,
+      type: "provider_not_configured",
+      message:
+        "Market intelligence provider is not configured.",
+      articles: [],
+    };
+  }
+
+  const params = new URLSearchParams({
+    q: query,
+    max: String(MAX_RESULTS),
+    lang: "en",
+    apikey: apiKey,
+  });
+
+  const controller = new AbortController();
+
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(
+      `https://gnews.io/api/v4/search?${params.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+        signal: controller.signal,
+      }
+    );
+
+    if (!response.ok) {
+      let providerMessage =
+        "Market information provider request failed.";
+
+      try {
+        const errorData = await response.json();
+
+        if (errorData?.errors?.length) {
+          providerMessage =
+            String(errorData.errors[0]);
+        }
+      } catch {
+        // Ignore provider error parsing failure.
+      }
+
+      return {
+        success: false,
+        type: "provider_api_error",
+        status: response.status,
+        message: providerMessage,
+        articles: [],
+      };
+    }
+
+    const data = await response.json();
+
+    return {
+      success: true,
+      provider: "gnews",
+      query,
+      timespan,
+      articles: normalizeProviderArticles(
+        data?.articles
+      ),
+    };
+  } catch (error) {
+    console.error(
+      "BusinessOS Market Provider Error:",
+      error
+    );
+
+    if (error?.name === "AbortError") {
+      return {
+        success: false,
+        type: "provider_timeout",
+        message:
+          "Market information request timed out.",
+        articles: [],
+      };
+    }
+
+    return {
+      success: false,
+      type: "provider_network_error",
+      message:
+        "Market information could not be retrieved right now.",
+      articles: [],
+    };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+module.exports = {
+  fetchMarketArticles,
+  normalizeProviderArticles,
+};
+
+
+============================================================
+FILE: backend\src\services\marketIntelligence.js
+============================================================
+
+/**
+ * BusinessOS Market Intelligence Service
+ *
+ * Day 5 — Controlled external market-data service.
+ *
+ * IMPORTANT:
+ * - Server-side service only.
+ * - No frontend API keys.
+ * - No database writes.
+ * - No arbitrary SQL.
+ * - Uses approved market provider adapter.
+ * - Graceful error handling.
+ */
+
+const MAX_TOPIC_LENGTH = 120;
+const MAX_RESULTS = 8;
+
+const {
+  fetchMarketArticles,
+} = require("./marketProvider");
+
+function normalizeTopic(topic) {
+  return String(topic || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .slice(0, MAX_TOPIC_LENGTH);
+}
+
+function buildBusinessSearchQuery(topic) {
+  const normalizedTopic = normalizeTopic(topic);
+
+  if (!normalizedTopic) {
+    return null;
+  }
+
+  return `business OR market OR retail OR ecommerce ${normalizedTopic}`;
+}
+
+function normalizeArticles(articles) {
+  if (!Array.isArray(articles)) {
+    return [];
+  }
+
+  return articles
+    .slice(0, MAX_RESULTS)
+    .map((article) => ({
+      title: String(article?.title || "").trim(),
+      description: String(
+        article?.description || ""
+      ).trim(),
+      url: String(article?.url || "").trim(),
+      source: String(
+        article?.source || ""
+      ).trim(),
+      publishedAt: String(
+        article?.publishedAt || ""
+      ).trim(),
+    }))
+    .filter(
+      (article) =>
+        article.title &&
+        article.url
+    );
+}
+
+async function createMarketIntelligenceResult({
+  topic,
+  timespan = "1day",
+}) {
+  const normalizedTopic = normalizeTopic(topic);
+
+  if (!normalizedTopic) {
+    return {
+      success: false,
+      type: "empty_topic",
+      message:
+        "Please provide a business or market topic.",
+      articles: [],
+    };
+  }
+
+  const query =
+    buildBusinessSearchQuery(
+      normalizedTopic
+    );
+
+  try {
+    const providerResult =
+      await fetchMarketArticles({
+        query,
+        timespan,
+      });
+
+    if (!providerResult?.success) {
+      return {
+        success: false,
+        type:
+          providerResult?.type ||
+          "market_provider_error",
+        status: providerResult?.status || null,
+        message:
+          providerResult?.message ||
+          "Fresh market information is temporarily unavailable.",
+        articles: [],
+      };
+    }
+
+    return {
+      success: true,
+      topic: normalizedTopic,
+      query,
+      source:
+        providerResult?.provider ||
+        "none",
+      timespan,
+      articles:
+        normalizeArticles(
+          providerResult?.articles
+        ),
+    };
+  } catch (error) {
+    console.error(
+      "BusinessOS Market Intelligence Error:",
+      error
+    );
+
+    return {
+      success: false,
+      type: "market_intelligence_error",
+      message:
+        "Fresh market information could not be retrieved right now.",
+      articles: [],
+    };
+  }
+}
+
+module.exports = {
+  createMarketIntelligenceResult,
+  normalizeTopic,
+  buildBusinessSearchQuery,
+  normalizeArticles,
+};
+
+
+============================================================
+FILE: backend\src\routes\marketIntelligence.js
+============================================================
+
+const express = require("express");
+
+const {
+  createMarketIntelligenceResult,
+} = require("../services/marketIntelligence");
+
+const router = express.Router();
+
+router.get("/", async (req, res) => {
+  const topic = String(req.query.topic || "").trim();
+
+  if (!topic) {
+    return res.status(400).json({
+      success: false,
+      type: "empty_topic",
+      message: "Please provide a market topic.",
+    });
+  }
+
+  if (topic.length > 120) {
+    return res.status(400).json({
+      success: false,
+      type: "topic_too_long",
+      message: "Market topic is too long.",
+    });
+  }
+
+  const result =
+    await createMarketIntelligenceResult({
+      topic,
+    });
+
+  return res.status(200).json(result);
+});
+
+module.exports = router;
+
+
+============================================================
+FILE: backend\src\server.js
+============================================================
+
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+
+const marketIntelligenceRouter = require("./routes/marketIntelligence");
+
+const app = express();
+
+const PORT = process.env.PORT || 5000;
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  })
+);
+
+app.use(express.json());
+
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    service: "BusinessOS Backend",
+    status: "healthy",
+  });
+});
+
+app.use(
+  "/api/market-intelligence",
+  marketIntelligenceRouter
+);
+
+app.listen(PORT, () => {
+  console.log(
+    `BusinessOS Backend running on http://localhost:${PORT}`
+  );
+});
+

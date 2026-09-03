@@ -22,6 +22,10 @@ import {
   getPaymentInsights,
 } from "./businessInsights";
 
+import {
+  searchMarketIntelligence,
+} from "./marketIntelligence";
+
 
 function normalizeQuery(query) {
   return String(query || "")
@@ -68,6 +72,60 @@ function classifyQuery(query) {
   ) {
     return "payments";
   }
+
+  /* ===========================
+     Market Intelligence
+  =========================== */
+
+ if (
+  matchesAny(query, [
+    "market trend",
+    "market trends",
+    "business trend",
+    "business trends",
+    "retail trend",
+    "retail trends",
+
+    "market mein kya",
+    "market me kya",
+    "market main kya",
+
+    "market mein kya chal",
+    "market me kya chal",
+    "market main kya chal",
+
+    "aaj kal market",
+    "aajkal market",
+    "aaj kal business",
+    "aajkal business",
+
+    "aaj kal retail",
+    "aajkal retail",
+    "aaj kal pakistan retail",
+    "aajkal pakistan retail",
+
+    "pakistan retail market",
+    "pakistan market trend",
+    "pakistan business trend",
+
+    "world mein kya trend",
+    "world me kya trend",
+    "world main kya trend",
+
+    "duniya mein kya trend",
+    "duniya me kya trend",
+    "duniya main kya trend",
+
+    "abhi market mein",
+    "abhi market me",
+    "abhi market main",
+    "abhi business mein",
+    "abhi business me",
+    "abhi business main",
+  ])
+) {
+  return "market";
+}
 
 
   /* ===========================
@@ -272,6 +330,39 @@ export async function routeBusinessQuery(query) {
           intent,
           data: await getSupplierInsights(),
         };
+
+              case "market": {
+  let marketTopic = normalizedQuery;
+
+  marketTopic = marketTopic
+    .replace(
+      /^(aaj kal|aajkal|abhi|currently)\s+/,
+      ""
+    )
+    .replace(
+      /\b(kya trend chal raha hai|kya trend chal raha|kya trends chal rahe hain|kya trends chal rahe|kya trend hai|kya trends hain|kya chal raha hai|kya chal rahi hai|kya chal rahe hain)\b/g,
+      ""
+    )
+    .replace(
+      /\b(mujhe batao|batao|batayein|bata dein|please|right now|currently)\b/g,
+      ""
+    )
+    .replace(/\?+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!marketTopic) {
+    marketTopic = "business market trends";
+  }
+
+  return {
+    success: true,
+    intent,
+    data: await searchMarketIntelligence(
+      marketTopic
+    ),
+  };
+}
 
       case "payments":
         return {
