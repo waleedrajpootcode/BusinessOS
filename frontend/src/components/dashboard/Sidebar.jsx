@@ -256,38 +256,40 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
             </Link>
           </li>
 
-          {/* AI Business Advisor */}
+         {/* AI Business Advisor — Admin only */}
 
-          <li>
-            <Link
-              to="/ai-advisor"
-              onClick={handleNavigation}
-              className={getNavClass("/ai-advisor")}
-            >
-              {location.pathname === "/ai-advisor" && (
-                <span
-                  className="
-                  absolute
-                  left-0
-                  top-2
-                  bottom-2
-                  w-0.5
-                  rounded-full
-                  bg-amber-400
-                "
-                />
-              )}
+{role === "admin" && (
+  <li>
+    <Link
+      to="/ai-advisor"
+      onClick={handleNavigation}
+      className={getNavClass("/ai-advisor")}
+    >
+      {location.pathname === "/ai-advisor" && (
+        <span
+          className="
+            absolute
+            left-0
+            top-2
+            bottom-2
+            w-0.5
+            rounded-full
+            bg-amber-400
+          "
+        />
+      )}
 
-              <Sparkles
-                size={19}
-                className="shrink-0"
-              />
+      <Sparkles
+        size={19}
+        className="shrink-0"
+      />
 
-              <span className="truncate">
-                AI Advisor
-              </span>
-            </Link>
-          </li>
+      <span className="truncate">
+        AI Advisor
+      </span>
+    </Link>
+  </li>
+)}
 
 
           {/* Products */}

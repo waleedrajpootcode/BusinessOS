@@ -237,18 +237,20 @@ export function buildAdvisorResponse(advisor) {
     },
   ];
 
-  return {
-    success: true,
+return {
+  success: true,
 
-    headline:
-      advisor.health?.label ||
-      "Business Analysis",
+  headline:
+    advisor.health?.label ||
+    "Business Analysis",
 
-    sections,
+  summary: advisor.summary,
 
-    recommendations:
-      buildRecommendationMessages(
-        advisor.recommendations
-      ),
-  };
+  sections,
+
+  recommendations:
+    buildRecommendationMessages(
+      advisor.recommendations
+    ),
+};
 }

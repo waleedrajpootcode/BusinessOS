@@ -1,44 +1,158 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  Activity,
   ArrowUp,
+  ArrowUpRight,
+  BarChart3,
+  Boxes,
+  Building2,
   CheckCircle2,
   CircleDollarSign,
   Clock3,
   CreditCard,
+  Database,
+  Gauge,
+  Landmark,
   Lightbulb,
+  LockKeyhole,
   Package,
+  Radio,
   RefreshCw,
-  Send,
+  Search,
+  ShieldCheck,
   Sparkles,
+  Target,
   TrendingUp,
+  Truck,
   Users,
   WalletCards,
+  Zap,
+  Trash2,
 } from "lucide-react";
 
 import { analyzeBusiness } from "../services/ai/aiAdvisor";
 import { buildAdvisorResponse } from "../services/ai/advisorResponse";
 import { routeBusinessQuery } from "../services/ai/queryRouter";
 import { buildQueryResponse } from "../services/ai/queryResponse";
+import {
+  AI_QUESTION_CATEGORIES,
+  getQuestionsByCategory,
+} from "../services/ai/questionLibrary";
+import "../styles/AIAdvisor.css";
 
+function getCategoryKey(category) {
+  if (typeof category === "string") return category;
+  return category?.id || category?.key || category?.value || "";
+}
 
-function AIAdvisor() {
+function getCategoryLabel(category) {
+  if (typeof category === "string") {
+    return category
+      .replace(/[-_]/g, " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+
+  return (
+    category?.label ||
+    category?.name ||
+    category?.title ||
+    category?.id ||
+    "Questions"
+  );
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function getQuestionIcon(category) {
+  switch (category) {
+    case "sales":
+      return TrendingUp;
+    case "profit":
+      return CircleDollarSign;
+    case "inventory":
+      return Package;
+    case "customers":
+      return Users;
+    case "payments":
+      return CreditCard;
+    case "expenses":
+      return WalletCards;
+    case "suppliers":
+      return Truck;
+    case "growth":
+    case "strategy":
+      return Lightbulb;
+    default:
+      return Sparkles;
+  }
+}
+
+const CORE_NODES = [
+  { label: "SALES", icon: TrendingUp, position: "node-top" },
+  { label: "REVENUE", icon: CircleDollarSign, position: "node-top-right" },
+  { label: "PROFIT", icon: BarChart3, position: "node-right" },
+  { label: "CUSTOMERS", icon: Users, position: "node-bottom-right" },
+  { label: "PAYMENTS", icon: CreditCard, position: "node-bottom" },
+  { label: "CASH FLOW", icon: WalletCards, position: "node-bottom-left" },
+  { label: "INVENTORY", icon: Package, position: "node-left-bottom" },
+  { label: "SUPPLIERS", icon: Truck, position: "node-left" },
+  { label: "EXPENSES", icon: Landmark, position: "node-left-top" },
+  { label: "GROWTH", icon: Target, position: "node-upper-left" },
+];
+
+const SIGNALS = [
+  {
+    label: "REVENUE",
+    status: "STRONG",
+    icon: TrendingUp,
+    tone: "positive",
+    insight: "Revenue signal is being monitored from authorized records.",
+  },
+  {
+    label: "PROFITABILITY",
+    status: "HEALTHY",
+    icon: CircleDollarSign,
+    tone: "positive",
+    insight: "Profit and expense relationships are within the current signal.",
+  },
+  {
+    label: "EXPENSE PRESSURE",
+    status: "STABLE",
+    icon: WalletCards,
+    tone: "neutral",
+    insight: "Expense pressure is evaluated against current business activity.",
+  },
+  {
+    label: "CUSTOMER OUTSTANDING",
+    status: "WATCH",
+    icon: CreditCard,
+    tone: "watch",
+    insight: "Receivables deserve attention because collection affects cash flow.",
+  },
+];
+
+const INTELLIGENCE_MODULES = [
+  { label: "FINANCIAL", icon: CircleDollarSign, description: "Revenue, profit, expenses and cash flow." },
+  { label: "CUSTOMER", icon: Users, description: "Activity, outstanding balances and concentration." },
+  { label: "INVENTORY", icon: Boxes, description: "Stock position, low stock and inventory risk." },
+  { label: "SUPPLIER", icon: Truck, description: "Supplier balances, payments and activity." },
+  { label: "GROWTH", icon: Target, description: "Growth, product, customer and operational opportunities." },
+];
+
+export default function AIAdvisor() {
   const [response, setResponse] = useState(null);
-
   const [question, setQuestion] = useState("");
   const [queryResponse, setQueryResponse] = useState(null);
   const [queryLoading, setQueryLoading] = useState(false);
-
   const [conversation, setConversation] = useState([]);
-
+  const [selectedQuestionCategory, setSelectedQuestionCategory] =
+    useState("overview");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const chatEndRef = useRef(null);
-
-
-  /* ===========================
-     Business Advisor
-  =========================== */
 
   async function loadAdvisor() {
     try {
@@ -46,23 +160,15 @@ function AIAdvisor() {
       setError("");
 
       const advisor = await analyzeBusiness();
-
-      const advisorResponse =
-        buildAdvisorResponse(advisor);
+      const advisorResponse = buildAdvisorResponse(advisor);
 
       if (!advisorResponse?.success) {
-        throw new Error(
-          "Business analysis could not be prepared."
-        );
+        throw new Error("Business analysis could not be prepared.");
       }
 
       setResponse(advisorResponse);
     } catch (err) {
-      console.error(
-        "AI Advisor Page Error:",
-        err
-      );
-
+      console.error("AI Advisor Page Error:", err);
       setError(
         "I could not load the business analysis right now. Please try again."
       );
@@ -71,1129 +177,743 @@ function AIAdvisor() {
     }
   }
 
+  async function askBusinessQuestion(value) {
+    const trimmedQuestion = String(value || "").trim();
 
-  /* ===========================
-     Ask BusinessOS
-  =========================== */
-
-  async function handleAskQuestion(event) {
-    event.preventDefault();
-
-    const trimmedQuestion =
-      question.trim();
-
-    if (!trimmedQuestion) {
-      setQueryResponse({
-        success: false,
-        message:
-          "Please enter a business question first.",
-      });
-
-      return;
-    }
-
+    if (!trimmedQuestion || queryLoading) return;
 
     const userMessage = {
-      id: `${Date.now()}-user`,
+      id: `user-${Date.now()}`,
       role: "user",
-      message: trimmedQuestion,
+      content: trimmedQuestion,
     };
 
-
-    setConversation((current) => [
-      ...current,
-      userMessage,
-    ]);
-
+    setConversation((current) => [...current, userMessage]);
     setQuestion("");
     setQueryResponse(null);
     setQueryLoading(true);
 
-
     try {
-      const result =
-        await routeBusinessQuery(
-          trimmedQuestion
-        );
+      // Existing BusinessOS pipeline stays the same:
+      // route the question, build the response, then show the real answer in chat.
+      const routedResult = await routeBusinessQuery(trimmedQuestion);
+      const formattedResponse = buildQueryResponse(routedResult);
 
-      const formattedResponse =
-        buildQueryResponse(result);
-
-      setQueryResponse(
-        formattedResponse
-      );
-
+      setQueryResponse(formattedResponse);
 
       const assistantMessage = {
-        id: `${Date.now()}-assistant`,
+        id: `assistant-${Date.now()}`,
         role: "assistant",
-        message:
+        content:
           formattedResponse?.message ||
-          "I could not prepare an answer right now.",
-        success:
-          formattedResponse?.success ?? false,
+          formattedResponse?.answer ||
+          "I could not prepare an answer for that question.",
+        data: formattedResponse,
       };
 
-
-      setConversation((current) => [
-        ...current,
-        assistantMessage,
-      ]);
-
+      setConversation((current) => [...current, assistantMessage]);
     } catch (err) {
-      console.error(
-        "AI Business Question Error:",
-        err
-      );
-
-      const errorResponse = {
-        success: false,
-        message:
-          "I could not answer that question right now. Please try again.",
-      };
-
-      setQueryResponse(
-        errorResponse
-      );
-
+      console.error("AI Question Error:", err);
 
       setConversation((current) => [
         ...current,
         {
-          id: `${Date.now()}-assistant-error`,
+          id: `assistant-error-${Date.now()}`,
           role: "assistant",
-          message: errorResponse.message,
-          success: false,
+          content:
+            "I could not answer that question right now. Please try again.",
+          error: true,
         },
       ]);
-
     } finally {
       setQueryLoading(false);
     }
   }
 
-
-  /* ===========================
-     Quick Question
-  =========================== */
-
-  function askQuickQuestion(value) {
-    setQuestion(value);
+  async function handleAskQuestion(event) {
+    event?.preventDefault();
+    await askBusinessQuestion(question);
   }
 
+  function askQuickQuestion(value) {
+    // Clicking a suggested question sends it immediately to the same chat.
+    void askBusinessQuestion(value);
+  }
 
-  /* ===========================
-     Auto Scroll Chat
-  =========================== */
+  function clearConversation() {
+    setConversation([]);
+    setQueryResponse(null);
+    setQuestion("");
+  }
+
+  const selectedQuestions = getQuestionsByCategory(
+    selectedQuestionCategory
+  );
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({
       behavior: "smooth",
+      block: "nearest",
     });
   }, [conversation, queryLoading]);
-
-
-  /* ===========================
-     Initial Load
-  =========================== */
 
   useEffect(() => {
     loadAdvisor();
   }, []);
 
-
-  /* ===========================
-     Loading
-  =========================== */
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center">
-
-          <div className="text-center">
-
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 shadow-lg">
-              <Sparkles
-                size={24}
-                className="text-white"
-              />
+      <div className="ai-advisor-page">
+        <div className="ai-loading-shell">
+          <div className="ai-loading-core">
+            <div className="ai-loading-orbit ai-loading-orbit-one" />
+            <div className="ai-loading-orbit ai-loading-orbit-two" />
+            <div className="ai-loading-orbit ai-loading-orbit-three" />
+            <div className="ai-loading-center">
+              <Sparkles size={25} strokeWidth={1.5} />
             </div>
-
-            <h2 className="text-lg font-semibold text-slate-900">
-              Preparing your BusinessOS AI
-            </h2>
-
-            <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
-              BusinessOS is securely preparing your
-              business insights.
-            </p>
-
           </div>
-
+          <div className="ai-loading-title">Preparing BusinessOS AI</div>
+          <div className="ai-loading-text">
+            Analyzing your business data securely...
+          </div>
+          <div className="ai-loading-progress">
+            <span />
+          </div>
         </div>
       </div>
     );
   }
-
-
-  /* ===========================
-     Error
-  =========================== */
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
-
-        <div className="mx-auto flex min-h-[70vh] max-w-2xl items-center justify-center">
-
-          <div className="w-full rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:p-8">
-
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
-              <Sparkles
-                size={24}
-                className="text-slate-600"
-              />
-            </div>
-
-            <h2 className="text-xl font-bold text-slate-900">
-              BusinessOS AI is unavailable
-            </h2>
-
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-              {error}
-            </p>
-
-            <button
-              type="button"
-              onClick={loadAdvisor}
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-            >
-              <RefreshCw size={16} />
-              Try Again
-            </button>
-
+      <div className="ai-advisor-page">
+        <div className="ai-error-shell">
+          <div className="ai-error-icon">
+            <RefreshCw size={23} />
           </div>
-
+          <span className="ai-card-kicker">INTELLIGENCE OFFLINE</span>
+          <h2>AI Advisor unavailable</h2>
+          <p>{error}</p>
+          <button type="button" className="ai-primary-button" onClick={loadAdvisor}>
+            <RefreshCw size={16} />
+            Try Again
+          </button>
         </div>
-
       </div>
     );
   }
 
-
   const healthMessage =
-    response?.sections?.find(
-      (section) =>
-        section.type === "health"
-    )?.message ||
-    "Business health information is currently unavailable.";
-
+    response?.sections?.find((section) => section.type === "health")
+      ?.message || "Business health information is currently unavailable.";
 
   const financialMessage =
-    response?.sections?.find(
-      (section) =>
-        section.type === "financial"
-    )?.message ||
-    "";
-
+    response?.sections?.find((section) => section.type === "financial")
+      ?.message || "Financial analysis is currently unavailable.";
 
   const paymentMessage =
-    response?.sections?.find(
-      (section) =>
-        section.type === "payments"
-    )?.message ||
-    "";
-
+    response?.sections?.find((section) => section.type === "payments")
+      ?.message || "Customer payment analysis is currently unavailable.";
 
   const inventoryMessage =
-    response?.sections?.find(
-      (section) =>
-        section.type === "inventory"
-    )?.message ||
-    "";
-
+    response?.sections?.find((section) => section.type === "inventory")
+      ?.message || "Inventory analysis is currently unavailable.";
 
   const supplierMessage =
-    response?.sections?.find(
-      (section) =>
-        section.type === "suppliers"
-    )?.message ||
-    "";
+    response?.sections?.find((section) => section.type === "suppliers")
+      ?.message || "Supplier analysis is currently unavailable.";
 
+  const revenueValue = Number(response?.summary?.revenue || 0);
+  const profitValue = Number(response?.summary?.netProfit || 0);
+  const expenseValue = Number(response?.summary?.expenses || 0);
+  const receivableValue = Number(
+    response?.summary?.receivables?.totalReceivable || 0
+  );
 
-  /* ===========================
-     KPI Data
-  =========================== */
+  const revenue = revenueValue.toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+  });
+  const profit = profitValue.toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+  });
+  const expenses = expenseValue.toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+  });
+  const receivable = receivableValue.toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+  });
 
-  const revenue =
-    Number(
-      response?.summary?.revenue || 0
-    ).toLocaleString("en-US", {
-      maximumFractionDigits: 2,
-    });
+  let healthScore = 0;
+  let healthScoreLabel = "Limited data";
 
+  if (revenueValue > 0) {
+    const profitMargin = (profitValue / revenueValue) * 100;
+    const expenseRatio = (expenseValue / revenueValue) * 100;
+    const receivableRatio = (receivableValue / revenueValue) * 100;
 
-  const profit =
-    Number(
-      response?.summary?.netProfit || 0
-    ).toLocaleString("en-US", {
-      maximumFractionDigits: 2,
-    });
+    let score = 50;
+    score += clamp(profitMargin * 1.5, -35, 30);
+    score -= clamp(Math.max(expenseRatio - 20, 0) * 0.5, 0, 15);
+    score -= clamp(Math.max(receivableRatio - 25, 0) * 0.4, 0, 20);
 
+    healthScore = Math.round(clamp(score, 0, 100));
 
-  const expenses =
-    Number(
-      response?.summary?.expenses || 0
-    ).toLocaleString("en-US", {
-      maximumFractionDigits: 2,
-    });
+    if (healthScore >= 75) healthScoreLabel = "Strong";
+    else if (healthScore >= 50) healthScoreLabel = "Stable";
+    else if (healthScore >= 30) healthScoreLabel = "Watch";
+    else healthScoreLabel = "Needs attention";
+  }
 
+  const healthRingRadius = 57;
+  const healthRingCircumference = 2 * Math.PI * healthRingRadius;
+  const healthRingOffset =
+    healthRingCircumference * (1 - healthScore / 100);
 
-  const receivable =
-    Number(
-      response?.summary?.receivables?.totalReceivable || 0
-    ).toLocaleString("en-US", {
-      maximumFractionDigits: 2,
-    });
-
-
-  /* ===========================
-     Quick Questions
-  =========================== */
-
-  const quickQuestions = [
-    {
-      label: "Business Health",
-      question:
-        "Meri dukaan kaisi chal rahi hai?",
-      icon: TrendingUp,
-    },
-    {
-      label: "Profit",
-      question:
-        "Mera profit kitna hai?",
-      icon: CircleDollarSign,
-    },
-    {
-      label: "Sales",
-      question:
-        "Meri sales kaisi hain?",
-      icon: WalletCards,
-    },
-    {
-      label: "Stock",
-      question:
-        "Stock mein kya kam hai?",
-      icon: Package,
-    },
-    {
-      label: "Customer Due",
-      question:
-        "Customers se kitni payment leni hai?",
-      icon: CreditCard,
-    },
-  ];
-
+  const recommendationMessages = response?.recommendations || [];
 
   return (
-    <div className="min-h-screen bg-slate-50 px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
+    <div className="ai-advisor-page">
+      <div className="ai-ambient-grid" />
+      <div className="ai-ambient-glow ai-ambient-glow-one" />
+      <div className="ai-ambient-glow ai-ambient-glow-two" />
 
-      <div className="mx-auto max-w-7xl">
-
-
-        {/* =====================================================
-            AI COMMAND CENTER HEADER
-        ===================================================== */}
-
-        <div className="mb-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-
-            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-900 shadow-md sm:h-14 sm:w-14">
-
-                <Sparkles
-                  size={23}
-                  className="text-white"
-                />
-
-              </div>
-
-
-              <div className="min-w-0">
-
-                <div className="flex flex-wrap items-center gap-2">
-
-                  <h1 className="truncate text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
-                    BusinessOS AI
-                  </h1>
-
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-
-                    Ready
-
-                  </span>
-
-                </div>
-
-                <p className="mt-1 text-xs text-slate-500 sm:text-sm">
-                  Your intelligent business partner
-                </p>
-
-              </div>
-
+      <div className="ai-advisor-container">
+        <header className="ai-command-header">
+          <div className="ai-command-header-main">
+            <div className="ai-brand-icon">
+              <Sparkles size={21} strokeWidth={1.7} />
+              <span />
             </div>
 
+            <div className="ai-header-copy">
+              <div className="ai-title-row">
+                <span className="ai-overline">BUSINESS INTELLIGENCE SYSTEM</span>
+                <span className="ai-online-status">
+                  <span className="ai-ready-dot" />
+                  INTELLIGENCE ONLINE
+                </span>
+              </div>
+              <h1>BusinessOS AI Command Center</h1>
+              <p>
+                Executive intelligence for your authorized business workspace.
+              </p>
+            </div>
+          </div>
+
+          <div className="ai-header-controls">
+            <div className="ai-header-meta">
+              <span><LockKeyhole size={12} /> READ-ONLY AI</span>
+              <span><ShieldCheck size={12} /> AUTHORIZED WORKSPACE</span>
+              <span><Activity size={12} /> REAL-TIME ANALYSIS</span>
+            </div>
 
             <button
               type="button"
+              className="ai-refresh-button"
               onClick={loadAdvisor}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto"
+              disabled={loading}
             >
-              <RefreshCw size={16} />
-              Refresh Insights
+              <RefreshCw size={15} />
+              Refresh
             </button>
-
           </div>
+        </header>
 
-        </div>
-
-
-        {/* =====================================================
-            MAIN AI WORKSPACE
-        ===================================================== */}
-
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
-
-
-          {/* ===========================
-              CHAT PANEL
-          =========================== */}
-
-          <section className="flex min-h-[620px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-
-            {/* Chat Header */}
-
-            <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-
-              <div className="flex items-center justify-between gap-3">
-
-                <div className="flex items-center gap-3">
-
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
-
-                    <Sparkles
-                      size={18}
-                      className="text-slate-700"
-                    />
-
-                  </div>
-
-                  <div>
-
-                    <h2 className="text-sm font-bold text-slate-900 sm:text-base">
-                      Ask BusinessOS
-                    </h2>
-
-                    <p className="text-[11px] text-slate-500 sm:text-xs">
-                      Ask questions in your own words
-                    </p>
-
-                  </div>
-
+        <section className="ai-hero-grid">
+          <section className="ai-panel ai-command-panel">
+            <div className="ai-panel-topline">
+              <div>
+                <div className="ai-section-eyebrow">
+                  <Radio size={13} />
+                  AI CONVERSATION / COMMAND CONSOLE
                 </div>
-
-
-                <div className="hidden items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1.5 text-[11px] font-medium text-slate-500 sm:flex">
-
-                  <CheckCircle2 size={13} />
-
-                  Read-only
-
-                </div>
-
+                <h2>Business intelligence briefing</h2>
               </div>
-
+              <span className="ai-panel-status">
+                <span /> LIVE
+              </span>
             </div>
 
+            <div className="ai-command-layout">
+              <div className="ai-conversation-area">
+                {conversation.length === 0 && (
+                  <div className="ai-welcome-state">
+                    <div className="ai-command-orb">
+                      <div className="ai-orb-ring ring-one" />
+                      <div className="ai-orb-ring ring-two" />
+                      <div className="ai-orb-ring ring-three" />
+                      <div className="ai-orb-core">
+                        <Sparkles size={24} />
+                      </div>
+                    </div>
 
-            {/* Chat Body */}
+                    <span className="ai-welcome-kicker">
+                      BUSINESSOS INTELLIGENCE
+                    </span>
+                    <h3>Ask your business a question.</h3>
+                    <p>
+                      BusinessOS reads authorized business signals and turns
+                      them into clear executive-level reasoning and actions.
+                    </p>
 
-            <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
-
-              {conversation.length === 0 ? (
-
-                <div className="flex min-h-[400px] flex-col items-center justify-center text-center">
-
-                  <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-900 shadow-lg">
-
-                    <Sparkles
-                      size={27}
-                      className="text-white"
-                    />
-
+                    <div className="ai-welcome-points">
+                      <span><Database size={12} /> Authorized data</span>
+                      <span><ShieldCheck size={12} /> Read-only</span>
+                      <span><Zap size={12} /> Action-focused</span>
+                    </div>
                   </div>
+                )}
 
-                  <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-                    How can I help your business?
-                  </h2>
-
-                  <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-                    Ask BusinessOS about sales, profit,
-                    expenses, stock, customers or
-                    payments.
-                  </p>
-
-
-                  <div className="mt-7 flex max-w-2xl flex-wrap justify-center gap-2">
-
-                    {quickQuestions.map(
-                      ({
-                        label,
-                        question: quickQuestion,
-                        icon: Icon,
-                      }) => (
-
-                        <button
-                          key={label}
-                          type="button"
-                          onClick={() =>
-                            askQuickQuestion(
-                              quickQuestion
-                            )
-                          }
-                          className="group inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 sm:text-sm"
-                        >
-
-                          <Icon
-                            size={15}
-                            className="text-slate-400 transition group-hover:text-slate-700"
-                          />
-
-                          {label}
-
-                        </button>
-
-                      )
-                    )}
-
-                  </div>
-
-                </div>
-
-              ) : (
-
-                <div className="space-y-5">
-
-                  {conversation.map(
-                    (message) => {
-
-                      const isUser =
-                        message.role === "user";
+                {conversation.length > 0 && (
+                  <div className="ai-conversation-list">
+                    {conversation.map((message) => {
+                      const isUser = message.role === "user";
 
                       return (
                         <div
                           key={message.id}
-                          className={`flex ${
+                          className={`ai-message-row ${
                             isUser
-                              ? "justify-end"
-                              : "justify-start"
+                              ? "ai-message-row-user"
+                              : "ai-message-row-assistant"
                           }`}
                         >
+                          {!isUser && (
+                            <div className="ai-message-avatar">
+                              <Sparkles size={14} />
+                            </div>
+                          )}
 
                           <div
-                            className={`max-w-[88%] sm:max-w-[78%] ${
+                            className={`ai-message ${
                               isUser
-                                ? "rounded-2xl rounded-br-md bg-slate-900 text-white"
-                                : "rounded-2xl rounded-bl-md border border-slate-200 bg-slate-50 text-slate-700"
-                            } px-4 py-3.5`}
+                                ? "ai-user-message"
+                                : "ai-assistant-message"
+                            } ${message.error ? "ai-message-error" : ""}`}
                           >
-
-                            <div
-                              className={`mb-1.5 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider ${
-                                isUser
-                                  ? "text-slate-400"
-                                  : "text-slate-400"
-                              }`}
-                            >
-
-                              {!isUser && (
-                                <Sparkles size={12} />
-                              )}
-
-                              {isUser
-                                ? "You"
-                                : "BusinessOS"}
-
+                            <div className="ai-message-label">
+                              {isUser ? "COMMAND" : "BUSINESSOS AI"}
                             </div>
-
-
-                            <p className="text-sm leading-6">
-                              {message.message}
-                            </p>
-
+                            <div className="ai-message-content">
+                              {message.content}
+                            </div>
                           </div>
-
                         </div>
                       );
-                    }
-                  )}
+                    })}
+                  </div>
+                )}
 
-
-                  {queryLoading && (
-
-                    <div className="flex justify-start">
-
-                      <div className="rounded-2xl rounded-bl-md border border-slate-200 bg-slate-50 px-4 py-3.5">
-
-                        <div className="flex items-center gap-2">
-
-                          <Sparkles
-                            size={14}
-                            className="text-slate-500"
-                          />
-
-                          <div className="flex items-center gap-1">
-
-                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400" />
-
-                            <span
-                              className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400"
-                              style={{
-                                animationDelay:
-                                  "120ms",
-                              }}
-                            />
-
-                            <span
-                              className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400"
-                              style={{
-                                animationDelay:
-                                  "240ms",
-                              }}
-                            />
-
-                          </div>
-
-                          <span className="text-xs text-slate-500">
-                            Analyzing...
-                          </span>
-
-                        </div>
-
-                      </div>
-
+                {queryLoading && (
+                  <div className="ai-message-row ai-message-row-assistant">
+                    <div className="ai-message-avatar">
+                      <Sparkles size={14} />
                     </div>
+                    <div className="ai-message ai-assistant-message">
+                      <div className="ai-message-label">BUSINESSOS AI</div>
+                      <div className="ai-analyzing-state">
+                        <span>Analyzing authorized business intelligence</span>
+                        <span className="ai-analyzing-dots">
+                          <i />
+                          <i />
+                          <i />
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-                  )}
-
-                  <div ref={chatEndRef} />
-
-                </div>
-
-              )}
-
-            </div>
-
-
-            {/* Composer */}
-
-            <div className="border-t border-slate-100 bg-white p-3 sm:p-4">
-
-              <form
-                onSubmit={handleAskQuestion}
-                className="relative"
-              >
-
-                <div className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2 shadow-inner transition focus-within:border-slate-300 focus-within:bg-white focus-within:shadow-sm">
-
-                  <input
-                    type="text"
-                    value={question}
-                    onChange={(event) =>
-                      setQuestion(
-                        event.target.value
-                      )
-                    }
-                    placeholder="Ask BusinessOS anything..."
-                    disabled={queryLoading}
-                    className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60 sm:px-3"
-                  />
-
-
-                  <button
-                    type="submit"
-                    disabled={queryLoading}
-                    aria-label="Send question"
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-
-                    {queryLoading ? (
-                      <RefreshCw
-                        size={17}
-                        className="animate-spin"
-                      />
-                    ) : (
-                      <ArrowUp size={18} />
-                    )}
-
-                  </button>
-
-                </div>
-
-              </form>
-
-
-              <div className="mt-2 flex items-center justify-between px-1">
-
-                <p className="text-[10px] text-slate-400 sm:text-[11px]">
-                  BusinessOS uses available business data only.
-                </p>
-
-                <div className="hidden items-center gap-1 text-[10px] text-slate-400 sm:flex">
-
-                  <Clock3 size={11} />
-
-                  Read-only analysis
-
-                </div>
-
+                <div ref={chatEndRef} />
               </div>
 
+              <div className="ai-briefing-side">
+                <div className="ai-briefing-line">
+                  <span className="briefing-index">01</span>
+                  <div>
+                    <span>HEALTH SIGNAL</span>
+                    <strong>{healthScoreLabel}</strong>
+                  </div>
+                </div>
+                <div className="ai-briefing-line">
+                  <span className="briefing-index">02</span>
+                  <div>
+                    <span>WHY</span>
+                    <strong>Business signals are being evaluated together.</strong>
+                  </div>
+                </div>
+                <div className="ai-briefing-line">
+                  <span className="briefing-index">03</span>
+                  <div>
+                    <span>WHAT</span>
+                    <strong>{healthMessage}</strong>
+                  </div>
+                </div>
+                <div className="ai-briefing-line">
+                  <span className="briefing-index">04</span>
+                  <div>
+                    <span>NEXT STEP</span>
+                    <strong>Review the highest-priority signal before acting.</strong>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            <form className="ai-composer" onSubmit={handleAskQuestion}>
+              <div className="ai-composer-label">
+                <span>ASK BUSINESSOS ANYTHING</span>
+                <span>COMMAND MODE</span>
+              </div>
+
+              <div className="ai-composer-inner">
+                <Search size={17} className="ai-composer-icon" />
+                <input
+                  type="text"
+                  value={question}
+                  onChange={(event) => setQuestion(event.target.value)}
+                  placeholder="Ask BusinessOS anything about your business..."
+                  autoComplete="off"
+                  disabled={queryLoading}
+                  aria-label="Ask BusinessOS anything"
+                />
+                <button
+                  type="submit"
+                  className="ai-send-button"
+                  disabled={queryLoading || !question.trim()}
+                  aria-label="Send question"
+                >
+                  <ArrowUp size={18} />
+                </button>
+              </div>
+            </form>
+
+        <div className="ai-question-explorer ai-question-explorer-integrated">
+          <div className="ai-section-heading compact">
+            <div>
+              <div className="ai-section-eyebrow">
+                <Lightbulb size={13} />
+                QUICK QUESTIONS
+              </div>
+              <h2>Select a question and get the answer here.</h2>
+            </div>
+            {conversation.length > 0 && (
+              <button
+                type="button"
+                className="ai-clear-button"
+                onClick={clearConversation}
+              >
+                <Trash2 size={14} />
+                Clear session
+              </button>
+            )}
+          </div>
+
+          <div className="ai-category-scroll">
+            {AI_QUESTION_CATEGORIES.map((category) => {
+              const categoryKey = getCategoryKey(category);
+              const categoryLabel = getCategoryLabel(category);
+              const isActive = selectedQuestionCategory === categoryKey;
+
+              return (
+                <button
+                  key={categoryKey}
+                  type="button"
+                  className={`ai-category-button ${
+                    isActive ? "ai-category-button-active" : ""
+                  }`}
+                  onClick={() => setSelectedQuestionCategory(categoryKey)}
+                >
+                  {categoryLabel}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="ai-question-grid">
+            {selectedQuestions?.slice(0, 6).map((item) => {
+              const questionText =
+                item?.question || item?.text || item?.label || "";
+              const itemCategory = item?.category || selectedQuestionCategory;
+              const Icon = getQuestionIcon(itemCategory);
+
+              return (
+                <button
+                  type="button"
+                  key={item?.id || questionText}
+                  className="ai-question-card"
+                  onClick={() => askQuickQuestion(questionText)}
+                >
+                  <span className="ai-question-icon"><Icon size={16} /></span>
+                  <span className="ai-question-copy">
+                    <span className="ai-question-text">{questionText}</span>
+                    <span className="ai-question-action">
+                      ANALYZE <ArrowUpRight size={13} />
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
           </section>
 
-
-          {/* ===========================
-              BUSINESS SNAPSHOT
-          =========================== */}
-
-          <aside className="space-y-5">
-
-
-            {/* Health Card */}
-
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-
-              <div className="flex items-start justify-between gap-3">
-
-                <div>
-
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    Business Health
-                  </p>
-
-                  <h2 className="mt-1 text-xl font-bold text-slate-900">
-                    {response?.headline ||
-                      "Business Analysis"}
-                  </h2>
-
+          <aside className="ai-health-panel">
+            <div className="ai-panel-topline">
+              <div>
+                <div className="ai-section-eyebrow">
+                  <Gauge size={13} />
+                  AI BUSINESS HEALTH
                 </div>
+                <h2>Current signal</h2>
+              </div>
+              <span className="ai-mini-live">LIVE</span>
+            </div>
 
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100">
-
-                  <TrendingUp
-                    size={17}
-                    className="text-slate-700"
+            <div className="ai-health-visual">
+              <div className="ai-health-ring">
+                <svg viewBox="0 0 140 140">
+                  <circle
+                    className="ai-health-ring-track"
+                    cx="70"
+                    cy="70"
+                    r={healthRingRadius}
                   />
+                  <circle
+                    className="ai-health-ring-progress"
+                    cx="70"
+                    cy="70"
+                    r={healthRingRadius}
+                    strokeDasharray={healthRingCircumference}
+                    strokeDashoffset={healthRingOffset}
+                  />
+                </svg>
 
+                <div className="ai-health-ring-center">
+                  <span>HEALTH SIGNAL</span>
+                  <strong>{healthScoreLabel.toUpperCase()}</strong>
+                  <small>{healthScore}% signal</small>
                 </div>
-
               </div>
 
-
-              <p className="mt-3 text-xs leading-5 text-slate-500">
-                {healthMessage}
-              </p>
-
-            </div>
-
-
-            {/* KPI Stack */}
-
-            <div className="grid grid-cols-2 gap-3 xl:grid-cols-1">
-
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-
-                <div className="flex items-center gap-2 text-slate-400">
-
-                  <CircleDollarSign size={15} />
-
-                  <span className="text-[11px] font-semibold uppercase tracking-wider">
-                    Revenue
-                  </span>
-
-                </div>
-
-                <p className="mt-2 text-lg font-bold text-slate-900">
-                  PKR {revenue}
-                </p>
-
-              </div>
-
-
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-
-                <div className="flex items-center gap-2 text-slate-400">
-
-                  <TrendingUp size={15} />
-
-                  <span className="text-[11px] font-semibold uppercase tracking-wider">
-                    Net Profit
-                  </span>
-
-                </div>
-
-                <p className="mt-2 text-lg font-bold text-slate-900">
-                  PKR {profit}
-                </p>
-
-              </div>
-
-
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-
-                <div className="flex items-center gap-2 text-slate-400">
-
-                  <WalletCards size={15} />
-
-                  <span className="text-[11px] font-semibold uppercase tracking-wider">
-                    Expenses
-                  </span>
-
-                </div>
-
-                <p className="mt-2 text-lg font-bold text-slate-900">
-                  PKR {expenses}
-                </p>
-
-              </div>
-
-
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-
-                <div className="flex items-center gap-2 text-slate-400">
-
-                  <CreditCard size={15} />
-
-                  <span className="text-[11px] font-semibold uppercase tracking-wider">
-                    Customer Due
-                  </span>
-
-                </div>
-
-                <p className="mt-2 text-lg font-bold text-slate-900">
-                  PKR {receivable}
-                </p>
-
-              </div>
-
-            </div>
-
-
-            {/* Attention */}
-
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-
-              <div className="flex items-center gap-2">
-
-                <Lightbulb
-                  size={17}
-                  className="text-slate-700"
-                />
-
-                <h3 className="text-sm font-bold text-slate-900">
-                  What needs attention?
-                </h3>
-
-              </div>
-
-
-              <div className="mt-4 space-y-3">
-
-                <div className="rounded-xl bg-slate-50 p-3">
-
-                  <div className="flex items-start gap-2.5">
-
-                    <CreditCard
-                      size={15}
-                      className="mt-0.5 shrink-0 text-slate-500"
-                    />
-
-                    <p className="text-xs leading-5 text-slate-600">
-                      {paymentMessage ||
-                        "Customer payment information is currently unavailable."}
-                    </p>
-
+              <div className="ai-health-factors">
+                {[
+                  ["Revenue", revenue],
+                  ["Profitability", profit],
+                  ["Expenses", expenses],
+                  ["Customer due", receivable],
+                ].map(([label, value]) => (
+                  <div className="ai-factor" key={label}>
+                    <span>{label}</span>
+                    <strong>{value}</strong>
+                    <i><span /></i>
                   </div>
-
-                </div>
-
-
-                <div className="rounded-xl bg-slate-50 p-3">
-
-                  <div className="flex items-start gap-2.5">
-
-                    <Package
-                      size={15}
-                      className="mt-0.5 shrink-0 text-slate-500"
-                    />
-
-                    <p className="text-xs leading-5 text-slate-600">
-                      {inventoryMessage ||
-                        "Inventory information is currently unavailable."}
-                    </p>
-
-                  </div>
-
-                </div>
-
+                ))}
               </div>
-
             </div>
 
+            <div className="ai-health-note">
+              <Activity size={14} />
+              <span>{healthMessage}</span>
+            </div>
           </aside>
-
-        </div>
-
-
-        {/* =====================================================
-            BUSINESS INTELLIGENCE
-        ===================================================== */}
-
-        <section className="mt-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-
-            <div>
-
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Intelligence Overview
-              </p>
-
-              <h2 className="mt-1 text-lg font-bold text-slate-900 sm:text-xl">
-                Your business at a glance
-              </h2>
-
-            </div>
-
-            <p className="text-xs text-slate-400">
-              Based on available BusinessOS data
-            </p>
-
-          </div>
-
-
-          <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-
-
-            {/* Financial */}
-
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-
-              <div className="mb-3 flex items-center gap-2">
-
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
-
-                  <CircleDollarSign
-                    size={15}
-                    className="text-slate-600"
-                  />
-
-                </div>
-
-                <h3 className="text-sm font-semibold text-slate-900">
-                  Financial Position
-                </h3>
-
-              </div>
-
-              <p className="text-xs leading-5 text-slate-600">
-                {financialMessage}
-              </p>
-
-            </div>
-
-
-            {/* Payments */}
-
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-
-              <div className="mb-3 flex items-center gap-2">
-
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
-
-                  <Users
-                    size={15}
-                    className="text-slate-600"
-                  />
-
-                </div>
-
-                <h3 className="text-sm font-semibold text-slate-900">
-                  Customer Payments
-                </h3>
-
-              </div>
-
-              <p className="text-xs leading-5 text-slate-600">
-                {paymentMessage}
-              </p>
-
-            </div>
-
-
-            {/* Inventory */}
-
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-
-              <div className="mb-3 flex items-center gap-2">
-
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
-
-                  <Package
-                    size={15}
-                    className="text-slate-600"
-                  />
-
-                </div>
-
-                <h3 className="text-sm font-semibold text-slate-900">
-                  Inventory
-                </h3>
-
-              </div>
-
-              <p className="text-xs leading-5 text-slate-600">
-                {inventoryMessage}
-              </p>
-
-            </div>
-
-
-            {/* Suppliers */}
-
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-
-              <div className="mb-3 flex items-center gap-2">
-
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
-
-                  <Users
-                    size={15}
-                    className="text-slate-600"
-                  />
-
-                </div>
-
-                <h3 className="text-sm font-semibold text-slate-900">
-                  Suppliers
-                </h3>
-
-              </div>
-
-              <p className="text-xs leading-5 text-slate-600">
-                {supplierMessage}
-              </p>
-
-            </div>
-
-
-            {/* Recommendations */}
-
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 md:col-span-2 lg:col-span-2">
-
-              <div className="mb-3 flex items-center gap-2">
-
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
-
-                  <Lightbulb
-                    size={15}
-                    className="text-slate-600"
-                  />
-
-                </div>
-
-                <h3 className="text-sm font-semibold text-slate-900">
-                  Recommended Actions
-                </h3>
-
-              </div>
-
-
-              {Array.isArray(
-                response?.recommendations
-              ) &&
-              response.recommendations.length > 0 ? (
-
-                <div className="grid gap-2 sm:grid-cols-2">
-
-                  {response.recommendations.map(
-                    (recommendation, index) => (
-
-                      <div
-                        key={`${recommendation}-${index}`}
-                        className="rounded-xl bg-white p-3"
-                      >
-
-                        <p className="text-xs leading-5 text-slate-600">
-                          {recommendation}
-                        </p>
-
-                      </div>
-
-                    )
-                  )}
-
-                </div>
-
-              ) : (
-
-                <p className="text-xs text-slate-500">
-                  No immediate recommendations are available.
-                </p>
-
-              )}
-
-            </div>
-
-          </div>
-
         </section>
 
-
-        {/* =====================================================
-            SAFETY FOOTER
-        ===================================================== */}
-
-        <div className="mt-5 flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[11px] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-
-          <div className="flex items-center gap-2">
-
-            <CheckCircle2 size={13} />
-
-            <span>
-              BusinessOS AI currently provides read-only analysis.
-            </span>
-
+        <section className="ai-core-section">
+          <div className="ai-section-heading">
+            <div>
+              <div className="ai-section-eyebrow">
+                <Database size={13} />
+                BUSINESSOS INTELLIGENCE CORE
+              </div>
+              <h2>The business, continuously read as one system.</h2>
+              <p>
+                A conceptual architecture of the intelligence signals BusinessOS
+                can connect and interpret.
+              </p>
+            </div>
+            <div className="ai-core-status">
+              <span className="ai-pulse-dot" />
+              SIGNAL NETWORK ACTIVE
+            </div>
           </div>
 
-          <span>
-            No sales, purchases, payments or stock changes are executed.
-          </span>
+          <div className="ai-core-visual">
+            <div className="ai-core-grid" />
+            <div className="ai-core-orbit orbit-a" />
+            <div className="ai-core-orbit orbit-b" />
+            <div className="ai-core-orbit orbit-c" />
+            <div className="ai-core-line line-a" />
+            <div className="ai-core-line line-b" />
+            <div className="ai-core-line line-c" />
+            <div className="ai-core-line line-d" />
 
-        </div>
+            <div className="ai-core-center">
+              <div className="ai-core-center-ring">
+                <Sparkles size={24} />
+              </div>
+              <strong>BusinessOS</strong>
+              <span>AI</span>
+              <small>INTELLIGENCE CORE</small>
+            </div>
 
+            {CORE_NODES.map(({ label, icon: Icon, position }, index) => (
+              <div className={`ai-core-node ${position}`} key={label}>
+                <div className="ai-core-node-icon">
+                  <Icon size={15} />
+                </div>
+                <span>{label}</span>
+                <i style={{ "--node-delay": `${index * 0.16}s` }} />
+              </div>
+            ))}
+
+            <div className="ai-signal-particle particle-a" />
+            <div className="ai-signal-particle particle-b" />
+            <div className="ai-signal-particle particle-c" />
+            <div className="ai-signal-particle particle-d" />
+          </div>
+
+          <div className="ai-processing-state">
+            <div className="ai-processing-orb">
+              <div />
+            </div>
+            <div>
+              <span>AI PROCESSING STATE</span>
+              <strong>ANALYZING BUSINESS DATA</strong>
+              <p>Checking authorized business intelligence...</p>
+            </div>
+            <div className="ai-processing-bars">
+              {Array.from({ length: 12 }).map((_, index) => (
+                <i key={index} style={{ "--bar-delay": `${index * 0.08}s` }} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="ai-signals-section">
+          <div className="ai-section-heading compact">
+            <div>
+              <div className="ai-section-eyebrow">
+                <Radio size={13} />
+                LIVE BUSINESS SIGNALS
+              </div>
+              <h2>BusinessOS is continuously reading the business.</h2>
+            </div>
+            <span className="ai-live-chip"><span /> LIVE</span>
+          </div>
+
+          <div className="ai-signals-grid">
+            {SIGNALS.map(({ label, status, icon: Icon, tone, insight }, index) => (
+              <article className={`ai-signal-card signal-${tone}`} key={label}>
+                <div className="ai-signal-top">
+                  <div className="ai-signal-icon"><Icon size={16} /></div>
+                  <span>0{index + 1}</span>
+                </div>
+                <div className="ai-signal-label">{label}</div>
+                <div className="ai-signal-status">{status}</div>
+                <div className="ai-micro-chart">
+                  <i /><i /><i /><i /><i /><i /><i /><i />
+                </div>
+                <p>{insight}</p>
+                <div className="ai-signal-footer">
+                  <span><span className="signal-dot" /> MONITORED</span>
+                  <ArrowUpRight size={13} />
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="ai-modules-section">
+          <div className="ai-section-heading compact">
+            <div>
+              <div className="ai-section-eyebrow">
+                <Boxes size={13} />
+                BUSINESS INTELLIGENCE MODULES
+              </div>
+              <h2>One intelligence layer across the business.</h2>
+            </div>
+          </div>
+
+          <div className="ai-module-grid">
+            {INTELLIGENCE_MODULES.map(({ label, icon: Icon, description }, index) => (
+              <article className="ai-module-card" key={label}>
+                <div className="ai-module-icon"><Icon size={17} /></div>
+                <div className="ai-module-number">0{index + 1}</div>
+                <span>{label}</span>
+                <p>{description}</p>
+                <div className="ai-module-line"><i /></div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="ai-recommendations-section">
+          <div className="ai-section-heading compact">
+            <div>
+              <div className="ai-section-eyebrow">
+                <Lightbulb size={13} />
+                AI RECOMMENDATION ENGINE
+              </div>
+              <h2>What BusinessOS AI recommends.</h2>
+            </div>
+            <span className="ai-recommendation-caption">EXECUTIVE ACTIONS</span>
+          </div>
+
+          <div className="ai-recommendation-grid">
+            {recommendationMessages.length > 0 ? (
+              recommendationMessages.map((recommendation, index) => (
+                <article className="ai-recommendation-card" key={recommendation?.id || index}>
+                  <div className="ai-recommendation-priority">
+                    <span>{index === 0 ? "HIGH PRIORITY" : "REVIEW"}</span>
+                    <span>0{index + 1}</span>
+                  </div>
+                  <h3>
+                    {typeof recommendation === "string"
+                      ? recommendation
+                      : recommendation?.message ||
+                        recommendation?.text ||
+                        recommendation?.title ||
+                        "Review this area of your business."}
+                  </h3>
+                  <div className="ai-rec-detail">
+                    <span>WHY</span>
+                    <p>Based on the current authorized business intelligence.</p>
+                  </div>
+                  <div className="ai-rec-detail">
+                    <span>NEXT STEP</span>
+                    <p>Review the signal and prioritize the appropriate business action.</p>
+                  </div>
+                  <div className="ai-rec-detail">
+                    <span>IMPACT</span>
+                    <p>Designed to improve visibility, control and decision quality.</p>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <div className="ai-empty-recommendations">
+                No additional recommendations are available right now.
+              </div>
+            )}
+          </div>
+        </section>
+
+        <footer className="ai-safety-footer">
+          <div className="ai-safety-icon"><ShieldCheck size={16} /></div>
+          <div>
+            <strong>READ-ONLY AI · AUTHORIZED WORKSPACE</strong>
+            <p>
+              Your business data stays within your authorized BusinessOS
+              workspace. BusinessOS AI can analyze authorized records and
+              provide recommendations, but it does not directly modify them.
+            </p>
+          </div>
+          <div className="ai-security-badges">
+            <span><LockKeyhole size={12} /> READ-ONLY</span>
+            <span><Building2 size={12} /> WORKSPACE SCOPED</span>
+          </div>
+        </footer>
       </div>
-
     </div>
   );
 }
-
-
-export default AIAdvisor;

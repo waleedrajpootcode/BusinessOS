@@ -1,7 +1,7 @@
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Products from "./pages/Products";
 import Customers from "./pages/Customers";
@@ -23,8 +23,11 @@ import PurchaseDetails from "./pages/PurchaseDetails";
 import EditPurchase from "./pages/EditPurchase";
 import AIAdvisor from "./pages/AIAdvisor";
 import AIAssistantWidget from "./components/ai/AIAssistantWidget";
+import { useAuth } from "./context/AuthContext";
 
 function App() {
+  const { user, role, status, loading } = useAuth();
+
   return (
     <>
       <Routes>
@@ -46,7 +49,11 @@ function App() {
           path="/ai-advisor"
           element={
             <ProtectedRoute>
-              <AIAdvisor />
+              {role === "admin" && status === "active" ? (
+                <AIAdvisor />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )}
             </ProtectedRoute>
           }
         />
@@ -210,10 +217,10 @@ function App() {
         />
       </Routes>
 
-      {/* Global AI Assistant */}
-      <ProtectedRoute>
+      {/* Global AI Assistant — Admin only */}
+      {!loading && user && role === "admin" && status === "active" && (
         <AIAssistantWidget />
-      </ProtectedRoute>
+      )}
     </>
   );
 }
