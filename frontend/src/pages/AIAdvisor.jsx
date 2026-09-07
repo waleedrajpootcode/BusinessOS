@@ -32,8 +32,7 @@ import {
 
 import { analyzeBusiness } from "../services/ai/aiAdvisor";
 import { buildAdvisorResponse } from "../services/ai/advisorResponse";
-import { routeBusinessQuery } from "../services/ai/queryRouter";
-import { buildQueryResponse } from "../services/ai/queryResponse";
+import { askBusinessQuestion } from "../services/ai/aiService";
 import {
   AI_QUESTION_CATEGORIES,
   getQuestionsByCategory,
@@ -177,7 +176,7 @@ export default function AIAdvisor() {
     }
   }
 
-  async function askBusinessQuestion(value) {
+  async function submitBusinessQuestion(value) {
     const trimmedQuestion = String(value || "").trim();
 
     if (!trimmedQuestion || queryLoading) return;
@@ -194,21 +193,22 @@ export default function AIAdvisor() {
     setQueryLoading(true);
 
     try {
-      // Existing BusinessOS pipeline stays the same:
-      // route the question, build the response, then show the real answer in chat.
-      const routedResult = await routeBusinessQuery(trimmedQuestion);
-      const formattedResponse = buildQueryResponse(routedResult);
+      const response = await askBusinessQuestion(trimmedQuestion);
 
-      setQueryResponse(formattedResponse);
+      if (!response?.success || !response?.data?.answer) {
+        throw new Error(
+          response?.error?.message ||
+          "I could not prepare an answer for that question."
+        );
+      }
+
+      setQueryResponse(response);
 
       const assistantMessage = {
         id: `assistant-${Date.now()}`,
         role: "assistant",
-        content:
-          formattedResponse?.message ||
-          formattedResponse?.answer ||
-          "I could not prepare an answer for that question.",
-        data: formattedResponse,
+        content: response.data.answer,
+        data: response,
       };
 
       setConversation((current) => [...current, assistantMessage]);
@@ -232,12 +232,12 @@ export default function AIAdvisor() {
 
   async function handleAskQuestion(event) {
     event?.preventDefault();
-    await askBusinessQuestion(question);
+    await submitBusinessQuestion(question);
   }
 
   function askQuickQuestion(value) {
     // Clicking a suggested question sends it immediately to the same chat.
-    void askBusinessQuestion(value);
+    void submitBusinessQuestion(value);
   }
 
   function clearConversation() {

@@ -10,8 +10,7 @@ import {
   X,
 } from "lucide-react";
 
-import { routeBusinessQuery } from "../../services/ai/queryRouter";
-import { buildQueryResponse } from "../../services/ai/queryResponse";
+import { askBusinessQuestion } from "../../services/ai/aiService";
 
 function AIAssistantWidget() {
     const location = useLocation();
@@ -156,7 +155,7 @@ function AIAssistantWidget() {
     });
   }, [messages, loading]);
 
-  async function askBusinessQuestion(rawQuestion) {
+  async function submitBusinessQuestion(rawQuestion) {
     const trimmedQuestion = String(rawQuestion || "").trim();
 
     if (!trimmedQuestion || loading) {
@@ -177,23 +176,23 @@ function AIAssistantWidget() {
     setLoading(true);
 
     try {
-      const result = await routeBusinessQuery(trimmedQuestion);
-      const response = buildQueryResponse(result);
+      const response = await askBusinessQuestion(trimmedQuestion);
+
+      if (!response?.success || !response?.data?.answer) {
+        throw new Error("BusinessOS AI could not prepare an answer.");
+      }
 
       setMessages((currentMessages) => [
         ...currentMessages,
         {
           id: `${Date.now()}-assistant`,
           role: "assistant",
-          message:
-            response?.message ||
-            "I could not prepare an answer right now.",
-          success: response?.success !== false,
+          message: response.data.answer,
+          success: true,
+          data: response,
         },
       ]);
-    } catch (error) {
-      console.error("Global AI Assistant Error:", error);
-
+    } catch {
       setMessages((currentMessages) => [
         ...currentMessages,
         {
@@ -211,7 +210,7 @@ function AIAssistantWidget() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    await askBusinessQuestion(question);
+    await submitBusinessQuestion(question);
   }
 
   function handleQuickQuestion(value) {
