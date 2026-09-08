@@ -80,7 +80,7 @@ export const AI_QUESTION_CATEGORIES = Object.freeze([
   },
 ]);
 
-export const AI_QUESTIONS = Object.freeze([
+const RAW_AI_QUESTIONS = [
   /* =========================================================
      BUSINESS OVERVIEW
   ========================================================= */
@@ -543,7 +543,199 @@ export const AI_QUESTIONS = Object.freeze([
     question: "Mere business ko improve karne ke liye ek practical action plan kya ho sakta hai?",
     priority: "high",
   },
+];
+
+const VALID_RESPONSE_TYPES = new Set([
+  "text",
+  "number",
+  "list",
+  "summary",
 ]);
+
+const VALID_AVAILABILITY_POLICIES = new Set([
+  "explicit",
+]);
+
+const HANDLER_METADATA = Object.freeze({
+  sales_002: {
+    intent: "sales_overview",
+    handlerId: "sales.overview",
+    responseType: "number",
+    requiredData: ["revenue"],
+  },
+  sales_004: {
+    intent: "top_selling_products",
+    handlerId: "sales.topSellingProducts",
+    responseType: "list",
+    requiredData: ["topProducts"],
+  },
+  profit_001: {
+    intent: "profit_overview",
+    handlerId: "profit.overview",
+    responseType: "summary",
+    requiredData: ["salesProfit", "expenses", "netProfit"],
+  },
+  profit_002: {
+    intent: "net_profit",
+    handlerId: "profit.overview",
+    responseType: "number",
+    requiredData: ["netProfit"],
+  },
+  profit_003: {
+    intent: "profit_overview",
+    handlerId: "profit.overview",
+    responseType: "summary",
+    requiredData: ["salesProfit", "expenses", "netProfit"],
+  },
+  expenses_001: {
+    intent: "expenses_overview",
+    handlerId: "expenses.overview",
+    responseType: "number",
+    requiredData: ["totalExpenses"],
+  },
+  inventory_002: {
+    intent: "low_stock",
+    handlerId: "inventory.lowStock",
+    responseType: "list",
+    requiredData: ["lowStockProducts"],
+  },
+  customers_002: {
+    intent: "top_customers",
+    handlerId: "customers.topCustomers",
+    responseType: "list",
+    requiredData: ["topCustomers"],
+  },
+  customers_003: {
+    intent: "top_customers",
+    handlerId: "customers.topCustomers",
+    responseType: "list",
+    requiredData: ["topCustomers"],
+  },
+  payments_001: {
+    intent: "receivables",
+    handlerId: "payments.receivables",
+    responseType: "summary",
+    requiredData: ["customer"],
+  },
+  payments_002: {
+    intent: "receivables",
+    handlerId: "payments.receivables",
+    responseType: "list",
+    requiredData: ["customerAccounts"],
+  },
+  suppliers_001: {
+    intent: "suppliers_overview",
+    handlerId: "suppliers.overview",
+    responseType: "summary",
+    requiredData: ["totalSuppliers", "totalPaid"],
+  },
+});
+
+function buildCanonicalQuestion(question) {
+  const handlerMetadata = HANDLER_METADATA[question.id] || {};
+
+  return Object.freeze({
+    ...question,
+    intent: handlerMetadata.intent || null,
+    handlerId: handlerMetadata.handlerId || null,
+    supportedModes: Object.freeze(["guided"]),
+    responseType: handlerMetadata.responseType || "text",
+    requiredData: Object.freeze(handlerMetadata.requiredData || []),
+    availabilityPolicy: "explicit",
+    active: true,
+    text: Object.freeze({
+      "roman-ur": question.question,
+    }),
+  });
+}
+
+export const AI_QUESTIONS = Object.freeze(
+  RAW_AI_QUESTIONS.map(buildCanonicalQuestion)
+);
+
+/**
+ * Validate the canonical question catalog without executing handlers.
+ */
+export function validateAIQuestionCatalog(
+  questions = AI_QUESTIONS,
+  categories = AI_QUESTION_CATEGORIES
+) {
+  const errors = [];
+  const categoryIds = new Set(
+    categories.map((category) => category.id)
+  );
+  const questionIds = new Set();
+
+  questions.forEach((question, index) => {
+    if (!question || typeof question !== "object") {
+      errors.push(`Question ${index} must be an object.`);
+      return;
+    }
+
+    if (!question.id || typeof question.id !== "string") {
+      errors.push(`Question ${index} is missing a valid id.`);
+    } else if (questionIds.has(question.id)) {
+      errors.push(`Duplicate question id: ${question.id}.`);
+    } else {
+      questionIds.add(question.id);
+    }
+
+    if (!categoryIds.has(question.category)) {
+      errors.push(`Invalid category for question ${question.id || index}.`);
+    }
+
+    if (!question.label || typeof question.label !== "string") {
+      errors.push(`Question ${question.id || index} is missing a label.`);
+    }
+
+    if (!question.question || typeof question.question !== "string") {
+      errors.push(`Question ${question.id || index} is missing question text.`);
+    }
+
+    if (!["high", "medium", "low"].includes(question.priority)) {
+      errors.push(`Invalid priority for question ${question.id || index}.`);
+    }
+
+    if (!VALID_RESPONSE_TYPES.has(question.responseType)) {
+      errors.push(`Invalid responseType for question ${question.id || index}.`);
+    }
+
+    if (
+      !VALID_AVAILABILITY_POLICIES.has(
+        question.availabilityPolicy
+      )
+    ) {
+      errors.push(
+        `Invalid availabilityPolicy for question ${question.id || index}.`
+      );
+    }
+
+    if (
+      question.handlerId !== null &&
+      (
+        typeof question.handlerId !== "string" ||
+        !/^[a-z][A-Za-z0-9]*(\.[a-z][A-Za-z0-9]*)+$/.test(
+          question.handlerId
+        )
+      )
+    ) {
+      errors.push(`Invalid handlerId for question ${question.id || index}.`);
+    }
+  });
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+const catalogValidation = validateAIQuestionCatalog();
+
+if (!catalogValidation.valid) {
+  throw new Error(
+    `Invalid AI question catalog: ${catalogValidation.errors.join(" ")}`
+  );
+}
 
 /**
  * Get all questions for a category.

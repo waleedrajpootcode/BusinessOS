@@ -6,6 +6,7 @@ const authTestRouter = require("./routes/authTest");
 const marketIntelligenceRouter = require("./routes/marketIntelligence");
 const aiTestRouter = require("./routes/aiTest");
 const aiRouter = require("./routes/ai");
+const createBusinessIntelligenceRouter = require("./routes/businessIntelligence");
 const { ensureRequestId, sendError } = require("./services/aiContract");
 
 const app = express();
@@ -38,6 +39,10 @@ if (process.env.NODE_ENV !== "production") {
   app.use("/api/ai-test", aiTestRouter);
 }
 app.use("/api/ai", aiRouter);
+app.use(
+  "/api/business-intelligence",
+  createBusinessIntelligenceRouter()
+);
 
 app.use(
   "/api/market-intelligence",
