@@ -1,0 +1,481 @@
+/* =========================================================
+   BUSINESSOS AI ASSISTANT WIDGET
+   Premium Obsidian / Graphite / Warm Metallic Gold
+   Visual layer only — no functional changes
+   ========================================================= */
+
+.ai-assistant-widget {
+  --ai-bg: #050505;
+  --ai-bg-soft: #0a0a09;
+  --ai-surface: #10100f;
+  --ai-surface-2: #151412;
+  --ai-surface-3: #1b1916;
+
+  --ai-border: rgba(255, 255, 255, 0.08);
+  --ai-border-gold: rgba(199, 166, 106, 0.28);
+
+  --ai-gold: #c7a66a;
+  --ai-gold-soft: #b08a4b;
+  --ai-gold-bright: #dfc58f;
+
+  --ai-text: #f5f2eb;
+  --ai-text-soft: #c8c4bb;
+  --ai-text-muted: #89857d;
+
+  --ai-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.025);
+
+  color: var(--ai-text);
+}
+
+/* ---------------------------------------------------------
+   MAIN WIDGET
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .ai-widget-panel {
+  background:
+    radial-gradient(
+      circle at 85% 5%,
+      rgba(199, 166, 106, 0.075),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      #050505 0%,
+      #0a0a09 48%,
+      #0d0c0a 100%
+    );
+
+  border: 1px solid var(--ai-border);
+  box-shadow: var(--ai-shadow);
+}
+
+/* ---------------------------------------------------------
+   HEADER
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .ai-widget-header {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.025),
+      rgba(255, 255, 255, 0)
+    ),
+    var(--ai-bg);
+
+  border-bottom: 1px solid var(--ai-border);
+}
+
+.ai-assistant-widget .ai-widget-header h1,
+.ai-assistant-widget .ai-widget-header h2,
+.ai-assistant-widget .ai-widget-header h3 {
+  color: var(--ai-text);
+}
+
+.ai-assistant-widget .ai-widget-header p {
+  color: var(--ai-text-muted);
+}
+
+/* ---------------------------------------------------------
+   AI ICON / AVATAR
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .ai-avatar,
+.ai-assistant-widget .ai-icon {
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      rgba(223, 197, 143, 0.28),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      #18150f,
+      #090908
+    );
+
+  border: 1px solid rgba(199, 166, 106, 0.42);
+  color: var(--ai-gold-bright);
+
+  box-shadow:
+    0 0 22px rgba(199, 166, 106, 0.10),
+    inset 0 0 20px rgba(199, 166, 106, 0.04);
+}
+
+/* ---------------------------------------------------------
+   MESSAGE AREA
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .ai-messages {
+  background: transparent;
+}
+
+.ai-assistant-widget .ai-message {
+  color: var(--ai-text);
+}
+
+.ai-assistant-widget .ai-message.assistant,
+.ai-assistant-widget .assistant-message {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(255, 255, 255, 0.015)
+    );
+
+  border: 1px solid var(--ai-border);
+  color: var(--ai-text);
+}
+
+.ai-assistant-widget .ai-message.user,
+.ai-assistant-widget .user-message {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(199, 166, 106, 0.16),
+      rgba(176, 138, 75, 0.08)
+    );
+
+  border: 1px solid rgba(199, 166, 106, 0.22);
+  color: var(--ai-text);
+}
+
+/* ---------------------------------------------------------
+   AGENT INTRO
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .agent-intro {
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(199, 166, 106, 0.10),
+      transparent 48%
+    ),
+    linear-gradient(
+      145deg,
+      #0b0a08,
+      #12100d
+    );
+
+  border: 1px solid var(--ai-border-gold);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 18px 45px rgba(0, 0, 0, 0.25);
+}
+
+.ai-assistant-widget .agent-intro h1,
+.ai-assistant-widget .agent-intro h2,
+.ai-assistant-widget .agent-intro h3 {
+  color: var(--ai-text);
+}
+
+.ai-assistant-widget .agent-intro p {
+  color: var(--ai-text-soft);
+}
+
+/* ---------------------------------------------------------
+   AGENT ACTION CARDS
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .agent-action {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(255, 255, 255, 0.012)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  color: var(--ai-text);
+
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.ai-assistant-widget .agent-action:hover {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(199, 166, 106, 0.12),
+      rgba(199, 166, 106, 0.035)
+    );
+
+  border-color: rgba(199, 166, 106, 0.34);
+
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.28),
+    0 0 20px rgba(199, 166, 106, 0.055);
+
+  transform: translateY(-1px);
+}
+
+.ai-assistant-widget .agent-action svg,
+.ai-assistant-widget .agent-action-icon {
+  color: var(--ai-gold);
+}
+
+/* ---------------------------------------------------------
+   COMMON QUESTIONS
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .common-question,
+.ai-assistant-widget .question-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  color: var(--ai-text-soft);
+
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.ai-assistant-widget .common-question:hover,
+.ai-assistant-widget .question-card:hover {
+  background: rgba(199, 166, 106, 0.075);
+  border-color: rgba(199, 166, 106, 0.25);
+  color: var(--ai-text);
+}
+
+/* ---------------------------------------------------------
+   BADGES / LABELS
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .agent-badge,
+.ai-assistant-widget .ai-badge {
+  background: rgba(199, 166, 106, 0.075);
+  border: 1px solid rgba(199, 166, 106, 0.24);
+  color: var(--ai-gold-bright);
+}
+
+/* ---------------------------------------------------------
+   COMPOSER
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .ai-composer,
+.ai-assistant-widget .composer {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.018),
+      rgba(255, 255, 255, 0.008)
+    ),
+    #080807;
+
+  border-top: 1px solid var(--ai-border);
+}
+
+.ai-assistant-widget textarea,
+.ai-assistant-widget input {
+  background:
+    linear-gradient(
+      145deg,
+      #11110f,
+      #0b0b0a
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--ai-text);
+
+  outline: none;
+}
+
+.ai-assistant-widget textarea::placeholder,
+.ai-assistant-widget input::placeholder {
+  color: #706d66;
+}
+
+.ai-assistant-widget textarea:focus,
+.ai-assistant-widget input:focus {
+  border-color: rgba(199, 166, 106, 0.42);
+
+  box-shadow:
+    0 0 0 3px rgba(199, 166, 106, 0.055);
+}
+
+/* ---------------------------------------------------------
+   SEND BUTTON
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .send-button {
+  background:
+    linear-gradient(
+      145deg,
+      var(--ai-gold-bright),
+      var(--ai-gold-soft)
+    );
+
+  border: 1px solid rgba(223, 197, 143, 0.35);
+  color: #17130d;
+
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.28),
+    0 0 18px rgba(199, 166, 106, 0.08);
+}
+
+.ai-assistant-widget .send-button:hover {
+  background:
+    linear-gradient(
+      145deg,
+      #e5cf9f,
+      #c7a66a
+    );
+
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.34),
+    0 0 24px rgba(199, 166, 106, 0.13);
+}
+
+/* ---------------------------------------------------------
+   MICROPHONE
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .mic-button {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  color: var(--ai-text-soft);
+}
+
+.ai-assistant-widget .mic-button:hover {
+  background: rgba(199, 166, 106, 0.09);
+  border-color: rgba(199, 166, 106, 0.28);
+  color: var(--ai-gold-bright);
+}
+
+.ai-assistant-widget .mic-button.listening,
+.ai-assistant-widget .is-listening {
+  background: rgba(199, 166, 106, 0.13);
+  border-color: rgba(199, 166, 106, 0.48);
+  color: var(--ai-gold-bright);
+
+  box-shadow:
+    0 0 0 4px rgba(199, 166, 106, 0.055),
+    0 0 24px rgba(199, 166, 106, 0.12);
+}
+
+/* ---------------------------------------------------------
+   LISTEN / STOP SPEECH
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .listen-button,
+.ai-assistant-widget .speech-button {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: var(--ai-text-muted);
+}
+
+.ai-assistant-widget .listen-button:hover,
+.ai-assistant-widget .speech-button:hover {
+  border-color: rgba(199, 166, 106, 0.25);
+  color: var(--ai-gold);
+}
+
+/* ---------------------------------------------------------
+   ACTIVE AGENT MODE
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .agent-mode {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(199, 166, 106, 0.08),
+      rgba(199, 166, 106, 0.025),
+      transparent
+    );
+
+  border: 1px solid rgba(199, 166, 106, 0.18);
+  color: var(--ai-text-soft);
+}
+
+.ai-assistant-widget .agent-mode strong,
+.ai-assistant-widget .agent-mode-title {
+  color: var(--ai-gold-bright);
+}
+
+/* ---------------------------------------------------------
+   STATUS / ERROR
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .voice-error,
+.ai-assistant-widget .speech-error,
+.ai-assistant-widget .ai-error {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  color: var(--ai-text-soft);
+}
+
+/* ---------------------------------------------------------
+   CLOSE / UTILITY BUTTONS
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .close-button,
+.ai-assistant-widget .utility-button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ai-text-muted);
+}
+
+.ai-assistant-widget .close-button:hover,
+.ai-assistant-widget .utility-button:hover {
+  background: rgba(199, 166, 106, 0.07);
+  border-color: rgba(199, 166, 106, 0.18);
+  color: var(--ai-gold-bright);
+}
+
+/* ---------------------------------------------------------
+   FLOATING AI BUTTON
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .ai-floating-button {
+  background:
+    radial-gradient(
+      circle at 35% 25%,
+      rgba(223, 197, 143, 0.30),
+      transparent 35%
+    ),
+    linear-gradient(
+      145deg,
+      #18140e,
+      #090908
+    );
+
+  border: 1px solid rgba(199, 166, 106, 0.42);
+  color: var(--ai-gold-bright);
+
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.45),
+    0 0 28px rgba(199, 166, 106, 0.09);
+}
+
+.ai-assistant-widget .ai-floating-button:hover {
+  border-color: rgba(223, 197, 143, 0.65);
+
+  box-shadow:
+    0 20px 48px rgba(0, 0, 0, 0.52),
+    0 0 34px rgba(199, 166, 106, 0.15);
+}
+
+/* ---------------------------------------------------------
+   SCROLLBAR
+   --------------------------------------------------------- */
+
+.ai-assistant-widget ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ai-assistant-widget ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ai-assistant-widget ::-webkit-scrollbar-thumb {
+  background: rgba(199, 166, 106, 0.20);
+  border-radius: 999px;
+}
+
+.ai-assistant-widget ::-webkit-scrollbar-thumb:hover {
+  background: rgba(199, 166, 106, 0.34);
+}

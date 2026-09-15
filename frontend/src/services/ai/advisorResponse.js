@@ -17,7 +17,8 @@
 =========================== */
 
 function formatAmount(value) {
-  const amount = Number(value || 0);
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "unavailable";
 
   return amount.toLocaleString("en-US", {
     maximumFractionDigits: 2,
@@ -47,9 +48,9 @@ function buildFinancialSummary(summary) {
     return "Financial summary is currently unavailable.";
   }
 
-  const revenue = Number(summary.revenue || 0);
-  const expenses = Number(summary.expenses || 0);
-  const netProfit = Number(summary.netProfit || 0);
+  const revenue = summary.revenue;
+  const expenses = summary.expenses;
+  const netProfit = summary.netProfit;
 
   return (
     `Your current revenue is ${formatAmount(revenue)}, ` +
@@ -70,21 +71,15 @@ function buildCustomerPaymentMessage(payments) {
     return "Customer payment information is currently unavailable.";
   }
 
-  const receivable = Number(
-    customer.totalReceivable || 0
-  );
-
-  const collected = Number(
-    customer.totalCollected || 0
-  );
-
-  const customersWithDue = Number(
-    customer.customersWithDue || 0
-  );
+  const receivable = customer.totalReceivable;
+  const collected = customer.totalCollected;
+  const customersWithDue = customer.customersWithDue;
 
   if (
-    receivable <= 0 &&
-    customersWithDue <= 0
+    Number.isFinite(Number(receivable)) &&
+    Number.isFinite(Number(customersWithDue)) &&
+    Number(receivable) <= 0 &&
+    Number(customersWithDue) <= 0
   ) {
     return "There are currently no customer outstanding payments in the available data.";
   }
@@ -141,13 +136,8 @@ function buildSupplierMessage(suppliers) {
     return "Supplier information is currently unavailable.";
   }
 
-  const totalSuppliers = Number(
-    suppliers.totalSuppliers || 0
-  );
-
-  const totalPaid = Number(
-    suppliers.totalPaid || 0
-  );
+  const totalSuppliers = suppliers.totalSuppliers;
+  const totalPaid = suppliers.totalPaid;
 
   return (
     `There are ${totalSuppliers} supplier(s) in the available business data, ` +

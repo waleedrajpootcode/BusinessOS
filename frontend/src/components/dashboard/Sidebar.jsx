@@ -10,7 +10,6 @@ import {
   Boxes,
   Receipt,
   BarChart3,
-  Settings,
   LogOut,
   Factory,
   UserCog,

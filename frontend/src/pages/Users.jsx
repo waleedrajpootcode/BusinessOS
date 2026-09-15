@@ -7,11 +7,6 @@ function Users() {
     const [users, setUsers] = useState([]);
     const [search, setSearch] = useState("");
 
-
-    useEffect(() => {
-        loadUsers();
-    }, []);
-
     async function loadUsers() {
 
         const data = await getUsers();
@@ -19,6 +14,11 @@ function Users() {
         setUsers(data);
 
     }
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        loadUsers();
+    }, []);
     const filteredUsers = users.filter((user) => {
 
         const name = user.full_name || "";

@@ -22,6 +22,7 @@ import {
   getSupplierInsights,
   getPaymentInsights,
 } from "./businessInsights";
+import { normalizeMetric } from "./businessInsights";
 
 
 function calculateBusinessHealth({
@@ -31,12 +32,25 @@ function calculateBusinessHealth({
   totalReceivable,
   lowStockCount,
 }) {
-  const safeRevenue = Number(revenue || 0);
-  const safeProfit = Number(netProfit || 0);
-  const safeExpenses = Number(expenses || 0);
-  const safeReceivable = Number(totalReceivable || 0);
-  const safeLowStock = Number(lowStockCount || 0);
+  const safeRevenue = normalizeMetric(revenue);
+  const safeProfit = normalizeMetric(netProfit);
+  const safeExpenses = normalizeMetric(expenses);
+  const safeReceivable = normalizeMetric(totalReceivable);
+  const safeLowStock = normalizeMetric(lowStockCount);
 
+  if (
+    safeRevenue === null ||
+    safeProfit === null ||
+    safeExpenses === null ||
+    safeReceivable === null
+  ) {
+    return {
+      status: "limited",
+      label: "Limited Data",
+      reason:
+        "There is not enough complete business data to determine a reliable health trend.",
+    };
+  }
 
   if (safeRevenue <= 0) {
     return {
@@ -98,21 +112,11 @@ function buildRecommendations({
   const recommendations = [];
 
 
-  const revenue = Number(
-    summary?.revenue || 0
-  );
-
-  const expenses = Number(
-    summary?.expenses || 0
-  );
-
-  const netProfit = Number(
-    summary?.netProfit || 0
-  );
-
-
-  const receivable = Number(
-    summary?.receivables?.totalReceivable || 0
+  const revenue = normalizeMetric(summary?.revenue);
+  const expenses = normalizeMetric(summary?.expenses);
+  const netProfit = normalizeMetric(summary?.netProfit);
+  const receivable = normalizeMetric(
+    summary?.receivables?.totalReceivable
   );
 
 
@@ -151,6 +155,8 @@ function buildRecommendations({
 
 
   if (
+    revenue !== null &&
+    expenses !== null &&
     revenue > 0 &&
     expenses > revenue * 0.2
   ) {
@@ -164,6 +170,8 @@ function buildRecommendations({
 
 
   if (
+    revenue !== null &&
+    receivable !== null &&
     revenue > 0 &&
     receivable > revenue * 0.5
   ) {
@@ -177,6 +185,7 @@ function buildRecommendations({
 
 
   if (
+    netProfit !== null &&
     netProfit > 0 &&
     recommendations.length === 0
   ) {

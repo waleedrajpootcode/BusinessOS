@@ -18,7 +18,9 @@ export function BusinessProvider({ children }) {
   }
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     loadBusiness();
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   return (
@@ -33,6 +35,7 @@ export function BusinessProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useBusiness() {
   return useContext(BusinessContext);
 }

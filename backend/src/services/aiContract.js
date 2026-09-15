@@ -1,10 +1,12 @@
 const { randomUUID } = require("crypto");
 
 const MAX_QUESTION_LENGTH = 500;
+const MAX_QUESTION_ID_LENGTH = 64;
 const MAX_AI_ANSWER_LENGTH = 12000;
 const MAX_REASONING_ITEMS = 20;
 const MAX_REASONING_ITEM_LENGTH = 1000;
-const ALLOWED_REQUEST_FIELDS = new Set(["question"]);
+const ALLOWED_REQUEST_FIELDS = new Set(["question", "questionId"]);
+const QUESTION_ID_PATTERN = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
 
 function ensureRequestId(req) {
   if (!req.requestId) req.requestId = randomUUID();
@@ -47,7 +49,30 @@ function validateAiRequest(body) {
     return { valid: false, status: 400, code: "QUESTION_TOO_LONG", message: "Please keep your question within 500 characters." };
   }
 
-  return { valid: true, question };
+  let questionId;
+  if (body.questionId !== undefined) {
+    if (
+      typeof body.questionId !== "string" ||
+      body.questionId.trim().length === 0 ||
+      body.questionId.trim().length > MAX_QUESTION_ID_LENGTH ||
+      !QUESTION_ID_PATTERN.test(body.questionId.trim())
+    ) {
+      return {
+        valid: false,
+        status: 400,
+        code: "INVALID_QUESTION_ID",
+        message: "Question ID is invalid.",
+      };
+    }
+
+    questionId = body.questionId.trim();
+  }
+
+  return {
+    valid: true,
+    question,
+    ...(questionId !== undefined ? { questionId } : {}),
+  };
 }
 
 function validateGatewayResult(result) {
@@ -119,6 +144,7 @@ function validateGatewayResult(result) {
 
 module.exports = {
   MAX_QUESTION_LENGTH,
+  MAX_QUESTION_ID_LENGTH,
   MAX_AI_ANSWER_LENGTH,
   MAX_REASONING_ITEMS,
   MAX_REASONING_ITEM_LENGTH,

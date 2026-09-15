@@ -11,14 +11,15 @@ function AddEmployeeModal({
   onSaved,
   employee = null,
 }) {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [role, setRole] = useState("staff");
-  const [status, setStatus] = useState("active");
+  const [fullName, setFullName] = useState(employee?.full_name || "");
+  const [email, setEmail] = useState(employee?.email || "");
+  const [phone, setPhone] = useState(employee?.phone || "");
+  const [role, setRole] = useState(employee?.role || "staff");
+  const [status, setStatus] = useState(employee?.status || "active");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (employee) {
       setFullName(employee.full_name || "");
       setEmail(employee.email || "");

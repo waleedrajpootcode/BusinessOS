@@ -30,16 +30,31 @@ const {
 const {
   validateGatewayResult,
 } = require("./aiContract");
+const {
+  executeGuidedQuestion,
+  getHandler,
+  validateResult,
+} = require("./businessIntelligence");
 
 
 const MAX_AI_QUERY_LENGTH = 500;
 
 function classifyIntent(question) {
-  const normalized = String(question || "").toLowerCase();
+  const normalized = String(question || "")
+    .normalize("NFKC")
+    .toLowerCase();
   const actionPattern =
     /\b(refund|delete|remove|create|transfer)\b|\b(pay|purchase|sell|update|modify|adjust)\s+(the\s+)?(customer|invoice|payment|inventory|stock|record|data|product|sale|sales|supplier|business|account)\b|واپس\s+کریں|ادائیگی\s+کریں|حذف\s+کریں|بدلیں|भुगतान\s+करो|हटा\s+दो|बदल\s+दो/iu;
 
   if (actionPattern.test(normalized)) {
+    return "unsupported_action";
+  }
+
+  if (
+    /\b(mita|mitao|delete|hatao|badlo)\b|مٹا دو|مٹا دیں|حذف کریں|ہٹاؤ|हटाओ|बदलो/iu.test(
+      normalized
+    )
+  ) {
     return "unsupported_action";
   }
 
@@ -50,14 +65,35 @@ function classifyIntent(question) {
   const hasCustomers = /customer|client|customers|گاہک|ग्राहक/iu.test(normalized);
   const hasPayments = /payment|payments|outstanding|receivable|udhaar|ادائیگی|واجبات|बकाया/iu.test(normalized);
 
+  const hasSuppliers =
+    /supplier|suppliers|vendor|vendors|سپلائر|سپلائرز|सप्लायर|सप्लायर्स/iu.test(
+      normalized
+    );
+  const hasPaymentLanguage =
+    /owe|owes|lena|len[aā]|dena|den[aā]|paisa|paise|رقم|لینی|لینا|دینی|دینا|رکم|लेना|देना|रकम/iu.test(
+      normalized
+    );
+  const hasGrowth =
+    /growth|growing|grow|badh|barh|بڑھ|ترقی|विकास|बढ़/iu.test(normalized);
+  const hasMultilingualExpenses =
+    /kharchay|kharche|اخراجات|खर्चे/iu.test(normalized);
+  const hasMultilingualInventory =
+    /cheezen|کم\s*اسٹاک|مصنوعات|कम\s*स्टॉक|उत्पाद/iu.test(normalized);
+  const hasMultilingualCustomers =
+    /بہترین گاہک|सबसे अच्छे ग्राहक/iu.test(normalized);
+  const hasMultilingualOverview =
+    /کاروبار|कारोबार/iu.test(normalized);
+
   if (hasSales && hasProfit) return "business_summary";
   if (hasSales) return "sales_analysis";
   if (hasProfit) return "profit_analysis";
-  if (hasExpenses) return "expense_analysis";
-  if (hasInventory) return "inventory_analysis";
-  if (hasCustomers) return "customer_analysis";
-  if (hasPayments) return "payment_analysis";
-  if (/summary|overview|overall|business|purchase|history|خرید|خریداری|खरीद|इतिहास|کاروبار|व्यवसाय/iu.test(normalized)) {
+  if (hasExpenses || hasMultilingualExpenses) return "expense_analysis";
+  if (hasInventory || hasMultilingualInventory) return "inventory_analysis";
+  if (hasSuppliers) return "supplier_analysis";
+  if (hasPayments || hasPaymentLanguage) return "payment_analysis";
+  if (hasCustomers || hasMultilingualCustomers) return "customer_analysis";
+  if (hasGrowth) return "growth_analysis";
+  if (hasMultilingualOverview || /summary|overview|overall|business|purchase|history|خرید|خریداری|खरीद|इतिहास|کاروبار|व्यवसाय/iu.test(normalized)) {
     return "business_analysis";
   }
 
@@ -89,7 +125,10 @@ function getApprovedTool(toolName) {
    AI GATEWAY
 ------------------------------------------------------- */
 
-async function processBusinessQuestion({ question, context }, dependencies = {}) {
+async function processBusinessQuestion(
+  { question, questionId, context },
+  dependencies = {}
+) {
   const normalizedQuestion = normalizeQuestion(question);
 
   if (!normalizedQuestion) {
@@ -115,19 +154,50 @@ async function processBusinessQuestion({ question, context }, dependencies = {})
   }
 
   try {
-    const executeTool = dependencies.executeTool || executeAiTool;
-    const toolResult = await executeTool("business_snapshot", context);
+    let businessData;
+    let dataUsed;
 
-    if (!toolResult?.success) {
-      return {
-        success: false,
-        status: 500,
-        code: toolResult?.code || "AI_TOOL_FAILED",
-        message: toolResult?.message || "The AI tool could not be executed.",
+    if (questionId && getHandler(questionId)) {
+      const executeGuided =
+        dependencies.executeGuidedQuestion || executeGuidedQuestion;
+      const guidedResult = await executeGuided({
+        questionId,
+        accessToken: context.accessToken,
+        businessId: context.businessId,
+      });
+
+      if (!guidedResult?.success || !validateResult(guidedResult.data)) {
+        return {
+          success: false,
+          status: guidedResult?.status || 502,
+          code: guidedResult?.code || "BI_DATA_UNAVAILABLE",
+          message:
+            guidedResult?.message ||
+            "The Business Intelligence data could not be retrieved.",
+        };
+      }
+
+      businessData = {
+        businessIntelligence: guidedResult.data,
       };
+      dataUsed = ["business_intelligence", questionId];
+    } else {
+      const executeTool = dependencies.executeTool || executeAiTool;
+      const toolResult = await executeTool("business_snapshot", context);
+      if (!toolResult?.success) {
+        return {
+          success: false,
+          status: 500,
+          code: toolResult?.code || "AI_TOOL_FAILED",
+          message:
+            toolResult?.message || "The AI tool could not be executed.",
+        };
+      }
+
+      businessData = toolResult.data;
+      dataUsed = ["business_snapshot"];
     }
 
-    const businessData = toolResult.data;
     const reasoner = dependencies.reasoner || reasonAboutBusiness;
     const reasoningResult = await reasoner({ question: normalizedQuestion, businessData });
 
@@ -140,7 +210,7 @@ async function processBusinessQuestion({ question, context }, dependencies = {})
       data: {
         answer: reasoningResult.answer,
         intent,
-        dataUsed: ["business_snapshot"],
+        dataUsed,
         reasoning: reasoningResult.reasoning,
         requiresConfirmation: false,
         actionAllowed: false,

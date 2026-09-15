@@ -4,14 +4,15 @@ import { getTopSellingProducts } from "../../../services/sales";
 function TopSellingCard() {
   const [products, setProducts] = useState([]);
 
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
   async function loadProducts() {
     const data = await getTopSellingProducts();
     setProducts(data);
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadProducts();
+  }, []);
 
   return (
     <div

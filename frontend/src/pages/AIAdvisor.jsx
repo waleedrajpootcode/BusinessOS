@@ -6,9 +6,7 @@ import {
   BarChart3,
   Boxes,
   Building2,
-  CheckCircle2,
   CircleDollarSign,
-  Clock3,
   CreditCard,
   Database,
   Gauge,
@@ -143,7 +141,6 @@ const INTELLIGENCE_MODULES = [
 export default function AIAdvisor() {
   const [response, setResponse] = useState(null);
   const [question, setQuestion] = useState("");
-  const [queryResponse, setQueryResponse] = useState(null);
   const [queryLoading, setQueryLoading] = useState(false);
   const [conversation, setConversation] = useState([]);
   const [selectedQuestionCategory, setSelectedQuestionCategory] =
@@ -152,6 +149,7 @@ export default function AIAdvisor() {
   const [error, setError] = useState("");
 
   const chatEndRef = useRef(null);
+  const messageIdRef = useRef(0);
 
   async function loadAdvisor() {
     try {
@@ -176,24 +174,23 @@ export default function AIAdvisor() {
     }
   }
 
-  async function submitBusinessQuestion(value) {
+  async function submitBusinessQuestion(value, questionId = undefined) {
     const trimmedQuestion = String(value || "").trim();
 
     if (!trimmedQuestion || queryLoading) return;
 
     const userMessage = {
-      id: `user-${Date.now()}`,
+      id: `user-${messageIdRef.current++}`,
       role: "user",
       content: trimmedQuestion,
     };
 
     setConversation((current) => [...current, userMessage]);
     setQuestion("");
-    setQueryResponse(null);
     setQueryLoading(true);
 
     try {
-      const response = await askBusinessQuestion(trimmedQuestion);
+      const response = await askBusinessQuestion(trimmedQuestion, questionId);
 
       if (!response?.success || !response?.data?.answer) {
         throw new Error(
@@ -202,10 +199,8 @@ export default function AIAdvisor() {
         );
       }
 
-      setQueryResponse(response);
-
       const assistantMessage = {
-        id: `assistant-${Date.now()}`,
+        id: `assistant-${messageIdRef.current++}`,
         role: "assistant",
         content: response.data.answer,
         data: response,
@@ -218,7 +213,7 @@ export default function AIAdvisor() {
       setConversation((current) => [
         ...current,
         {
-          id: `assistant-error-${Date.now()}`,
+          id: `assistant-error-${messageIdRef.current++}`,
           role: "assistant",
           content:
             "I could not answer that question right now. Please try again.",
@@ -235,14 +230,13 @@ export default function AIAdvisor() {
     await submitBusinessQuestion(question);
   }
 
-  function askQuickQuestion(value) {
+  function askQuickQuestion(item) {
     // Clicking a suggested question sends it immediately to the same chat.
-    void submitBusinessQuestion(value);
+    void submitBusinessQuestion(item?.question || item?.text || item?.label, item?.id);
   }
 
   function clearConversation() {
     setConversation([]);
-    setQueryResponse(null);
     setQuestion("");
   }
 
@@ -258,6 +252,7 @@ export default function AIAdvisor() {
   }, [conversation, queryLoading]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAdvisor();
   }, []);
 
@@ -307,22 +302,6 @@ export default function AIAdvisor() {
   const healthMessage =
     response?.sections?.find((section) => section.type === "health")
       ?.message || "Business health information is currently unavailable.";
-
-  const financialMessage =
-    response?.sections?.find((section) => section.type === "financial")
-      ?.message || "Financial analysis is currently unavailable.";
-
-  const paymentMessage =
-    response?.sections?.find((section) => section.type === "payments")
-      ?.message || "Customer payment analysis is currently unavailable.";
-
-  const inventoryMessage =
-    response?.sections?.find((section) => section.type === "inventory")
-      ?.message || "Inventory analysis is currently unavailable.";
-
-  const supplierMessage =
-    response?.sections?.find((section) => section.type === "suppliers")
-      ?.message || "Supplier analysis is currently unavailable.";
 
   const revenueValue = Number(response?.summary?.revenue || 0);
   const profitValue = Number(response?.summary?.netProfit || 0);
@@ -641,7 +620,7 @@ export default function AIAdvisor() {
                   type="button"
                   key={item?.id || questionText}
                   className="ai-question-card"
-                  onClick={() => askQuickQuestion(questionText)}
+                  onClick={() => askQuickQuestion(item)}
                 >
                   <span className="ai-question-icon"><Icon size={16} /></span>
                   <span className="ai-question-copy">

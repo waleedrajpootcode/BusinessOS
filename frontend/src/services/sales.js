@@ -233,7 +233,7 @@ export async function getRecentSales() {
       invoice_no,
       total,
       created_at,
-      customers(full_name)
+      customers!sales_business_customer_tenant_fkey(full_name)
     `)
 
     .order("created_at", {
@@ -266,9 +266,9 @@ export async function getTopSellingProducts(limit = 5) {
     .select(`
       quantity,
       total,
-      products (
-        product_name
-      )
+      products!sale_items_business_product_tenant_fkey (
+  product_name
+)
     `);
 
   if (error) {

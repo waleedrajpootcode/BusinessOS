@@ -71,6 +71,7 @@ async function loadProducts() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProducts();
   }, []);
   const filteredProducts = products.filter((product) => {

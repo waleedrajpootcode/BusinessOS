@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, CreditCard, X } from "lucide-react";
 
@@ -35,7 +35,7 @@ function SupplierLedger() {
   // Load Supplier Ledger
   // ============================
 
-  async function loadLedger() {
+  const loadLedger = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -139,7 +139,7 @@ function SupplierLedger() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
 
   // ============================
   // Open Payment Modal
@@ -297,8 +297,9 @@ function SupplierLedger() {
   // ============================
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadLedger();
-  }, [id]);
+  }, [loadLedger]);
 
   // ============================
   // Calculate Overall Summary

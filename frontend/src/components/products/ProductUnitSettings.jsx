@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const UNIT_OPTIONS = [
   {
@@ -44,17 +44,6 @@ function ProductUnitSettings({
       value?.base_unit ||
       DEFAULT_UNIT.value
   );
-
-  useEffect(() => {
-    setSellingUnit(
-      value?.selling_unit ||
-        value?.base_unit ||
-        DEFAULT_UNIT.value
-    );
-  }, [
-    value?.selling_unit,
-    value?.base_unit,
-  ]);
 
   function handleUnitChange(newSellingUnit) {
     const selectedUnit =

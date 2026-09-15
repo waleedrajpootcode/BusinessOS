@@ -44,21 +44,13 @@ function BusinessSetup() {
 
     }
 
-    try {
+try {
 
       if (businessId) {
 
-       await updateBusinessSettings(
-  businessId,
-  {
-    business_name: businessName,
-
-    ...(logoUrl && {
-      logo_url: logoUrl,
-    }),
-
-  }
-);
+        await updateBusinessSettings(businessId, {
+          business_name: businessName,
+        });
 
         alert("Business Updated Successfully ✅");
 

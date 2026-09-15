@@ -16,6 +16,22 @@ import {
 import { getSuppliers } from "../suppliers";
 import { getAllSupplierPayments } from "../supplierPayments";
 
+export function normalizeMetric(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : null;
+}
+
+function sumMetrics(values) {
+  const normalizedValues = values.map(normalizeMetric);
+  return normalizedValues.some((value) => value === null)
+    ? null
+    : normalizedValues.reduce((sum, value) => sum + value, 0);
+}
+
 /**
  * BusinessOS AI Business Insights
  *
@@ -51,22 +67,16 @@ export async function getBusinessSummary() {
   ]);
 
   return {
-    revenue: Number(totalRevenue || 0),
-    salesProfit: Number(totalSalesProfit || 0),
-    purchases: Number(totalPurchases || 0),
-    expenses: Number(totalExpenses || 0),
-    netProfit: Number(netProfit || 0),
+    revenue: normalizeMetric(totalRevenue),
+    salesProfit: normalizeMetric(totalSalesProfit),
+    purchases: normalizeMetric(totalPurchases),
+    expenses: normalizeMetric(totalExpenses),
+    netProfit: normalizeMetric(netProfit),
 
     receivables: {
-      totalReceivable: Number(
-        receivables?.totalReceivable || 0
-      ),
-      totalCollected: Number(
-        receivables?.totalCollected || 0
-      ),
-      customersWithDue: Number(
-        receivables?.customersWithDue || 0
-      ),
+      totalReceivable: normalizeMetric(receivables?.totalReceivable),
+      totalCollected: normalizeMetric(receivables?.totalCollected),
+      customersWithDue: normalizeMetric(receivables?.customersWithDue),
     },
   };
 }
@@ -92,8 +102,8 @@ export async function getSalesInsights() {
   ]);
 
   return {
-    revenue: Number(revenue || 0),
-    profit: Number(salesProfit || 0),
+    revenue: normalizeMetric(revenue),
+    profit: normalizeMetric(salesProfit),
 
     monthlyRevenue: Array.isArray(monthlyRevenue)
       ? monthlyRevenue
@@ -118,7 +128,7 @@ export async function getExpenseInsights() {
   const expenses = await getTotalExpenses();
 
   return {
-    totalExpenses: Number(expenses || 0),
+    totalExpenses: normalizeMetric(expenses),
   };
 }
 
@@ -139,9 +149,9 @@ export async function getProfitInsights() {
   ]);
 
   return {
-    salesProfit: Number(salesProfit || 0),
-    expenses: Number(expenses || 0),
-    netProfit: Number(netProfit || 0),
+    salesProfit: normalizeMetric(salesProfit),
+    expenses: normalizeMetric(expenses),
+    netProfit: normalizeMetric(netProfit),
   };
 }
 
@@ -216,12 +226,8 @@ export async function getSupplierInsights() {
     : 0;
 
   const totalPaid = Array.isArray(supplierPayments)
-    ? supplierPayments.reduce(
-        (sum, payment) =>
-          sum + Number(payment.amount || 0),
-        0
-      )
-    : 0;
+    ? sumMetrics(supplierPayments.map((payment) => payment?.amount))
+    : null;
 
   return {
     totalSuppliers,
@@ -250,17 +256,9 @@ export async function getPaymentInsights() {
 
   return {
     customer: {
-      totalReceivable: Number(
-        receivables?.totalReceivable || 0
-      ),
-
-      totalCollected: Number(
-        receivables?.totalCollected || 0
-      ),
-
-      customersWithDue: Number(
-        receivables?.customersWithDue || 0
-      ),
+      totalReceivable: normalizeMetric(receivables?.totalReceivable),
+      totalCollected: normalizeMetric(receivables?.totalCollected),
+      customersWithDue: normalizeMetric(receivables?.customersWithDue),
     },
 
     customerAccounts: Array.isArray(

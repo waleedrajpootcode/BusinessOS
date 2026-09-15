@@ -17,10 +17,6 @@ function Dashboard() {
   const { role } = useAuth();
   const { business } = useBusiness();
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
-
   async function loadDashboard() {
     const products = await getLowStockProducts();
 
@@ -30,6 +26,11 @@ function Dashboard() {
       await getNotifications()
     );
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadDashboard();
+  }, []);
 
   return (
     <Layout>

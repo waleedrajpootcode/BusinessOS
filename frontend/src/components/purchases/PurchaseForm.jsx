@@ -40,6 +40,63 @@ function PurchaseForm({ onSuccess }) {
     loadData();
   }, []);
 
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem("ai_agent_draft");
+      if (stored) {
+        const draft = JSON.parse(stored);
+        if (draft.intent === "purchase" && draft.items?.length > 0) {
+          const age = Date.now() - (draft.timestamp || 0);
+          if (age < 5 * 60 * 1000) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSelectedSupplier(
+              String(draft.supplierName || "")
+            );
+
+            const loadItems = async () => {
+              const productData = await getProductsForPurchase();
+              setProducts(productData);
+
+              const purchaseItems = [];
+              for (const item of draft.items) {
+                const matchedProduct = productData.find(
+                  (p) =>
+                    p.product_name
+                      .toLowerCase()
+                      .includes(
+                        item.productText?.toLowerCase() ||
+                          ""
+                      )
+                );
+                if (matchedProduct) {
+                  purchaseItems.push({
+                    product_id: matchedProduct.id,
+                    product_name: matchedProduct.product_name,
+                    quantity: Number(item.quantity || 1),
+                    price: Number(matchedProduct.cost_price || 0),
+                    total: Number(item.quantity || 1) *
+                      Number(matchedProduct.cost_price || 0),
+                  });
+                }
+              }
+              if (purchaseItems.length > 0) {
+                setItems(purchaseItems);
+              }
+            };
+            loadItems();
+
+            sessionStorage.removeItem("ai_agent_draft");
+          }
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Failed to load AI agent draft:",
+        error
+      );
+    }
+  }, []);
+
   const subtotal = items.reduce(
     (sum, item) => sum + Number(item.total || 0),
     0

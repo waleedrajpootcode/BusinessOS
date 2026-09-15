@@ -9,12 +9,13 @@ function CustomerForm({
   customer = null,
   onSuccess,
 }) {
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
+  const [fullName, setFullName] = useState(customer?.full_name || "");
+  const [phone, setPhone] = useState(customer?.phone || "");
+  const [email, setEmail] = useState(customer?.email || "");
+  const [address, setAddress] = useState(customer?.address || "");
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (customer) {
       setFullName(customer.full_name || "");
       setPhone(customer.phone || "");
@@ -26,6 +27,7 @@ function CustomerForm({
       setEmail("");
       setAddress("");
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [customer]);
 
   async function handleSubmit(e) {

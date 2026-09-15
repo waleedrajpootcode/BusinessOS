@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
     ArrowLeft,
@@ -27,7 +27,7 @@ function CustomerLedger() {
 
     const [paymentHistory, setPaymentHistory] = useState([]);
 
-    async function loadLedger() {
+    const loadLedger = useCallback(async () => {
         try {
             setLoading(true);
 
@@ -91,7 +91,7 @@ function CustomerLedger() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [id]);
 
     async function handlePaymentSubmit(e) {
         e.preventDefault();
@@ -204,8 +204,9 @@ function CustomerLedger() {
     }
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         loadLedger();
-    }, [id]);
+    }, [loadLedger]);
 
     const totalSales = ledger.reduce(
         (sum, item) =>

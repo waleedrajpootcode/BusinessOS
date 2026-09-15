@@ -12,7 +12,8 @@
  */
 
 function formatAmount(value) {
-  const amount = Number(value || 0);
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "unavailable";
 
   return amount.toLocaleString("en-US", {
     maximumFractionDigits: 2,
@@ -21,7 +22,8 @@ function formatAmount(value) {
 
 
 function formatCount(value) {
-  return Number(value || 0).toLocaleString("en-US");
+  const count = Number(value);
+  return Number.isFinite(count) ? count.toLocaleString("en-US") : "unavailable";
 }
 
 
@@ -30,8 +32,8 @@ function formatCount(value) {
 =========================== */
 
 function buildSalesResponse(data) {
-  const revenue = Number(data?.revenue || 0);
-  const profit = Number(data?.profit || 0);
+  const revenue = data?.revenue;
+  const profit = data?.profit;
 
   return (
     `Your recorded sales revenue is PKR ${formatAmount(revenue)}, ` +
@@ -45,9 +47,7 @@ function buildSalesResponse(data) {
 =========================== */
 
 function buildExpenseResponse(data) {
-  const expenses = Number(
-    data?.totalExpenses || 0
-  );
+  const expenses = data?.totalExpenses;
 
   return (
     `Your recorded business expenses are ` +
@@ -61,17 +61,9 @@ function buildExpenseResponse(data) {
 =========================== */
 
 function buildProfitResponse(data) {
-  const salesProfit = Number(
-    data?.salesProfit || 0
-  );
-
-  const expenses = Number(
-    data?.expenses || 0
-  );
-
-  const netProfit = Number(
-    data?.netProfit || 0
-  );
+  const salesProfit = data?.salesProfit;
+  const expenses = data?.expenses;
+  const netProfit = data?.netProfit;
 
   return (
     `Your sales profit is PKR ${formatAmount(salesProfit)}, ` +
@@ -151,7 +143,8 @@ function buildCustomerResponse(data) {
   const outstandingCustomers =
     customerReceivables.filter(
       (customer) =>
-        Number(customer?.outstanding || 0) > 0
+        Number.isFinite(Number(customer?.outstanding)) &&
+        Number(customer.outstanding) > 0
     );
 
   return (
@@ -168,13 +161,8 @@ function buildCustomerResponse(data) {
 =========================== */
 
 function buildSupplierResponse(data) {
-  const totalSuppliers = Number(
-    data?.totalSuppliers || 0
-  );
-
-  const totalPaid = Number(
-    data?.totalPaid || 0
-  );
+  const totalSuppliers = data?.totalSuppliers;
+  const totalPaid = data?.totalPaid;
 
   return (
     `There are ${formatCount(totalSuppliers)} supplier(s) ` +
@@ -197,21 +185,15 @@ function buildPaymentResponse(data) {
     );
   }
 
-  const totalReceivable = Number(
-    customer?.totalReceivable || 0
-  );
-
-  const totalCollected = Number(
-    customer?.totalCollected || 0
-  );
-
-  const customersWithDue = Number(
-    customer?.customersWithDue || 0
-  );
+  const totalReceivable = customer?.totalReceivable;
+  const totalCollected = customer?.totalCollected;
+  const customersWithDue = customer?.customersWithDue;
 
   if (
-    totalReceivable <= 0 &&
-    customersWithDue <= 0
+    Number.isFinite(Number(totalReceivable)) &&
+    Number.isFinite(Number(customersWithDue)) &&
+    Number(totalReceivable) <= 0 &&
+    Number(customersWithDue) <= 0
   ) {
     return (
       "There are currently no customer outstanding payments " +
@@ -233,29 +215,12 @@ function buildPaymentResponse(data) {
 =========================== */
 
 function buildSummaryResponse(data) {
-  const revenue = Number(
-    data?.revenue || 0
-  );
-
-  const salesProfit = Number(
-    data?.salesProfit || 0
-  );
-
-  const purchases = Number(
-    data?.purchases || 0
-  );
-
-  const expenses = Number(
-    data?.expenses || 0
-  );
-
-  const netProfit = Number(
-    data?.netProfit || 0
-  );
-
-  const receivable = Number(
-    data?.receivables?.totalReceivable || 0
-  );
+  const revenue = data?.revenue;
+  const salesProfit = data?.salesProfit;
+  const purchases = data?.purchases;
+  const expenses = data?.expenses;
+  const netProfit = data?.netProfit;
+  const receivable = data?.receivables?.totalReceivable;
 
   return (
     `Your business currently has revenue of ` +

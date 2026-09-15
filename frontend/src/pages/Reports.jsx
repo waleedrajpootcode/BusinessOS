@@ -43,10 +43,6 @@ function Reports() {
 
   const [customerReceivables, setCustomerReceivables] = useState([]);
 
-  useEffect(() => {
-    loadReports();
-  }, []);
-
   async function loadReports() {
     setRevenue(await getTotalRevenue());
 
@@ -94,6 +90,11 @@ function Reports() {
       await getCustomerReceivables()
     );
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadReports();
+  }, []);
 
   return (
     <div className="p-4 sm:p-6 min-w-0 w-full">

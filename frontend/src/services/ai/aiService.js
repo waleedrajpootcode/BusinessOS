@@ -6,6 +6,7 @@ const BACKEND_URL =
 
 const MAX_QUESTION_LENGTH = 500;
 const MAX_ANSWER_LENGTH = 12000;
+const QUESTION_ID_PATTERN = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
 
 function failure(code, message) {
   return {
@@ -102,7 +103,7 @@ function validateFailureEnvelope(payload, status) {
   );
 }
 
-export async function askBusinessQuestion(question) {
+export async function askBusinessQuestion(question, questionId = undefined) {
   if (typeof question !== "string") {
     return failure(
       "INVALID_AI_QUESTION",
@@ -123,6 +124,20 @@ export async function askBusinessQuestion(question) {
     return failure(
       "AI_QUESTION_TOO_LONG",
       "Please keep your question within 500 characters."
+    );
+  }
+
+  if (
+    questionId !== undefined &&
+    (
+      typeof questionId !== "string" ||
+      !QUESTION_ID_PATTERN.test(questionId.trim()) ||
+      questionId.trim().length > 64
+    )
+  ) {
+    return failure(
+      "INVALID_AI_QUESTION_ID",
+      "Please select a valid BusinessOS question."
     );
   }
 
@@ -158,6 +173,7 @@ export async function askBusinessQuestion(question) {
       },
       body: JSON.stringify({
         question: normalizedQuestion,
+        ...(questionId !== undefined ? { questionId: questionId.trim() } : {}),
       }),
     });
   } catch {

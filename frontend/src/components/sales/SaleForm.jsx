@@ -45,6 +45,84 @@ function SaleForm({ onSuccess }) {
     loadData();
   }, []);
 
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem("ai_agent_draft");
+      if (stored) {
+        const draft = JSON.parse(stored);
+        if (draft.intent === "sale" && draft.items?.length > 0) {
+          const age = Date.now() - (draft.timestamp || 0);
+          if (age < 5 * 60 * 1000) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSelectedCustomer(
+              String(draft.customerName || "")
+            );
+            setPaymentStatus(
+              draft.paymentStatus || "Unpaid"
+            );
+            setPaymentMethod(
+              draft.paymentMethod || "Cash"
+            );
+
+            const loadCartItems = async () => {
+              const productData = await getProductsForSale();
+              setProducts(productData);
+
+              const cartItems = [];
+              for (const item of draft.items) {
+                const matchedProduct = productData.find(
+                  (p) =>
+                    p.product_name
+                      .toLowerCase()
+                      .includes(
+                        item.productText?.toLowerCase() ||
+                          ""
+                      )
+                );
+                if (matchedProduct) {
+                  cartItems.push({
+                    product_id: Number(
+                      matchedProduct.id
+                    ),
+                    product_name:
+                      matchedProduct.product_name,
+                    quantity: Number(item.quantity || 1),
+                    price: Number(
+                      matchedProduct.price || 0
+                    ),
+                    cost_price: Number(
+                      matchedProduct.cost_price || 0
+                    ),
+                    stock: Number(
+                      matchedProduct.stock || 0
+                    ),
+                    selling_unit:
+                      matchedProduct.selling_unit ||
+                      "pcs",
+                    unit_type:
+                      matchedProduct.unit_type ||
+                      "piece",
+                  });
+                }
+              }
+              if (cartItems.length > 0) {
+                setCart(cartItems);
+              }
+            };
+            loadCartItems();
+
+            sessionStorage.removeItem("ai_agent_draft");
+          }
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Failed to load AI agent draft:",
+        error
+      );
+    }
+  }, []);
+
   function getSelectedProduct() {
     return products.find(
       (product) =>

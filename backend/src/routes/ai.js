@@ -34,6 +34,7 @@ function createAiRouter(dependencies = {}) {
       const accessToken = authorization.slice("Bearer ".length).trim();
       const gatewayResult = await processQuestion({
         question: requestValidation.question,
+        questionId: requestValidation.questionId,
         context: {
           userId: req.user.id,
           businessId: req.businessId,

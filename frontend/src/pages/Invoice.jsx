@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { generateInvoicePDF } from "../services/pdfInvoice";
 import { useBusiness } from "../context/BusinessContext";
@@ -18,11 +18,7 @@ function Invoice() {
 
     const { business } = useBusiness();
 
-    useEffect(() => {
-        loadInvoice();
-    }, [id]);
-
-    async function loadInvoice() {
+    const loadInvoice = useCallback(async () => {
         try {
             const invoiceData = await getInvoice(id);
 
@@ -39,7 +35,12 @@ function Invoice() {
         } catch (error) {
             console.error("Load Invoice Error:", error);
         }
-    }
+    }, [id]);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        loadInvoice();
+    }, [loadInvoice]);
 
     async function downloadPDF() {
         if (!invoice) return;

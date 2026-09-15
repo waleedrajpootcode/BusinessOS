@@ -46,6 +46,9 @@ const PRODUCT_FIELDS = new Set([
   "minimumStock",
 ]);
 
+const SENSITIVE_BI_FIELD_PATTERN =
+  /(access.?token|authorization|bearer|password|secret|api.?key|credential|session.?token|cookie|business.?id|user.?id|provider|model|jwt|token)/i;
+
 const SNAPSHOT_FIELDS = Object.freeze({
   metadata: new Set(["asOf", "coverage", "completeness", "provenance"]),
   sales: new Set(["totalSales", "totalRevenue", "totalProfit", "availability"]),
@@ -69,6 +72,58 @@ const SNAPSHOT_FIELDS = Object.freeze({
   ]),
   purchases: new Set(["totalPurchaseRecords", "totalPurchases", "availability"]),
 });
+
+function sanitizeBusinessIntelligenceValue(value, depth = 0) {
+  if (depth > 6 || value === null) return value;
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return typeof value === "string" ? value.slice(0, 1000) : value;
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .slice(0, 20)
+      .map((item) => sanitizeBusinessIntelligenceValue(item, depth + 1));
+  }
+
+  if (typeof value !== "object") return undefined;
+
+  const sanitized = {};
+  for (const [key, item] of Object.entries(value).slice(0, 50)) {
+    if (key === "id" || SENSITIVE_BI_FIELD_PATTERN.test(key)) continue;
+    const nextValue = sanitizeBusinessIntelligenceValue(item, depth + 1);
+    if (nextValue !== undefined) sanitized[key] = nextValue;
+  }
+  return sanitized;
+}
+
+function sanitizeBusinessIntelligence(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return {};
+  }
+
+  return {
+    questionId:
+      typeof data.questionId === "string"
+        ? data.questionId.slice(0, 64)
+        : undefined,
+    resultType:
+      typeof data.resultType === "string"
+        ? data.resultType.slice(0, 100)
+        : undefined,
+    facts: sanitizeBusinessIntelligenceValue(data.facts),
+    calculations: sanitizeBusinessIntelligenceValue(data.calculations),
+    availability:
+      typeof data.availability === "string"
+        ? data.availability.slice(0, 32)
+        : undefined,
+    provenance: sanitizeBusinessIntelligenceValue(data.provenance),
+    asOf: typeof data.asOf === "string" ? data.asOf.slice(0, 64) : undefined,
+  };
+}
 
 function sanitizeSnapshotValue(value, allowedFields = null, depth = 0) {
   if (depth > 6 || value === null) return value;
@@ -124,6 +179,34 @@ function validateReasoningStructure(reasoning) {
     REASONING_FIELDS.some((field) => reasoning[field].length > 0);
 }
 
+function buildCanonicalAnswer(reasoning) {
+  if (!validateReasoningStructure(reasoning)) {
+    throw new Error("Cannot build an answer from invalid reasoning.");
+  }
+
+  const sections = [];
+
+  const addSection = (title, items) => {
+    if (!Array.isArray(items) || items.length === 0) return;
+
+    sections.push(
+      `${title}\n${items.map((item) => `• ${item}`).join("\n")}`
+    );
+  };
+
+  addSection("WHAT", reasoning.facts);
+  addSection("CALCULATIONS", reasoning.calculations);
+  addSection("WHY", reasoning.analysis);
+  addSection("NEXT STEP / IMPACT", reasoning.recommendations);
+  addSection("UNCERTAINTY", reasoning.uncertainty);
+
+  if (sections.length === 0) {
+    throw new Error("No usable reasoning content was available.");
+  }
+
+  return sections.join("\n\n");
+}
+
 
 /* -------------------------------------------------------
    SAFE BUSINESS CONTEXT
@@ -177,6 +260,9 @@ function createBusinessContext(businessData) {
       businessData.purchases || {},
       SNAPSHOT_FIELDS.purchases
     ),
+    businessIntelligence: businessData.businessIntelligence
+      ? sanitizeBusinessIntelligence(businessData.businessIntelligence)
+      : {},
   };
 
   return Object.freeze(context);
@@ -318,31 +404,34 @@ async function reasonAboutBusiness({
       throw new Error("AI provider returned invalid reasoning output.");
     }
 
-    return {
-      success: true,
-      type: "ai_reasoning_complete",
+    const canonicalAnswer = buildCanonicalAnswer(reasoning);
 
-      question: String(question || "")
-        .trim()
-        .replace(/\s+/g, " "),
+return {
+  success: true,
+  type: "ai_reasoning_complete",
 
-      answer:
-        providerResult.answer,
+  question: String(question || "")
+    .trim()
+    .replace(/\s+/g, " "),
 
-      ...(reasoning ? { reasoning } : {}),
+  answer: canonicalAnswer,
 
-      provider:
-        providerResult.provider,
+  reasoning,
 
-      model:
-        providerResult.model,
+  provider:
+    providerResult.provider,
 
-      provider_connected: true,
+  model:
+    providerResult.model,
 
-      action_allowed: false,
+  provider_connected: true,
 
-      requires_confirmation: false,
-    };
+  action_allowed: false,
+
+  requires_confirmation: false,
+  };
+
+
   } catch (error) {
     console.error(
       "BusinessOS AI Reasoning Error:",
@@ -371,4 +460,5 @@ module.exports = {
   createReasoningPrompt,
   validateReasoningStructure,
   reasonAboutBusiness,
+  sanitizeBusinessIntelligenceValue,
 };

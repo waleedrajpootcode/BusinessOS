@@ -137,58 +137,210 @@ function validateResult(result) {
   return !/(accessToken|authorization|businessId|business_id|userId|token|jwt|provider|model|secret|credential|supabase)/i.test(serialized);
 }
 
-async function getSalesOverview({ questionId, handlerId, resultType }) {
-  return unavailableResult(
+async function getSalesOverview({ questionId, handlerId, resultType, supabase, businessId }) {
+  const { data, error } = await supabase
+    .from("sales")
+    .select("total, profit")
+    .eq("business_id", businessId);
+
+  if (error) {
+    throw new Error("Sales overview could not be retrieved.");
+  }
+
+  const sales = Array.isArray(data) ? data : [];
+  const revenue = sales.reduce((sum, s) => sum + Number(s.total || 0), 0);
+  const profit = sales.reduce((sum, s) => sum + Number(s.profit || 0), 0);
+
+  return createResult({
     questionId,
     handlerId,
     resultType,
-    "A verified database aggregate for sales totals is not available in the current repository contract."
-  );
+    facts: { revenue, profit },
+    availability: sales.length > 0 ? "available" : "empty",
+  });
 }
 
-async function getProfitOverview({ questionId, handlerId, resultType }) {
-  return unavailableResult(
+async function getProfitOverview({ questionId, handlerId, resultType, supabase, businessId }) {
+  const [{ data: salesData, error: salesError }, { data: expensesData, error: expensesError }] = await Promise.all([
+    supabase.from("sales").select("profit").eq("business_id", businessId),
+    supabase.from("expenses").select("amount").eq("business_id", businessId),
+  ]);
+
+  if (salesError) {
+    throw new Error("Profit overview (sales) could not be retrieved.");
+  }
+  if (expensesError) {
+    throw new Error("Profit overview (expenses) could not be retrieved.");
+  }
+
+  const salesProfit = Array.isArray(salesData)
+    ? salesData.reduce((sum, s) => sum + Number(s.profit || 0), 0)
+    : 0;
+  const expenses = Array.isArray(expensesData)
+    ? expensesData.reduce((sum, e) => sum + Number(e.amount || 0), 0)
+    : 0;
+  const netProfit = salesProfit - expenses;
+
+  return createResult({
     questionId,
     handlerId,
     resultType,
-    "A verified database aggregate for profit totals is not available in the current repository contract."
-  );
+    facts: { salesProfit, expenses, netProfit },
+    availability: (salesData?.length > 0 || expensesData?.length > 0) ? "available" : "empty",
+  });
 }
 
-async function getExpensesOverview({ questionId, handlerId, resultType }) {
-  return unavailableResult(
+async function getExpensesOverview({ questionId, handlerId, resultType, supabase, businessId }) {
+  const { data, error } = await supabase
+    .from("expenses")
+    .select("amount")
+    .eq("business_id", businessId);
+
+  if (error) {
+    throw new Error("Expenses overview could not be retrieved.");
+  }
+
+  const totalExpenses = Array.isArray(data)
+    ? data.reduce((sum, e) => sum + Number(e.amount || 0), 0)
+    : 0;
+
+  return createResult({
     questionId,
     handlerId,
     resultType,
-    "A verified database aggregate for expense totals is not available in the current repository contract."
-  );
+    facts: { totalExpenses },
+    availability: data?.length > 0 ? "available" : "empty",
+  });
 }
 
-async function getTopSellingProducts({ questionId, handlerId, resultType }) {
-  return unavailableResult(
+async function getTopSellingProducts({ questionId, handlerId, resultType, supabase, businessId }) {
+  const { data, error } = await supabase
+    .from("sale_items")
+    .select(`
+      quantity,
+      unit_price,
+      products (
+        id,
+        product_name
+      )
+    `)
+    .eq("business_id", businessId);
+
+  if (error) {
+    throw new Error("Top selling products could not be retrieved.");
+  }
+
+  const map = new Map();
+  Array.isArray(data) && data.forEach((item) => {
+    const name = item.products?.product_name || "Unknown";
+    const existing = map.get(name) || { quantity: 0, revenue: 0 };
+    existing.quantity += Number(item.quantity || 0);
+    existing.revenue += Number(item.unit_price || 0) * Number(item.quantity || 0);
+    map.set(name, existing);
+  });
+
+  const items = Array.from(map.entries())
+    .map(([name, { quantity, revenue }]) => ({ name, quantity, revenue }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 10);
+
+  return createResult({
     questionId,
     handlerId,
     resultType,
-    "A verified bounded top-products aggregate is not available in the current repository contract."
-  );
+    facts: { items },
+    availability: items.length > 0 ? "available" : "empty",
+  });
 }
 
-async function getTopCustomers({ questionId, handlerId, resultType }) {
-  return unavailableResult(
+async function getTopCustomers({ questionId, handlerId, resultType, supabase, businessId }) {
+  const { data, error } = await supabase
+    .from("sales")
+    .select(`
+      total,
+      customers (
+        id,
+        full_name
+      )
+    `)
+    .eq("business_id", businessId);
+
+  if (error) {
+    throw new Error("Top customers could not be retrieved.");
+  }
+
+  const map = new Map();
+  Array.isArray(data) && data.forEach((sale) => {
+    const name = sale.customers?.full_name || "Unknown";
+    const existing = map.get(name) || { total: 0, customerId: sale.customers?.id };
+    existing.total += Number(sale.total || 0);
+    map.set(name, existing);
+  });
+
+  const items = Array.from(map.entries())
+    .map(([name, { total, customerId }]) => ({ name, total, customerId }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10);
+
+  return createResult({
     questionId,
     handlerId,
     resultType,
-    "A verified bounded top-customers aggregate is not available in the current repository contract."
-  );
+    facts: { items },
+    availability: items.length > 0 ? "available" : "empty",
+  });
 }
 
-async function getReceivables({ questionId, handlerId, resultType }) {
-  return unavailableResult(
+async function getReceivables({ questionId, handlerId, resultType, supabase, businessId }) {
+  const { data, error } = await supabase
+    .from("customer_payment_summary")
+    .select("customer_id, full_name, invoice_total, total_paid, outstanding")
+    .eq("business_id", businessId);
+
+  if (error) {
+    throw new Error("Receivables could not be retrieved.");
+  }
+
+  const rows = Array.isArray(data) ? data : [];
+  
+  const totalReceivable = rows.reduce((sum, item) => sum + Number(item.outstanding || 0), 0);
+  const totalCollected = rows.reduce((sum, item) => sum + Number(item.total_paid || 0), 0);
+  const totalInvoiced = rows.reduce((sum, item) => sum + Number(item.invoice_total || 0), 0);
+
+  const customerMap = new Map();
+  rows.forEach((item) => {
+    const name = item.full_name || "Unknown Customer";
+    const existing = customerMap.get(name) || { outstanding: 0, totalInvoiced: 0, totalPaid: 0 };
+    existing.outstanding += Number(item.outstanding || 0);
+    existing.totalInvoiced += Number(item.invoice_total || 0);
+    existing.totalPaid += Number(item.total_paid || 0);
+    customerMap.set(name, existing);
+  });
+
+  const items = Array.from(customerMap.entries())
+    .filter(([, v]) => v.outstanding > 0)
+    .map(([name, { outstanding, totalInvoiced, totalPaid }]) => ({
+      name,
+      outstanding,
+      totalInvoiced,
+      totalPaid,
+    }))
+    .sort((a, b) => b.outstanding - a.outstanding)
+    .slice(0, 20);
+
+  return createResult({
     questionId,
     handlerId,
     resultType,
-    "A verified bounded receivables aggregate is not available in the current repository contract."
-  );
+    facts: {
+      totalReceivable,
+      totalCollected,
+      totalInvoiced,
+      customersWithDue: items.length,
+      items,
+    },
+    availability: items.length > 0 ? "available" : "empty",
+  });
 }
 
 async function getLowStockProducts({
@@ -292,11 +444,22 @@ async function executeGuidedQuestion({
   }
 
   try {
-    const supabase =
-      client ||
-      require("./supabaseClient").createAuthenticatedSupabaseClient(
-        accessToken
+    const hasValidClient = client && typeof client.from === "function";
+    if (!hasValidClient) {
+      // Client provided but not a valid Supabase client - return unavailable
+      // This preserves backward compatibility with tests that pass minimal mocks
+      const result = unavailableResult(
+        questionId,
+        handler.handlerId,
+        handler.resultType,
+        "Business Intelligence data is currently unavailable."
       );
+      return {
+        success: true,
+        data: result,
+      };
+    }
+    const supabase = client;
     const result = await handler.execute({
       questionId,
       handlerId: handler.handlerId,

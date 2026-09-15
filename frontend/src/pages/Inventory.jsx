@@ -5,14 +5,15 @@ function Inventory() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    loadInventory();
-  }, []);
-
   async function loadInventory() {
     const data = await getInventory();
     setProducts(data);
   }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadInventory();
+  }, []);
 
   const filteredProducts = products.filter((product) =>
     product.product_name
