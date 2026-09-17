@@ -19,16 +19,16 @@ export async function getPurchaseDetails(id) {
     .from("purchases")
     .select(`
       *,
-      suppliers (
+      suppliers!purchases_business_supplier_tenant_fkey (
         supplier_name,
         phone,
         email
       ),
-      purchase_items (
+      purchase_items!purchase_items_business_purchase_tenant_fkey (
         *,
-        products (
-          product_name
-        )
+        products!purchase_items_business_product_tenant_fkey (
+  product_name
+)
       )
     `)
     .eq("id", purchaseId)

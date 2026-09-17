@@ -35,6 +35,8 @@ import {
   AI_QUESTION_CATEGORIES,
   getQuestionsByCategory,
 } from "../services/ai/questionLibrary";
+import { normalizeMetric } from "../services/ai/businessInsights";
+
 import "../styles/AIAdvisor.css";
 
 function getCategoryKey(category) {
@@ -99,37 +101,6 @@ const CORE_NODES = [
   { label: "GROWTH", icon: Target, position: "node-upper-left" },
 ];
 
-const SIGNALS = [
-  {
-    label: "REVENUE",
-    status: "STRONG",
-    icon: TrendingUp,
-    tone: "positive",
-    insight: "Revenue signal is being monitored from authorized records.",
-  },
-  {
-    label: "PROFITABILITY",
-    status: "HEALTHY",
-    icon: CircleDollarSign,
-    tone: "positive",
-    insight: "Profit and expense relationships are within the current signal.",
-  },
-  {
-    label: "EXPENSE PRESSURE",
-    status: "STABLE",
-    icon: WalletCards,
-    tone: "neutral",
-    insight: "Expense pressure is evaluated against current business activity.",
-  },
-  {
-    label: "CUSTOMER OUTSTANDING",
-    status: "WATCH",
-    icon: CreditCard,
-    tone: "watch",
-    insight: "Receivables deserve attention because collection affects cash flow.",
-  },
-];
-
 const INTELLIGENCE_MODULES = [
   { label: "FINANCIAL", icon: CircleDollarSign, description: "Revenue, profit, expenses and cash flow." },
   { label: "CUSTOMER", icon: Users, description: "Activity, outstanding balances and concentration." },
@@ -137,6 +108,156 @@ const INTELLIGENCE_MODULES = [
   { label: "SUPPLIER", icon: Truck, description: "Supplier balances, payments and activity." },
   { label: "GROWTH", icon: Target, description: "Growth, product, customer and operational opportunities." },
 ];
+
+function buildBusinessSignals(response) {
+  const summary = response?.summary;
+
+  const revenue = normalizeMetric(summary?.revenue);
+  const expenses = normalizeMetric(summary?.expenses);
+  const netProfit = normalizeMetric(summary?.netProfit);
+  const receivable = normalizeMetric(
+    summary?.receivables?.totalReceivable
+  );
+
+  const lowStockProducts = Array.isArray(
+    response?.inventory?.lowStockProducts
+  )
+    ? response.inventory.lowStockProducts
+    : null;
+
+  const signals = [];
+
+  // Revenue
+  if (revenue === null) {
+    signals.push({
+      label: "REVENUE",
+      status: "UNAVAILABLE",
+      icon: TrendingUp,
+      tone: "neutral",
+      insight: "Revenue information is currently unavailable.",
+    });
+  } else if (revenue <= 0) {
+    signals.push({
+      label: "REVENUE",
+      status: "ATTENTION",
+      icon: TrendingUp,
+      tone: "watch",
+      insight: "No positive revenue is available in the current business data.",
+    });
+  } else {
+    signals.push({
+      label: "REVENUE",
+      status: "AVAILABLE",
+      icon: TrendingUp,
+      tone: "positive",
+      insight: "Revenue is available from the current authorized business records.",
+    });
+  }
+
+  // Profitability
+  if (netProfit === null) {
+    signals.push({
+      label: "PROFITABILITY",
+      status: "UNAVAILABLE",
+      icon: CircleDollarSign,
+      tone: "neutral",
+      insight: "Profitability information is currently unavailable.",
+    });
+  } else if (netProfit <= 0) {
+    signals.push({
+      label: "PROFITABILITY",
+      status: "ATTENTION",
+      icon: CircleDollarSign,
+      tone: "watch",
+      insight: "The current business data shows no positive net profit.",
+    });
+  } else {
+    signals.push({
+      label: "PROFITABILITY",
+      status: "POSITIVE",
+      icon: CircleDollarSign,
+      tone: "positive",
+      insight: "The current business data shows positive net profit.",
+    });
+  }
+
+  // Expense pressure
+  if (expenses === null || revenue === null || revenue <= 0) {
+    signals.push({
+      label: "EXPENSE PRESSURE",
+      status: "UNAVAILABLE",
+      icon: WalletCards,
+      tone: "neutral",
+      insight:
+        "Expense pressure cannot be determined reliably from the available data.",
+    });
+  } else if (expenses > revenue * 0.2) {
+    signals.push({
+      label: "EXPENSE PRESSURE",
+      status: "WATCH",
+      icon: WalletCards,
+      tone: "watch",
+      insight:
+        "Recorded expenses are significant compared with current revenue.",
+    });
+  } else {
+    signals.push({
+      label: "EXPENSE PRESSURE",
+      status: "MONITORED",
+      icon: WalletCards,
+      tone: "neutral",
+      insight:
+        "Recorded expenses are being evaluated against current revenue.",
+    });
+  }
+
+  // Customer outstanding
+  if (receivable === null) {
+    signals.push({
+      label: "CUSTOMER OUTSTANDING",
+      status: "UNAVAILABLE",
+      icon: CreditCard,
+      tone: "neutral",
+      insight: "Customer receivable information is currently unavailable.",
+    });
+  } else if (receivable <= 0) {
+    signals.push({
+      label: "CUSTOMER OUTSTANDING",
+      status: "CLEAR",
+      icon: CreditCard,
+      tone: "positive",
+      insight:
+        "No positive customer receivable balance is present in the available data.",
+    });
+  } else {
+    signals.push({
+      label: "CUSTOMER OUTSTANDING",
+      status: "OPEN",
+      icon: CreditCard,
+      tone: "watch",
+      insight:
+        "Customer receivables are present in the current authorized business data.",
+    });
+  }
+
+  // Inventory
+  if (lowStockProducts !== null) {
+    signals.push({
+      label: "INVENTORY",
+      status:
+        lowStockProducts.length > 0 ? "LOW STOCK" : "AVAILABLE",
+      icon: Package,
+      tone:
+        lowStockProducts.length > 0 ? "watch" : "positive",
+      insight:
+        lowStockProducts.length > 0
+          ? `${lowStockProducts.length} product(s) are currently marked as low stock.`
+          : "No low-stock products were found in the available data.",
+    });
+  }
+
+  return signals;
+}
 
 export default function AIAdvisor() {
   const [response, setResponse] = useState(null);
@@ -147,6 +268,8 @@ export default function AIAdvisor() {
     useState("overview");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [signals, setSignals] = useState([]);
+
 
   const chatEndRef = useRef(null);
   const messageIdRef = useRef(0);
@@ -164,6 +287,7 @@ export default function AIAdvisor() {
       }
 
       setResponse(advisorResponse);
+      setSignals(buildBusinessSignals(advisorResponse));
     } catch (err) {
       console.error("AI Advisor Page Error:", err);
       setError(
@@ -303,33 +427,32 @@ export default function AIAdvisor() {
     response?.sections?.find((section) => section.type === "health")
       ?.message || "Business health information is currently unavailable.";
 
-  const revenueValue = Number(response?.summary?.revenue || 0);
-  const profitValue = Number(response?.summary?.netProfit || 0);
-  const expenseValue = Number(response?.summary?.expenses || 0);
-  const receivableValue = Number(
-    response?.summary?.receivables?.totalReceivable || 0
+  const revenueMetric = normalizeMetric(response?.summary?.revenue);
+  const profitMetric = normalizeMetric(response?.summary?.netProfit);
+  const expenseMetric = normalizeMetric(response?.summary?.expenses);
+  const receivableMetric = normalizeMetric(
+    response?.summary?.receivables?.totalReceivable
   );
 
-  const revenue = revenueValue.toLocaleString("en-US", {
-    maximumFractionDigits: 2,
-  });
-  const profit = profitValue.toLocaleString("en-US", {
-    maximumFractionDigits: 2,
-  });
-  const expenses = expenseValue.toLocaleString("en-US", {
-    maximumFractionDigits: 2,
-  });
-  const receivable = receivableValue.toLocaleString("en-US", {
-    maximumFractionDigits: 2,
-  });
 
   let healthScore = 0;
   let healthScoreLabel = "Limited data";
 
-  if (revenueValue > 0) {
-    const profitMargin = (profitValue / revenueValue) * 100;
-    const expenseRatio = (expenseValue / revenueValue) * 100;
-    const receivableRatio = (receivableValue / revenueValue) * 100;
+  if (
+    revenueMetric !== null &&
+    profitMetric !== null &&
+    expenseMetric !== null &&
+    receivableMetric !== null &&
+    revenueMetric > 0
+  ) {
+    const profitMargin =
+      (profitMetric / revenueMetric) * 100;
+
+    const expenseRatio =
+      (expenseMetric / revenueMetric) * 100;
+
+    const receivableRatio =
+      (receivableMetric / revenueMetric) * 100;
 
     let score = 50;
     score += clamp(profitMargin * 1.5, -35, 30);
@@ -384,7 +507,7 @@ export default function AIAdvisor() {
             <div className="ai-header-meta">
               <span><LockKeyhole size={12} /> READ-ONLY AI</span>
               <span><ShieldCheck size={12} /> AUTHORIZED WORKSPACE</span>
-              <span><Activity size={12} /> REAL-TIME ANALYSIS</span>
+              <span><Activity size={12} /> BUSINESS ANALYSIS</span>
             </div>
 
             <button
@@ -410,7 +533,7 @@ export default function AIAdvisor() {
                 <h2>Business intelligence briefing</h2>
               </div>
               <span className="ai-panel-status">
-                <span /> LIVE
+                <span /> CURRENT
               </span>
             </div>
 
@@ -452,11 +575,10 @@ export default function AIAdvisor() {
                       return (
                         <div
                           key={message.id}
-                          className={`ai-message-row ${
-                            isUser
-                              ? "ai-message-row-user"
-                              : "ai-message-row-assistant"
-                          }`}
+                          className={`ai-message-row ${isUser
+                            ? "ai-message-row-user"
+                            : "ai-message-row-assistant"
+                            }`}
                         >
                           {!isUser && (
                             <div className="ai-message-avatar">
@@ -465,11 +587,10 @@ export default function AIAdvisor() {
                           )}
 
                           <div
-                            className={`ai-message ${
-                              isUser
-                                ? "ai-user-message"
-                                : "ai-assistant-message"
-                            } ${message.error ? "ai-message-error" : ""}`}
+                            className={`ai-message ${isUser
+                              ? "ai-user-message"
+                              : "ai-assistant-message"
+                              } ${message.error ? "ai-message-error" : ""}`}
                           >
                             <div className="ai-message-label">
                               {isUser ? "COMMAND" : "BUSINESSOS AI"}
@@ -566,74 +687,73 @@ export default function AIAdvisor() {
               </div>
             </form>
 
-        <div className="ai-question-explorer ai-question-explorer-integrated">
-          <div className="ai-section-heading compact">
-            <div>
-              <div className="ai-section-eyebrow">
-                <Lightbulb size={13} />
-                QUICK QUESTIONS
+            <div className="ai-question-explorer ai-question-explorer-integrated">
+              <div className="ai-section-heading compact">
+                <div>
+                  <div className="ai-section-eyebrow">
+                    <Lightbulb size={13} />
+                    QUICK QUESTIONS
+                  </div>
+                  <h2>Select a question and get the answer here.</h2>
+                </div>
+                {conversation.length > 0 && (
+                  <button
+                    type="button"
+                    className="ai-clear-button"
+                    onClick={clearConversation}
+                  >
+                    <Trash2 size={14} />
+                    Clear session
+                  </button>
+                )}
               </div>
-              <h2>Select a question and get the answer here.</h2>
+
+              <div className="ai-category-scroll">
+                {AI_QUESTION_CATEGORIES.map((category) => {
+                  const categoryKey = getCategoryKey(category);
+                  const categoryLabel = getCategoryLabel(category);
+                  const isActive = selectedQuestionCategory === categoryKey;
+
+                  return (
+                    <button
+                      key={categoryKey}
+                      type="button"
+                      className={`ai-category-button ${isActive ? "ai-category-button-active" : ""
+                        }`}
+                      onClick={() => setSelectedQuestionCategory(categoryKey)}
+                    >
+                      {categoryLabel}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="ai-question-grid">
+                {selectedQuestions?.slice(0, 6).map((item) => {
+                  const questionText =
+                    item?.question || item?.text || item?.label || "";
+                  const itemCategory = item?.category || selectedQuestionCategory;
+                  const Icon = getQuestionIcon(itemCategory);
+
+                  return (
+                    <button
+                      type="button"
+                      key={item?.id || questionText}
+                      className="ai-question-card"
+                      onClick={() => askQuickQuestion(item)}
+                    >
+                      <span className="ai-question-icon"><Icon size={16} /></span>
+                      <span className="ai-question-copy">
+                        <span className="ai-question-text">{questionText}</span>
+                        <span className="ai-question-action">
+                          ANALYZE <ArrowUpRight size={13} />
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            {conversation.length > 0 && (
-              <button
-                type="button"
-                className="ai-clear-button"
-                onClick={clearConversation}
-              >
-                <Trash2 size={14} />
-                Clear session
-              </button>
-            )}
-          </div>
-
-          <div className="ai-category-scroll">
-            {AI_QUESTION_CATEGORIES.map((category) => {
-              const categoryKey = getCategoryKey(category);
-              const categoryLabel = getCategoryLabel(category);
-              const isActive = selectedQuestionCategory === categoryKey;
-
-              return (
-                <button
-                  key={categoryKey}
-                  type="button"
-                  className={`ai-category-button ${
-                    isActive ? "ai-category-button-active" : ""
-                  }`}
-                  onClick={() => setSelectedQuestionCategory(categoryKey)}
-                >
-                  {categoryLabel}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="ai-question-grid">
-            {selectedQuestions?.slice(0, 6).map((item) => {
-              const questionText =
-                item?.question || item?.text || item?.label || "";
-              const itemCategory = item?.category || selectedQuestionCategory;
-              const Icon = getQuestionIcon(itemCategory);
-
-              return (
-                <button
-                  type="button"
-                  key={item?.id || questionText}
-                  className="ai-question-card"
-                  onClick={() => askQuickQuestion(item)}
-                >
-                  <span className="ai-question-icon"><Icon size={16} /></span>
-                  <span className="ai-question-copy">
-                    <span className="ai-question-text">{questionText}</span>
-                    <span className="ai-question-action">
-                      ANALYZE <ArrowUpRight size={13} />
-                    </span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
           </section>
 
@@ -646,7 +766,7 @@ export default function AIAdvisor() {
                 </div>
                 <h2>Current signal</h2>
               </div>
-              <span className="ai-mini-live">LIVE</span>
+              <span className="ai-mini-live">CURRENT</span>
             </div>
 
             <div className="ai-health-visual">
@@ -677,14 +797,20 @@ export default function AIAdvisor() {
 
               <div className="ai-health-factors">
                 {[
-                  ["Revenue", revenue],
-                  ["Profitability", profit],
-                  ["Expenses", expenses],
-                  ["Customer due", receivable],
+                  ["Revenue", revenueMetric],
+                  ["Profitability", profitMetric],
+                  ["Expenses", expenseMetric],
+                  ["Customer due", receivableMetric],
                 ].map(([label, value]) => (
                   <div className="ai-factor" key={label}>
                     <span>{label}</span>
-                    <strong>{value}</strong>
+                    <strong>
+                      {value === null
+                        ? "Unavailable"
+                        : Number(value).toLocaleString("en-US", {
+                          maximumFractionDigits: 2,
+                        })}
+                    </strong>
                     <i><span /></i>
                   </div>
                 ))}
@@ -713,7 +839,7 @@ export default function AIAdvisor() {
             </div>
             <div className="ai-core-status">
               <span className="ai-pulse-dot" />
-              SIGNAL NETWORK ACTIVE
+              SIGNAL NETWORK READY
             </div>
           </div>
 
@@ -774,15 +900,16 @@ export default function AIAdvisor() {
             <div>
               <div className="ai-section-eyebrow">
                 <Radio size={13} />
-                LIVE BUSINESS SIGNALS
+                BUSINESS SIGNALS
               </div>
               <h2>BusinessOS is continuously reading the business.</h2>
             </div>
-            <span className="ai-live-chip"><span /> LIVE</span>
+            <span className="ai-live-chip"><span /> CURRENT</span>
+
           </div>
 
           <div className="ai-signals-grid">
-            {SIGNALS.map(({ label, status, icon: Icon, tone, insight }, index) => (
+            {signals.map(({ label, status, icon: Icon, tone, insight }, index) => (
               <article className={`ai-signal-card signal-${tone}`} key={label}>
                 <div className="ai-signal-top">
                   <div className="ai-signal-icon"><Icon size={16} /></div>
@@ -851,9 +978,9 @@ export default function AIAdvisor() {
                     {typeof recommendation === "string"
                       ? recommendation
                       : recommendation?.message ||
-                        recommendation?.text ||
-                        recommendation?.title ||
-                        "Review this area of your business."}
+                      recommendation?.text ||
+                      recommendation?.title ||
+                      "Review this area of your business."}
                   </h3>
                   <div className="ai-rec-detail">
                     <span>WHY</span>

@@ -590,6 +590,49 @@ export async function resolveAgentEntities(
     }
   }
 
+  if (intent === "supplier") {
+    if (entities.supplierName) {
+      const supplierMatch =
+        await matchSupplier(
+          entities.supplierName
+        );
+
+      resolvedEntities.supplier =
+        supplierMatch;
+
+      if (
+        supplierMatch.status ===
+        "unresolved"
+      ) {
+        errors.push("supplier");
+      }
+
+      if (
+        supplierMatch.status === "error"
+      ) {
+        errors.push(
+          "supplier_lookup"
+        );
+      }
+
+      if (
+        supplierMatch.status ===
+        "ambiguous"
+      ) {
+        ambiguities.push({
+          field: "supplier",
+          value: entities.supplierName,
+          candidates:
+            supplierMatch.candidates,
+        });
+      }
+    } else {
+      errors.push("supplier");
+    }
+  }
+
+
+
   const hasErrors = errors.length > 0;
   const hasAmbiguities =
     ambiguities.length > 0;

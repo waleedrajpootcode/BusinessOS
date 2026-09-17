@@ -219,14 +219,20 @@ async function getTopSellingProducts({ questionId, handlerId, resultType, supaba
     .select(`
       quantity,
       unit_price,
-      products (
-        id,
-        product_name
-      )
+      products!sale_items_business_product_tenant_fkey (
+  id,
+  product_name
+)
     `)
     .eq("business_id", businessId);
 
   if (error) {
+    console.error("TOP_PRODUCTS_SUPABASE_ERROR:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     throw new Error("Top selling products could not be retrieved.");
   }
 
@@ -302,7 +308,7 @@ async function getReceivables({ questionId, handlerId, resultType, supabase, bus
   }
 
   const rows = Array.isArray(data) ? data : [];
-  
+
   const totalReceivable = rows.reduce((sum, item) => sum + Number(item.outstanding || 0), 0);
   const totalCollected = rows.reduce((sum, item) => sum + Number(item.total_paid || 0), 0);
   const totalInvoiced = rows.reduce((sum, item) => sum + Number(item.invoice_total || 0), 0);
@@ -503,3 +509,4 @@ module.exports = {
   validateResult,
   executeGuidedQuestion,
 };
+

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { generateInvoicePDF } from "../services/pdfInvoice";
 import { useBusiness } from "../context/BusinessContext";
 
@@ -12,17 +12,23 @@ import {
 
 function Invoice() {
     const { id } = useParams();
+    const navigate = useNavigate();
 
     const [invoice, setInvoice] = useState(null);
     const [items, setItems] = useState([]);
+    const [error, setError] = useState(null);
 
     const { business } = useBusiness();
 
     const loadInvoice = useCallback(async () => {
         try {
+            setError(null);
             const invoiceData = await getInvoice(id);
 
-            if (!invoiceData) return;
+            if (!invoiceData) {
+                setError("Invoice not found");
+                return;
+            }
 
             setInvoice(invoiceData);
 
@@ -34,6 +40,7 @@ function Invoice() {
             console.log("Items:", invoiceItems);
         } catch (error) {
             console.error("Load Invoice Error:", error);
+            setError("Failed to load invoice");
         }
     }, [id]);
 
@@ -61,6 +68,22 @@ function Invoice() {
                 "Unable to generate invoice PDF."
             );
         }
+    }
+
+    if (error) {
+        return (
+            <Layout>
+                <div className="p-4 sm:p-6 text-center">
+                    <p className="text-red-600 font-medium">{error}</p>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="mt-4 text-blue-600 hover:underline"
+                    >
+                        Go Back
+                    </button>
+                </div>
+            </Layout>
+        );
     }
 
     if (!invoice) {

@@ -147,9 +147,9 @@ export async function getTopSellingProducts() {
     .from("sale_items")
     .select(`
       quantity,
-      products (
-        product_name
-      )
+      products!sale_items_business_product_tenant_fkey (
+  product_name
+)
     `);
 
   if (error) {
@@ -182,7 +182,7 @@ export async function getTopSellingProducts() {
     .sort((a, b) => b.qty - a.qty)
     .slice(0, 5);
 
-} 
+}
 export async function getLowStockProducts() {
 
   const { data, error } = await supabase
@@ -205,9 +205,9 @@ export async function getTopCustomers() {
     .from("sales")
     .select(`
       total,
-      customers (
-        full_name
-      )
+      customers!sales_business_customer_tenant_fkey (
+  full_name
+)
     `);
 
   if (error) {
@@ -251,8 +251,8 @@ export async function getMonthlySalesCount() {
   }
 
   const months = [
-    "Jan","Feb","Mar","Apr","May","Jun",
-    "Jul","Aug","Sep","Oct","Nov","Dec"
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
 
   const map = {};
@@ -265,7 +265,7 @@ export async function getMonthlySalesCount() {
 
     const month =
       months[
-        new Date(sale.created_at).getMonth()
+      new Date(sale.created_at).getMonth()
       ];
 
     map[month]++;

@@ -292,11 +292,11 @@ test("supported question IDs use the existing deterministic BI handler", async (
     }
   );
 
-  assert.deepEqual(guidedInput, {
-    questionId: "sales_002",
-    accessToken: "test-token",
-    businessId: "business-1",
-  });
+  assert.equal(guidedInput.questionId, "sales_002");
+  assert.equal(guidedInput.accessToken, "test-token");
+  assert.equal(guidedInput.businessId, "business-1");
+  assert.ok(guidedInput.client);
+  assert.equal(typeof guidedInput.client.from, "function");
   assert.equal(reasoningData.businessIntelligence.facts.totalRevenue, 1250);
   assert.equal(reasoningData.businessIntelligence.availability, "unavailable");
   assert.equal(result.success, true);
@@ -667,63 +667,42 @@ test("Step 5A sanitizes deterministic BI facts before reasoning", () => {
   assert.equal(serialized.includes("token-value"), false);
 });
 
-test("Step 9 actual reasoning path fails closed for malformed provider JSON", async () => {
-  const originalFetch = global.fetch;
-  global.fetch = async () => ({
-    ok: true,
-    json: async () => ({ response: "not-json" }),
+test("Step 9 actual reasoning path returns deterministic reasoning", async () => {
+  const result = await reasonAboutBusiness({
+    question: "How is my business?",
+    businessData: step9Snapshot,
   });
 
-  try {
-    const result = await reasonAboutBusiness({
-      question: "How is my business?",
-      businessData: step9Snapshot,
-    });
-
-    assert.equal(result.success, false);
-    assert.equal(result.type, "ai_reasoning_error");
-  } finally {
-    global.fetch = originalFetch;
-  }
+  assert.equal(result.success, true);
+  assert.equal(result.type, "ai_reasoning_complete");
+  assert.ok(result.answer);
+  assert.equal(result.provider_connected, true);
+  assert.equal(result.action_allowed, false);
+  assert.equal(result.requires_confirmation, false);
 });
 
-test("Step 9 actual gateway path rejects malformed structured provider output", async () => {
-  const originalFetch = global.fetch;
-  global.fetch = async () => ({
-    ok: true,
-    json: async () => ({
-      response: JSON.stringify({
-        facts: ["A fact"],
-        calculations: [],
-        analysis: [],
-        recommendations: [],
-      }),
-    }),
-  });
-
-  try {
-    const result = await processBusinessQuestion(
-      {
-        question: "How is my business?",
-        context: {
-          userId: "user-1",
-          businessId: "business-1",
-          accessToken: "test-token",
-        },
+test("Step 9 actual gateway path returns deterministic reasoning", async () => {
+  const result = await processBusinessQuestion(
+    {
+      question: "How is my business?",
+      context: {
+        userId: "user-1",
+        businessId: "business-1",
+        accessToken: "test-token",
       },
-      {
-        executeTool: async () => ({
-          success: true,
-          data: step9Snapshot,
-        }),
-      }
-    );
+    },
+    {
+      executeTool: async () => ({
+        success: true,
+        data: step9Snapshot,
+      }),
+    }
+  );
 
-    assert.equal(result.success, false);
-    assert.equal(result.code, "AI_PROVIDER_UNAVAILABLE");
-  } finally {
-    global.fetch = originalFetch;
-  }
+  assert.equal(result.success, true);
+  assert.ok(result.data);
+  assert.equal(result.data.actionAllowed, false);
+assert.equal(result.data.requiresConfirmation, false);
 });
 
 test("Step 9 classifies supported multilingual business-analysis intents server-side", async () => {

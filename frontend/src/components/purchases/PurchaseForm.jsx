@@ -43,55 +43,106 @@ function PurchaseForm({ onSuccess }) {
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem("ai_agent_draft");
-      if (stored) {
-        const draft = JSON.parse(stored);
-        if (draft.intent === "purchase" && draft.items?.length > 0) {
-          const age = Date.now() - (draft.timestamp || 0);
-          if (age < 5 * 60 * 1000) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setSelectedSupplier(
-              String(draft.supplierName || "")
-            );
 
-            const loadItems = async () => {
-              const productData = await getProductsForPurchase();
-              setProducts(productData);
-
-              const purchaseItems = [];
-              for (const item of draft.items) {
-                const matchedProduct = productData.find(
-                  (p) =>
-                    p.product_name
-                      .toLowerCase()
-                      .includes(
-                        item.productText?.toLowerCase() ||
-                          ""
-                      )
-                );
-                if (matchedProduct) {
-                  purchaseItems.push({
-                    product_id: matchedProduct.id,
-                    product_name: matchedProduct.product_name,
-                    quantity: Number(item.quantity || 1),
-                    price: Number(matchedProduct.cost_price || 0),
-                    total: Number(item.quantity || 1) *
-                      Number(matchedProduct.cost_price || 0),
-                  });
-                }
-              }
-              if (purchaseItems.length > 0) {
-                setItems(purchaseItems);
-              }
-            };
-            loadItems();
-
-            sessionStorage.removeItem("ai_agent_draft");
-          }
-        }
+      if (!stored) {
+        return;
       }
+
+      const draft = JSON.parse(stored);
+
+      if (
+        draft.intent !== "purchase" ||
+        !Array.isArray(draft.items) ||
+        draft.items.length === 0
+      ) {
+        return;
+      }
+
+      const age = Date.now() - (draft.timestamp || 0);
+
+      if (age >= 5 * 60 * 1000) {
+        sessionStorage.removeItem("ai_agent_draft");
+        return;
+      }
+
+      const loadAgentDraft = async () => {
+        const [supplierData, productData] = await Promise.all([
+          getSuppliersForPurchase(),
+          getProductsForPurchase(),
+        ]);
+
+        setSuppliers(supplierData || []);
+        setProducts(productData || []);
+
+        const supplierId =
+          draft.resolvedEntities?.supplier?.item?.id;
+
+        if (draft.supplierName && supplierId == null) {
+          throw new Error(
+            "AI purchase draft is missing a safely resolved supplier."
+          );
+        }
+
+        if (supplierId != null) {
+          setSelectedSupplier(String(supplierId));
+        }
+
+        const resolvedItems = Array.isArray(
+          draft.resolvedEntities?.items
+        )
+          ? draft.resolvedEntities.items
+          : [];
+
+        const purchaseItems = [];
+
+        for (let index = 0; index < draft.items.length; index += 1) {
+          const item = draft.items[index];
+          const resolvedItem = resolvedItems[index];
+          const productId = resolvedItem?.product?.item?.id;
+
+          if (productId == null) {
+            throw new Error(
+              "AI purchase draft is missing a safely resolved product."
+            );
+          }
+
+          const matchedProduct = productData.find(
+            (product) => Number(product.id) === Number(productId)
+          );
+
+          if (!matchedProduct) {
+            throw new Error(
+              "AI purchase draft product could not be matched safely."
+            );
+          }
+
+          const quantity = Number(item.quantity || 1);
+          const price = Number(matchedProduct.cost_price || 0);
+
+          purchaseItems.push({
+            product_id: Number(matchedProduct.id),
+            product_name: matchedProduct.product_name,
+            quantity,
+            price,
+            total: quantity * price,
+          });
+        }
+
+        setItems(purchaseItems);
+
+        // Remove only after the complete draft loaded successfully.
+        sessionStorage.removeItem("ai_agent_draft");
+      };
+
+      loadAgentDraft().catch((error) => {
+        console.error(
+          "Failed to load AI agent draft:",
+          error
+        );
+      });
     } catch (error) {
       console.error(
-        "Failed to load AI agent draft:",
+        "Failed to parse AI agent draft:",
         error
       );
     }

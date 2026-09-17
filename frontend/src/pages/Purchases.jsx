@@ -9,14 +9,21 @@ function Purchases() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [purchases, setPurchases] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadPurchases();
   }, []);
 
   async function loadPurchases() {
-    const data = await getPurchases();
-    setPurchases(data);
+    try {
+      setError(null);
+      const data = await getPurchases();
+      setPurchases(data);
+    } catch (error) {
+      console.error("Load Purchases Error:", error);
+      setError(error.message);
+    }
   }
 
   const filteredPurchases = purchases.filter((purchase) => {
@@ -67,6 +74,13 @@ function Purchases() {
         />
 
       </div>
+
+      {/* Error State */}
+      {error && (
+        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-700 font-medium">{error}</p>
+        </div>
+      )}
 
       {/* Table */}
       <div className="mt-6 sm:mt-8 bg-white rounded-xl shadow border overflow-hidden">

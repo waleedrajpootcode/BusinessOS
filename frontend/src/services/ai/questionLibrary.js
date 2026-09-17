@@ -638,7 +638,9 @@ function buildCanonicalQuestion(question) {
     ...question,
     intent: handlerMetadata.intent || null,
     handlerId: handlerMetadata.handlerId || null,
-    supportedModes: Object.freeze(["guided"]),
+    supportedModes: Object.freeze(
+  handlerMetadata.handlerId ? ["guided"] : ["snapshot"]
+),
     responseType: handlerMetadata.responseType || "text",
     requiredData: Object.freeze(handlerMetadata.requiredData || []),
     availabilityPolicy: "explicit",

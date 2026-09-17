@@ -293,7 +293,9 @@ export async function increaseStock(
 
 /* ============================
    Get Purchases
-============================ */
+   Note: purchases/suppliers tables have RLS with no SELECT policy.
+   Direct queries return 0 rows. This throws a descriptive error.
+========================== */
 
 export async function getPurchases() {
   const businessId = await getCurrentBusinessId();
@@ -302,7 +304,7 @@ export async function getPurchases() {
     .from("purchases")
     .select(`
       *,
-      suppliers (
+      suppliers!purchases_business_supplier_tenant_fkey (
         supplier_name
       )
     `)
@@ -320,7 +322,16 @@ export async function getPurchases() {
     throw error;
   }
 
-  return data || [];
+  // RLS with no SELECT policy returns 0 rows instead of error
+  if (!data || data.length === 0) {
+    const err = new Error(
+      "Unable to load purchases: missing SELECT policy on purchases table (RLS blocks direct queries). Contact admin to add SELECT policies."
+    );
+    console.error("Get Purchases: RLS policy issue - no SELECT policy on purchases/suppliers tables");
+    throw err;
+  }
+
+return data;
 }
 
 

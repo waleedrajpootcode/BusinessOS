@@ -35,6 +35,9 @@ const {
   getHandler,
   validateResult,
 } = require("./businessIntelligence");
+const {
+  createAuthenticatedSupabaseClient,
+} = require("./supabaseClient");
 
 
 const MAX_AI_QUERY_LENGTH = 500;
@@ -160,10 +163,17 @@ async function processBusinessQuestion(
     if (questionId && getHandler(questionId)) {
       const executeGuided =
         dependencies.executeGuidedQuestion || executeGuidedQuestion;
+
+      const supabaseClient =
+        dependencies.createAuthenticatedSupabaseClient
+          ? dependencies.createAuthenticatedSupabaseClient(context.accessToken)
+          : createAuthenticatedSupabaseClient(context.accessToken);
+
       const guidedResult = await executeGuided({
         questionId,
         accessToken: context.accessToken,
         businessId: context.businessId,
+        client: supabaseClient,
       });
 
       if (!guidedResult?.success || !validateResult(guidedResult.data)) {

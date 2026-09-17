@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { askBusinessQuestion } from "../../services/ai/aiService";
+
 import { parseAgentRequest } from "../../services/ai/agentParser";
 import { resolveAgentEntities } from "../../services/ai/agentEntityMatcher";
 
@@ -216,7 +217,15 @@ function AIAssistantWidget() {
   }
 
   function handleVoiceInput() {
-    if (loading || isListening) {
+    if (loading) {
+      return;
+    }
+
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+
       return;
     }
 
@@ -373,7 +382,7 @@ function AIAssistantWidget() {
     window.speechSynthesis.speak(utterance);
   }
 
-  async function submitBusinessQuestion(rawQuestion) {
+  async function submitBusinessQuestion(rawQuestion, questionId = undefined) {
     const trimmedQuestion = String(rawQuestion || "").trim();
 
     if (!trimmedQuestion || loading) {
@@ -524,7 +533,7 @@ function AIAssistantWidget() {
 
     try {
       const response =
-        await askBusinessQuestion(trimmedQuestion);
+        await askBusinessQuestion(trimmedQuestion, questionId);
 
       if (
         !response?.success ||
@@ -568,42 +577,47 @@ function AIAssistantWidget() {
 
   const commonBusinessQuestions = [
     {
-      label: "Sales performance",
-      question: "Meri aaj ki sales kitni hain?",
+      label: "Sales revenue",
+      question: "Meri total sales revenue kitni hai?",
+      questionId: "sales_002",
       icon: BarChart3,
     },
     {
       label: "Profit",
-      question: "Mera profit kitna hai?",
+      question: "Mera current profit kitna hai?",
+      questionId: "profit_001",
       icon: BarChart3,
     },
     {
       label: "Low stock",
-      question: "Stock mein kya kam hai?",
+      question: "Kaun se products low stock mein hain?",
+      questionId: "inventory_002",
       icon: Package,
     },
     {
       label: "Customer payments",
-      question: "Kis customer se payment leni hai?",
+      question: "Kin customers ke payments outstanding hain?",
+      questionId: "payments_002",
       icon: UserRound,
     },
     {
       label: "Top products",
-      question: "Kis product ki sale sab se zyada hai?",
+      question: "Mere sabse zyada bikne wale products kaun se hain?",
+      questionId: "sales_004",
       icon: ShoppingCart,
     },
   ];
 
-  function handleQuickQuestion(value) {
-  if (loading || !value) {
-    return;
+  function handleQuickQuestion(value, questionId = undefined) {
+    if (loading || !value) {
+      return;
+    }
+
+    setVoiceError("");
+    setSpeechError("");
+
+    submitBusinessQuestion(value, questionId);
   }
-
-  setVoiceError("");
-  setSpeechError("");
-
-  submitBusinessQuestion(value);
-}
 
   function handleAgentAction(action) {
     setAgentMode(action);
@@ -631,6 +645,16 @@ function AIAssistantWidget() {
       supplierName: draft.supplierName || null,
       paymentStatus: draft.paymentStatus || null,
       paymentMethod: draft.paymentMethod || null,
+
+      // Preserve the securely resolved business entity IDs.
+      resolvedEntities: {
+        customer: agentResult?.entities?.customer || null,
+        supplier: agentResult?.entities?.supplier || null,
+        items: Array.isArray(agentResult?.entities?.items)
+          ? agentResult.entities.items
+          : [],
+      },
+
       // eslint-disable-next-line react-hooks/purity
       timestamp: Date.now(),
     };
@@ -1136,13 +1160,14 @@ function AIAssistantWidget() {
                           ({
                             label,
                             question: itemQuestion,
+                            questionId: itemQuestionId,
                             icon: Icon,
                           }) => (
                             <button
                               key={itemQuestion}
                               type="button"
                               onClick={() =>
-                                handleQuickQuestion(itemQuestion)
+                                handleQuickQuestion(itemQuestion, itemQuestionId)
                               }
                               disabled={loading}
                               className="
@@ -1215,11 +1240,10 @@ function AIAssistantWidget() {
                 {messages.map((item) => (
                   <div
                     key={item.id}
-                    className={`flex gap-3 ${
-                      item.role === "user"
-                        ? "justify-end"
-                        : "justify-start"
-                    }`}
+                    className={`flex gap-3 ${item.role === "user"
+                      ? "justify-end"
+                      : "justify-start"
+                      }`}
                   >
                     {item.role === "assistant" && (
                       <div
@@ -1242,22 +1266,21 @@ function AIAssistantWidget() {
                         rounded-2xl
                         px-4 py-3
                         text-sm leading-6
-                        ${
-                          item.role === "user"
-                            ? `
+                        ${item.role === "user"
+                          ? `
                               rounded-br-md
                               border border-[#b08a4b]/20
                               bg-[#17130d]
                               text-[#f5f2eb]
                             `
-                            : item.success === false
-                              ? `
+                          : item.success === false
+                            ? `
                                 rounded-tl-md
                                 border border-rose-400/20
                                 bg-rose-950/20
                                 text-rose-200
                               `
-                              : `
+                            : `
                                 rounded-tl-md
                                 border border-white/10
                                 bg-[#11110f]
@@ -1337,7 +1360,7 @@ function AIAssistantWidget() {
 
                                     {productSearch?.status ===
                                       "matched" &&
-                                    productSearch?.item ? (
+                                      productSearch?.item ? (
                                       <div className="rounded-lg border border-[#b08a4b]/15 bg-[#11110f] p-3">
                                         <div className="flex items-start justify-between gap-3">
                                           <div className="min-w-0">
@@ -1457,7 +1480,7 @@ function AIAssistantWidget() {
                                           ) => {
                                             const resolvedItem =
                                               resolvedItems[
-                                                index
+                                              index
                                               ];
 
                                             const matchedProduct =
@@ -1497,7 +1520,7 @@ function AIAssistantWidget() {
                                                   <div className="shrink-0 text-right">
                                                     <div className="text-sm font-semibold text-[#c7a66a]">
                                                       {entry.unitPrice !=
-                                                      null
+                                                        null
                                                         ? `Rs ${entry.unitPrice}`
                                                         : "Price not provided"}
                                                     </div>
@@ -1518,51 +1541,51 @@ function AIAssistantWidget() {
 
                                 {(draft.customerName ||
                                   draft.supplierName) && (
-                                  <div className="grid grid-cols-2 gap-2">
-                                    {draft.customerName && (
-                                      <div className="rounded-xl border border-white/10 bg-[#0c0c0b] p-3">
-                                        <div className="text-[10px] uppercase tracking-[0.12em] text-[#77736c]">
-                                          Customer
-                                        </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {draft.customerName && (
+                                        <div className="rounded-xl border border-white/10 bg-[#0c0c0b] p-3">
+                                          <div className="text-[10px] uppercase tracking-[0.12em] text-[#77736c]">
+                                            Customer
+                                          </div>
 
-                                        <div className="mt-1 text-sm font-medium text-[#e8e4dc]">
-                                          {draft.customerName}
+                                          <div className="mt-1 text-sm font-medium text-[#e8e4dc]">
+                                            {draft.customerName}
+                                          </div>
                                         </div>
-                                      </div>
-                                    )}
+                                      )}
 
-                                    {draft.supplierName && (
-                                      <div className="rounded-xl border border-white/10 bg-[#0c0c0b] p-3">
-                                        <div className="text-[10px] uppercase tracking-[0.12em] text-[#77736c]">
-                                          Supplier
-                                        </div>
+                                      {draft.supplierName && (
+                                        <div className="rounded-xl border border-white/10 bg-[#0c0c0b] p-3">
+                                          <div className="text-[10px] uppercase tracking-[0.12em] text-[#77736c]">
+                                            Supplier
+                                          </div>
 
-                                        <div className="mt-1 text-sm font-medium text-[#e8e4dc]">
-                                          {draft.supplierName}
+                                          <div className="mt-1 text-sm font-medium text-[#e8e4dc]">
+                                            {draft.supplierName}
+                                          </div>
                                         </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
+                                      )}
+                                    </div>
+                                  )}
 
                                 {(draft.paymentStatus ||
                                   draft.paymentMethod) && (
-                                  <div className="flex flex-wrap gap-2">
-                                    {draft.paymentStatus && (
-                                      <span className="rounded-full border border-[#b08a4b]/20 bg-[#b08a4b]/10 px-2.5 py-1 text-[11px] font-medium text-[#c7a66a]">
-                                        Payment:{" "}
-                                        {draft.paymentStatus}
-                                      </span>
-                                    )}
+                                    <div className="flex flex-wrap gap-2">
+                                      {draft.paymentStatus && (
+                                        <span className="rounded-full border border-[#b08a4b]/20 bg-[#b08a4b]/10 px-2.5 py-1 text-[11px] font-medium text-[#c7a66a]">
+                                          Payment:{" "}
+                                          {draft.paymentStatus}
+                                        </span>
+                                      )}
 
-                                    {draft.paymentMethod && (
-                                      <span className="rounded-full border border-white/10 bg-[#11110f] px-2.5 py-1 text-[11px] font-medium text-[#918c82]">
-                                        Method:{" "}
-                                        {draft.paymentMethod}
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
+                                      {draft.paymentMethod && (
+                                        <span className="rounded-full border border-white/10 bg-[#11110f] px-2.5 py-1 text-[11px] font-medium text-[#918c82]">
+                                          Method:{" "}
+                                          {draft.paymentMethod}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
 
                                 {!isProductSearch && (
                                   <>
@@ -1589,7 +1612,7 @@ function AIAssistantWidget() {
                                       </div>
                                     )}
 
-<div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-3 gap-2">
                                       <button
                                         type="button"
                                         onClick={() =>
@@ -1616,9 +1639,9 @@ function AIAssistantWidget() {
 
                                       <button
                                         type="button"
-onClick={() => {
-                                           setQuestion("");
-                                         }}
+                                        onClick={() => {
+                                          setQuestion("");
+                                        }}
                                         className="
                                           inline-flex items-center justify-center gap-1.5
                                           rounded-lg
@@ -1796,13 +1819,14 @@ onClick={() => {
                         ({
                           label,
                           question: itemQuestion,
+                          questionId: itemQuestionId,
                           icon: Icon,
                         }) => (
                           <button
                             key={`persistent-${itemQuestion}`}
                             type="button"
                             onClick={() =>
-                              handleQuickQuestion(itemQuestion)
+                              handleQuickQuestion(itemQuestion, itemQuestionId)
                             }
                             className="
                               group flex w-full items-center gap-3
@@ -2068,14 +2092,13 @@ onClick={() => {
                     border border-transparent
                     transition-all duration-200
                     sm:flex
-                    ${
-                      isListening
-                        ? `
+                    ${isListening
+                      ? `
                           border-red-400/25
                           bg-red-950/30
                           text-red-300
                         `
-                        : `
+                      : `
                           text-[#918c82]
                           hover:border-[#b08a4b]/20
                           hover:bg-[#17130d]

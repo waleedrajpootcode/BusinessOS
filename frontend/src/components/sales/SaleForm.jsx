@@ -46,82 +46,117 @@ function SaleForm({ onSuccess }) {
   }, []);
 
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem("ai_agent_draft");
-      if (stored) {
-        const draft = JSON.parse(stored);
-        if (draft.intent === "sale" && draft.items?.length > 0) {
-          const age = Date.now() - (draft.timestamp || 0);
-          if (age < 5 * 60 * 1000) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setSelectedCustomer(
-              String(draft.customerName || "")
-            );
-            setPaymentStatus(
-              draft.paymentStatus || "Unpaid"
-            );
-            setPaymentMethod(
-              draft.paymentMethod || "Cash"
-            );
+  try {
+    const stored = sessionStorage.getItem("ai_agent_draft");
 
-            const loadCartItems = async () => {
-              const productData = await getProductsForSale();
-              setProducts(productData);
+    if (!stored) {
+      return;
+    }
 
-              const cartItems = [];
-              for (const item of draft.items) {
-                const matchedProduct = productData.find(
-                  (p) =>
-                    p.product_name
-                      .toLowerCase()
-                      .includes(
-                        item.productText?.toLowerCase() ||
-                          ""
-                      )
-                );
-                if (matchedProduct) {
-                  cartItems.push({
-                    product_id: Number(
-                      matchedProduct.id
-                    ),
-                    product_name:
-                      matchedProduct.product_name,
-                    quantity: Number(item.quantity || 1),
-                    price: Number(
-                      matchedProduct.price || 0
-                    ),
-                    cost_price: Number(
-                      matchedProduct.cost_price || 0
-                    ),
-                    stock: Number(
-                      matchedProduct.stock || 0
-                    ),
-                    selling_unit:
-                      matchedProduct.selling_unit ||
-                      "pcs",
-                    unit_type:
-                      matchedProduct.unit_type ||
-                      "piece",
-                  });
-                }
-              }
-              if (cartItems.length > 0) {
-                setCart(cartItems);
-              }
-            };
-            loadCartItems();
+    const draft = JSON.parse(stored);
 
-            sessionStorage.removeItem("ai_agent_draft");
-          }
+    if (
+      draft.intent !== "sale" ||
+      !Array.isArray(draft.items) ||
+      draft.items.length === 0
+    ) {
+      return;
+    }
+
+    const age = Date.now() - (draft.timestamp || 0);
+
+    if (age >= 5 * 60 * 1000) {
+      sessionStorage.removeItem("ai_agent_draft");
+      return;
+    }
+
+    const loadAgentDraft = async () => {
+      const [customerData, productData] = await Promise.all([
+        getCustomersForSale(),
+        getProductsForSale(),
+      ]);
+
+      setCustomers(customerData || []);
+      setProducts(productData || []);
+
+      const customerId =
+  draft.resolvedEntities?.customer?.item?.id;
+
+if (draft.customerName && customerId == null) {
+  throw new Error(
+    "AI sale draft is missing a safely resolved customer."
+  );
+}
+
+if (customerId != null) {
+  setSelectedCustomer(String(customerId));
+}
+
+      setPaymentStatus(draft.paymentStatus || "Unpaid");
+      setPaymentMethod(draft.paymentMethod || "Cash");
+
+      const resolvedItems = Array.isArray(
+        draft.resolvedEntities?.items
+      )
+        ? draft.resolvedEntities.items
+        : [];
+
+      const cartItems = [];
+
+      for (let index = 0; index < draft.items.length; index += 1) {
+        const item = draft.items[index];
+        const resolvedItem = resolvedItems[index];
+        const productId = resolvedItem?.product?.item?.id;
+
+        if (productId == null) {
+          throw new Error(
+            "AI sale draft is missing a safely resolved product."
+          );
         }
+
+        const matchedProduct = productData.find(
+          (product) => Number(product.id) === Number(productId)
+        );
+
+        if (!matchedProduct) {
+          throw new Error(
+            "AI sale draft product could not be matched safely."
+          );
+        }
+
+        const quantity = Number(item.quantity || 1);
+
+        cartItems.push({
+          product_id: Number(matchedProduct.id),
+          product_name: matchedProduct.product_name,
+          quantity,
+          price: Number(matchedProduct.price || 0),
+          cost_price: Number(matchedProduct.cost_price || 0),
+          stock: Number(matchedProduct.stock || 0),
+          selling_unit: matchedProduct.selling_unit || "pcs",
+          unit_type: matchedProduct.unit_type || "piece",
+        });
       }
-    } catch (error) {
+
+      setCart(cartItems);
+
+      // Remove only after the complete draft was loaded successfully.
+      sessionStorage.removeItem("ai_agent_draft");
+    };
+
+    loadAgentDraft().catch((error) => {
       console.error(
         "Failed to load AI agent draft:",
         error
       );
-    }
-  }, []);
+    });
+  } catch (error) {
+    console.error(
+      "Failed to parse AI agent draft:",
+      error
+    );
+  }
+}, []);
 
   function getSelectedProduct() {
     return products.find(
