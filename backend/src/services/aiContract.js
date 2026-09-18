@@ -5,7 +5,20 @@ const MAX_QUESTION_ID_LENGTH = 64;
 const MAX_AI_ANSWER_LENGTH = 12000;
 const MAX_REASONING_ITEMS = 20;
 const MAX_REASONING_ITEM_LENGTH = 1000;
-const ALLOWED_REQUEST_FIELDS = new Set(["question", "questionId"]);
+const ALLOWED_REQUEST_FIELDS = new Set([
+  "question",
+  "questionId",
+  "responseLanguage",
+]);
+const RESPONSE_LANGUAGES = new Set([
+  "auto",
+  "english",
+  "urdu",
+  "roman_urdu",
+  "hindi",
+  "roman_hindi",
+  "mixed",
+]);
 const QUESTION_ID_PATTERN = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
 
 function ensureRequestId(req) {
@@ -67,11 +80,29 @@ function validateAiRequest(body) {
 
     questionId = body.questionId.trim();
   }
+    let responseLanguage;
 
-  return {
+  if (body.responseLanguage !== undefined) {
+    if (
+      typeof body.responseLanguage !== "string" ||
+      !RESPONSE_LANGUAGES.has(body.responseLanguage.trim())
+    ) {
+      return {
+        valid: false,
+        status: 400,
+        code: "INVALID_RESPONSE_LANGUAGE",
+        message: "Response language is invalid.",
+      };
+    }
+
+    responseLanguage = body.responseLanguage.trim();
+  }
+
+    return {
     valid: true,
     question,
     ...(questionId !== undefined ? { questionId } : {}),
+    ...(responseLanguage !== undefined ? { responseLanguage } : {}),
   };
 }
 
@@ -148,6 +179,7 @@ module.exports = {
   MAX_AI_ANSWER_LENGTH,
   MAX_REASONING_ITEMS,
   MAX_REASONING_ITEM_LENGTH,
+  RESPONSE_LANGUAGES,
   ensureRequestId,
   sendSuccess,
   sendError,

@@ -165,6 +165,7 @@ function AIAssistantWidget() {
   const [speakingMessageId, setSpeakingMessageId] = useState(null);
   const [speechError, setSpeechError] = useState("");
   const [agentMode, setAgentMode] = useState(null);
+  const [responseLanguage, setResponseLanguage] = useState("auto");
 
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -533,7 +534,11 @@ function AIAssistantWidget() {
 
     try {
       const response =
-        await askBusinessQuestion(trimmedQuestion, questionId);
+        await askBusinessQuestion(
+          trimmedQuestion,
+          questionId,
+          responseLanguage
+        );
 
       if (
         !response?.success ||
@@ -666,12 +671,16 @@ function AIAssistantWidget() {
     }
 
     if (intent === "sale") {
+      clearChat();
+      setIsOpen(false);
       navigate("/sales");
     } else if (intent === "purchase") {
+      clearChat();
+      setIsOpen(false);
       navigate("/purchases");
+    } else {
+      clearChat();
     }
-
-    clearChat();
   }
 
   return (
@@ -728,8 +737,9 @@ function AIAssistantWidget() {
             fixed z-50
             bottom-4 right-4
             flex
-            h-[min(680px,calc(100vh-32px))]
-            w-[min(420px,calc(100vw-32px))]
+            min-h-0
+            h-[min(640px,calc(100vh-32px))]
+            w-[min(400px,calc(100vw-32px))]
             flex-col
             overflow-hidden
             rounded-3xl
@@ -747,7 +757,7 @@ function AIAssistantWidget() {
               overflow-hidden
               border-b border-[#c7a66a]/15
               bg-[#050505]
-              px-5 py-4
+              px-4 py-3
               text-white
             "
           >
@@ -762,7 +772,7 @@ function AIAssistantWidget() {
               "
             />
 
-            <div className="relative flex items-center justify-between gap-3">
+            <div className="relative flex flex-col gap-2">
               <div className="flex min-w-0 items-center gap-3">
                 <div
                   className="
@@ -812,7 +822,45 @@ function AIAssistantWidget() {
                 </div>
               </div>
 
-              <div className="flex shrink-0 items-center gap-1.5">
+              <div className="flex w-full items-center justify-end gap-1.5">
+                <div className="relative">
+                  <label htmlFor="ai-response-language" className="sr-only">
+                    AI response language
+                  </label>
+
+                  <select
+                    id="ai-response-language"
+                    value={responseLanguage}
+                    onChange={(event) => setResponseLanguage(event.target.value)}
+                    disabled={loading}
+                    title="AI response language"
+                    className="
+      h-9 max-w-[132px]
+      cursor-pointer
+      rounded-xl
+      border border-white/10
+      bg-[#0c0c0b]
+      px-2.5
+      text-[10px] font-medium
+      text-[#c7a66a]
+      outline-none
+      transition-all duration-200
+      hover:border-[#b08a4b]/30
+      focus:border-[#c7a66a]/40
+      disabled:cursor-not-allowed
+      disabled:opacity-50
+      sm:max-w-[150px]
+    "
+                  >
+                    <option value="auto">Auto Detect</option>
+                    <option value="english">English</option>
+                    <option value="urdu">اردو</option>
+                    <option value="roman_urdu">Roman Urdu</option>
+                    <option value="hindi">हिन्दी</option>
+                    <option value="roman_hindi">Roman Hindi</option>
+                    <option value="mixed">Mixed</option>
+                  </select>
+                </div>
                 {messages.length > 0 && (
                   <button
                     type="button"
@@ -863,7 +911,7 @@ function AIAssistantWidget() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto bg-[#0a0a09] px-4 py-5 sm:px-5">
+          <div className="min-h-0 flex-1 overflow-y-auto bg-[#0a0a09] px-4 py-5 sm:px-5">
             {messages.length === 0 ? (
               <>
                 <div className="flex gap-3">
@@ -1236,7 +1284,7 @@ function AIAssistantWidget() {
                 </div>
               </>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-5 pb-2">
                 {messages.map((item) => (
                   <div
                     key={item.id}
@@ -1262,7 +1310,7 @@ function AIAssistantWidget() {
 
                     <div
                       className={`
-                        max-w-[82%]
+                        w-fit max-w-[88%] sm:max-w-[82%]
                         rounded-2xl
                         px-4 py-3
                         text-sm leading-6
@@ -1689,7 +1737,14 @@ function AIAssistantWidget() {
                           })()}
                         </div>
                       ) : (
-                        <div className="whitespace-pre-wrap">
+                        <div
+                          className="whitespace-pre-wrap break-words"
+                          style={{
+                            animation: "none",
+                            transition: "none",
+                            whiteSpace: "pre-wrap",
+                          }}
+                        >
                           {item.message}
                         </div>
                       )}

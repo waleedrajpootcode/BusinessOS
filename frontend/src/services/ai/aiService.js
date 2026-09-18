@@ -103,7 +103,11 @@ function validateFailureEnvelope(payload, status) {
   );
 }
 
-export async function askBusinessQuestion(question, questionId = undefined) {
+export async function askBusinessQuestion(
+  question,
+  questionId = undefined,
+  responseLanguage = "auto"
+) {
   if (typeof question !== "string") {
     return failure(
       "INVALID_AI_QUESTION",
@@ -141,6 +145,28 @@ export async function askBusinessQuestion(question, questionId = undefined) {
     );
   }
 
+  const allowedResponseLanguages = new Set([
+    "auto",
+    "english",
+    "urdu",
+    "roman_urdu",
+    "hindi",
+    "roman_hindi",
+    "mixed",
+  ]);
+
+  if (
+    typeof responseLanguage !== "string" ||
+    !allowedResponseLanguages.has(responseLanguage.trim())
+  ) {
+    return failure(
+      "INVALID_RESPONSE_LANGUAGE",
+      "Please select a valid response language."
+    );
+  }
+
+  const normalizedResponseLanguage = responseLanguage.trim();
+
   let sessionResult;
 
   try {
@@ -174,6 +200,7 @@ export async function askBusinessQuestion(question, questionId = undefined) {
       body: JSON.stringify({
         question: normalizedQuestion,
         ...(questionId !== undefined ? { questionId: questionId.trim() } : {}),
+        responseLanguage: normalizedResponseLanguage,
       }),
     });
   } catch {
@@ -190,9 +217,9 @@ export async function askBusinessQuestion(question, questionId = undefined) {
   } catch {
     const safeStatusError = response.ok
       ? {
-          code: "INVALID_AI_RESPONSE",
-          message: "BusinessOS AI returned an invalid response.",
-        }
+        code: "INVALID_AI_RESPONSE",
+        message: "BusinessOS AI returned an invalid response.",
+      }
       : messageForStatus(response.status);
 
     return failure(

@@ -22,6 +22,8 @@ function PurchaseForm({ onSuccess }) {
   const [discount, setDiscount] = useState(0);
   const [tax, setTax] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState("Unpaid");
+  const [paymentMethod, setPaymentMethod] = useState("Cash");
 
   useEffect(() => {
     async function loadData() {
@@ -87,6 +89,9 @@ function PurchaseForm({ onSuccess }) {
           setSelectedSupplier(String(supplierId));
         }
 
+        setPaymentStatus(draft.paymentStatus || "Unpaid");
+        setPaymentMethod(draft.paymentMethod || "Cash");
+
         const resolvedItems = Array.isArray(
           draft.resolvedEntities?.items
         )
@@ -124,6 +129,8 @@ function PurchaseForm({ onSuccess }) {
             product_name: matchedProduct.product_name,
             quantity,
             price,
+            selling_unit: matchedProduct.selling_unit || "pcs",
+            unit_type: matchedProduct.unit_type || "piece",
             total: quantity * price,
           });
         }
@@ -234,6 +241,8 @@ function PurchaseForm({ onSuccess }) {
         product_name: product.product_name,
         quantity: quantityValue,
         price: priceValue,
+        selling_unit: product.selling_unit || "pcs",
+        unit_type: product.unit_type || "piece",
         total: quantityValue * priceValue,
       };
 
@@ -340,8 +349,8 @@ function PurchaseForm({ onSuccess }) {
         discount: Number(discount || 0),
         tax: Number(tax || 0),
         total,
-        payment_method: "Cash",
-        status: "Pending",
+        payment_method: paymentMethod,
+        status: paymentStatus,
       });
 
       const purchaseItems = items.map((item) => ({
@@ -373,6 +382,8 @@ function PurchaseForm({ onSuccess }) {
       setDiscount(0);
       setTax(0);
       setItems([]);
+      setPaymentStatus("Unpaid");
+      setPaymentMethod("Cash");
 
       if (onSuccess) {
         onSuccess();
@@ -448,7 +459,8 @@ function PurchaseForm({ onSuccess }) {
 
           <input
             type="number"
-            min="1"
+            min="0.01"
+            step="0.01"
             placeholder="Quantity"
             value={quantity}
             onChange={(e) =>
@@ -503,6 +515,10 @@ function PurchaseForm({ onSuccess }) {
                     Quantity
                   </th>
 
+                  <th className="p-3 text-center">
+                    Unit
+                  </th>
+
                   <th className="p-3 text-right">
                     Price
                   </th>
@@ -530,7 +546,8 @@ function PurchaseForm({ onSuccess }) {
                     <td className="p-3 text-center">
                       <input
                         type="number"
-                        min="1"
+                        min="0.01"
+                        step="0.01"
                         value={item.quantity}
                         onChange={(e) =>
                           updateItemQuantity(
@@ -540,6 +557,10 @@ function PurchaseForm({ onSuccess }) {
                         }
                         className="w-24 border rounded-lg p-2 text-center"
                       />
+                    </td>
+
+                    <td className="p-3 text-center">
+                      {item.selling_unit || "pcs"}
                     </td>
 
                     <td className="p-3 text-right">
@@ -616,6 +637,111 @@ function PurchaseForm({ onSuccess }) {
             }
             className="w-full border rounded-lg p-3"
           />
+        </div>
+      </div>
+
+      {/* Payment Status & Method */}
+      <div className="border rounded-xl p-4 sm:p-5 bg-gray-50">
+        <h2 className="font-semibold text-base sm:text-lg mb-4">
+          Payment
+        </h2>
+
+        {/* Payment Status */}
+        <div>
+          <label className="block font-medium mb-2">
+            Payment Status
+          </label>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label
+              className={`border rounded-lg p-4 cursor-pointer ${paymentStatus === "Unpaid"
+                ? "border-red-500 bg-red-50"
+                : "bg-white"
+                }`}
+            >
+              <div className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="purchasePaymentStatus"
+                  value="Unpaid"
+                  checked={paymentStatus === "Unpaid"}
+                  onChange={(e) =>
+                    setPaymentStatus(e.target.value)
+                  }
+                />
+
+                <div>
+                  <p className="font-semibold">
+                    Unpaid
+                  </p>
+
+                  <p className="text-sm text-gray-500">
+                    Payment will be made later
+                  </p>
+                </div>
+              </div>
+            </label>
+
+            <label
+              className={`border rounded-lg p-4 cursor-pointer ${paymentStatus === "Paid"
+                ? "border-green-500 bg-green-50"
+                : "bg-white"
+                }`}
+            >
+              <div className="flex items-center gap-3">
+                <input
+                  type="radio"
+                  name="purchasePaymentStatus"
+                  value="Paid"
+                  checked={paymentStatus === "Paid"}
+                  onChange={(e) =>
+                    setPaymentStatus(e.target.value)
+                  }
+                />
+
+                <div>
+                  <p className="font-semibold">
+                    Paid
+                  </p>
+
+                  <p className="text-sm text-gray-500">
+                    Payment has been made in full
+                  </p>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* Payment Method */}
+        <div className="mt-4">
+          <label className="block font-medium mb-2">
+            Payment Method
+          </label>
+
+          <select
+            value={paymentMethod}
+            onChange={(e) =>
+              setPaymentMethod(e.target.value)
+            }
+            className="w-full border rounded-lg p-3 bg-white"
+          >
+            <option value="Cash">
+              Cash
+            </option>
+
+            <option value="Bank">
+              Bank
+            </option>
+
+            <option value="Card">
+              Card
+            </option>
+
+            <option value="Online">
+              Online
+            </option>
+          </select>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import "../styles/Reports.css";
 import RevenueChart from "../components/reports/RevenueChart";
 import TopSellingProducts from "../components/reports/TopSellingProducts";
 import LowStockProducts from "../components/reports/LowStockProducts";
@@ -97,13 +97,13 @@ function Reports() {
   }, []);
 
   return (
-    <div className="p-4 sm:p-6 min-w-0 w-full">
+    <div className="reports-page p-4 sm:p-6 min-w-0 w-full">
 
       {/* =========================
           HEADER
       ========================== */}
 
-      <div className="mb-8">
+      <div className="reports-header mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold">
           Reports
         </h1>
@@ -118,7 +118,7 @@ function Reports() {
           MAIN SUMMARY CARDS
       ========================== */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
+      <div className="reports-summary-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
 
         <StatsCard
           title="Revenue"
@@ -154,7 +154,7 @@ function Reports() {
 
       <div className="mt-8">
 
-        <div className="mb-5">
+        <div className="reports-section-heading mb-5">
           <h2 className="text-xl sm:text-2xl font-bold">
             Customer Receivables
           </h2>
@@ -165,7 +165,7 @@ function Reports() {
         </div>
 
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        <div className="reports-receivables-grid grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
 
           <StatsCard
             title="Total Receivable"
@@ -197,9 +197,9 @@ function Reports() {
           CUSTOMER-WISE RECEIVABLES
       ========================== */}
 
-      <div className="mt-8 bg-white rounded-xl shadow border overflow-hidden">
+      <div className="reports-outstanding-panel mt-8 rounded-xl shadow border overflow-hidden">
 
-        <div className="p-4 sm:p-5 border-b">
+        <div className="reports-outstanding-header p-4 sm:p-5 border-b">
 
           <h2 className="text-lg sm:text-xl font-bold">
             Customers With Outstanding Balance
@@ -214,7 +214,7 @@ function Reports() {
 
         {customerReceivables.length === 0 ? (
 
-          <div className="p-10 text-center text-gray-500">
+          <div className="reports-empty-state p-10 text-center">
             No outstanding customer payments.
           </div>
 
@@ -339,7 +339,7 @@ function Reports() {
 
                 <div
                   key={customer.customer_id}
-                  className="p-4"
+                  className="reports-mobile-customer p-4"
                 >
 
                   {/* Customer Header */}
@@ -348,11 +348,11 @@ function Reports() {
 
                     <div className="min-w-0">
 
-                      <p className="text-xs text-gray-500">
+                      <p className="reports-mobile-customer-label text-xs">
                         Customer
                       </p>
 
-                      <h3 className="font-semibold text-lg break-words">
+                      <h3 className="reports-mobile-customer-name font-semibold text-lg break-words">
                         {customer.customer_name}
                       </h3>
 
@@ -376,7 +376,7 @@ function Reports() {
 
                   {/* Customer Details */}
 
-                  <div className="mt-4 space-y-3 text-sm">
+                  <div className="reports-mobile-customer-details mt-4 space-y-3 text-sm">
 
                     <div className="flex justify-between gap-4">
 
@@ -472,7 +472,7 @@ function Reports() {
           REVENUE CHART
       ========================== */}
 
-      <div className="mt-8 min-w-0 overflow-hidden">
+      <div className="reports-chart-section mt-8 min-w-0 overflow-hidden">
 
         <RevenueChart
           data={revenueData}
@@ -485,7 +485,7 @@ function Reports() {
           TOP SELLING PRODUCTS
       ========================== */}
 
-      <div className="mt-8 min-w-0 overflow-hidden">
+      <div className="reports-chart-section mt-8 min-w-0 overflow-hidden">
 
         <TopSellingProducts
           products={topProducts}
@@ -498,7 +498,7 @@ function Reports() {
           LOW STOCK PRODUCTS
       ========================== */}
 
-      <div className="mt-8 min-w-0 overflow-hidden">
+      <div className="reports-chart-section mt-8 min-w-0 overflow-hidden">
 
         <LowStockProducts
           products={lowStockProducts}
@@ -511,7 +511,7 @@ function Reports() {
           TOP CUSTOMERS
       ========================== */}
 
-      <div className="mt-8 min-w-0 overflow-hidden">
+      <div className="reports-chart-section mt-8 min-w-0 overflow-hidden">
 
         <TopCustomers
           customers={topCustomers}
@@ -524,7 +524,7 @@ function Reports() {
           SALES TREND
       ========================== */}
 
-      <div className="mt-8 min-w-0 overflow-hidden">
+      <div className="reports-chart-section mt-8 min-w-0 overflow-hidden">
 
         <SalesTrendChart
           data={salesTrend}

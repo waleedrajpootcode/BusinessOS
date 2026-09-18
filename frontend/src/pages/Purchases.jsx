@@ -6,7 +6,25 @@ import PurchaseTable from "../components/purchases/PurchaseTable";
 import { getPurchases } from "../services/purchases";
 
 function Purchases() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(() => {
+  try {
+    const stored = sessionStorage.getItem("ai_agent_draft");
+
+    if (!stored) {
+      return false;
+    }
+
+    const draft = JSON.parse(stored);
+
+    return (
+      draft?.intent === "purchase" &&
+      Array.isArray(draft?.items) &&
+      draft.items.length > 0
+    );
+  } catch {
+    return false;
+  }
+});
   const [purchases, setPurchases] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);

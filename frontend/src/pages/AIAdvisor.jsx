@@ -262,6 +262,7 @@ function buildBusinessSignals(response) {
 export default function AIAdvisor() {
   const [response, setResponse] = useState(null);
   const [question, setQuestion] = useState("");
+  const [responseLanguage, setResponseLanguage] = useState("auto");
   const [queryLoading, setQueryLoading] = useState(false);
   const [conversation, setConversation] = useState([]);
   const [selectedQuestionCategory, setSelectedQuestionCategory] =
@@ -314,7 +315,11 @@ export default function AIAdvisor() {
     setQueryLoading(true);
 
     try {
-      const response = await askBusinessQuestion(trimmedQuestion, questionId);
+      const response = await askBusinessQuestion(
+        trimmedQuestion,
+        questionId,
+        responseLanguage
+      );
 
       if (!response?.success || !response?.data?.answer) {
         throw new Error(
@@ -664,6 +669,27 @@ export default function AIAdvisor() {
                 <span>ASK BUSINESSOS ANYTHING</span>
                 <span>COMMAND MODE</span>
               </div>
+
+              <div className="ai-language-control">
+  <label htmlFor="ai-response-language">
+    RESPONSE LANGUAGE
+  </label>
+
+  <select
+    id="ai-response-language"
+    value={responseLanguage}
+    onChange={(event) => setResponseLanguage(event.target.value)}
+    disabled={queryLoading}
+  >
+    <option value="auto">Auto Detect</option>
+    <option value="english">English</option>
+    <option value="urdu">Urdu</option>
+    <option value="roman_urdu">Roman Urdu</option>
+    <option value="hindi">Hindi</option>
+    <option value="roman_hindi">Roman Hindi</option>
+    <option value="mixed">Mixed</option>
+  </select>
+</div>
 
               <div className="ai-composer-inner">
                 <Search size={17} className="ai-composer-icon" />

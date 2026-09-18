@@ -1,7 +1,62 @@
 import "./Home.css";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 function Home() {
+  useEffect(() => {
+    const elements = document.querySelectorAll(".reveal-on-scroll");
+
+    const observer =
+      "IntersectionObserver" in window
+        ? new IntersectionObserver(
+            (entries, currentObserver) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add("is-visible");
+                  currentObserver.unobserve(entry.target);
+                }
+              });
+            },
+            {
+              threshold: 0.12,
+              rootMargin: "0px 0px -8% 0px",
+            }
+          )
+        : null;
+
+    if (observer) {
+      elements.forEach((element) => observer.observe(element));
+    } else {
+      elements.forEach((element) => element.classList.add("is-visible"));
+    }
+
+    const page = document.querySelector(".home-page");
+    const reduceMotion = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    const handlePointerMove = (event) => {
+      if (!page || reduceMotion) return;
+
+      const x = event.clientX / window.innerWidth;
+      const y = event.clientY / window.innerHeight;
+
+      page.style.setProperty("--pointer-x", `${(x * 100).toFixed(2)}%`);
+      page.style.setProperty("--pointer-y", `${(y * 100).toFixed(2)}%`);
+      page.style.setProperty("--pointer-x-px", `${event.clientX}px`);
+      page.style.setProperty("--pointer-y-px", `${event.clientY}px`);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove, {
+      passive: true,
+    });
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("pointermove", handlePointerMove);
+    };
+  }, []);
+
   const modules = [
     {
       number: "01",
@@ -82,6 +137,7 @@ function Home() {
           <span className="brand-rraw">RRAW</span>
           <span className="brand-divider">/</span>
           <span className="brand-product">BusinessOS</span>
+          <span className="brand-live">LIVE</span>
         </Link>
 
         <div className="nav-right">
@@ -110,16 +166,15 @@ function Home() {
             </div>
 
             <h1 className="hero-title">
-              <span className="hero-title-main">BUSINESS</span>
-
+              <span className="hero-title-main">Your Business.</span>
               <span className="hero-title-accent">
-                OPERATING SYSTEM
+                Smarter. Stronger. Together.
               </span>
             </h1>
 
             <p className="hero-description">
-              One intelligent system for the business behind your
-              business.
+              One intelligent operating system for the business
+              behind your business.
             </p>
 
             <p className="hero-supporting-text">
@@ -127,6 +182,11 @@ function Home() {
               suppliers, payments and reports together in one
               connected workspace — built to become smarter with AI.
             </p>
+
+            <div className="hero-system-note">
+              <span className="hero-system-pulse" />
+              <span>THE OPERATING LAYER FOR MODERN BUSINESS</span>
+            </div>
 
             <div className="hero-actions">
               <Link to="/login" className="hero-primary-button">
@@ -162,6 +222,13 @@ function Home() {
 
               <div className="status-item">
                 <span>AI-READY ARCHITECTURE</span>
+              </div>
+
+              <span className="status-divider" />
+
+              <div className="status-item status-live">
+                <span className="status-live-dot" />
+                <span>LIVE SYSTEM</span>
               </div>
             </div>
           </div>
@@ -225,6 +292,11 @@ function Home() {
             {/* Center core */}
             <div className="core-center">
               <div className="core-center-glow" />
+              <div className="core-readout">
+                <span>BUSINESSOS</span>
+                <strong>CORE</strong>
+                <small>INTELLIGENCE READY</small>
+              </div>
 
               <div className="core-ring">
                 <div className="core-ring-light" />
@@ -239,13 +311,62 @@ function Home() {
                 </div>
               </div>
             </div>
+            {/* Live business telemetry */}
+            <aside className="hero-live-panel" aria-label="BusinessOS live business signals">
+              <div className="hero-live-header">
+                <span className="hero-live-dot" />
+                <span>LIVE BUSINESS SIGNALS</span>
+              </div>
+
+              <div className="hero-live-metric">
+                <span>Today's activity</span>
+                <strong>CONNECTED</strong>
+                <small>Operations synchronized</small>
+              </div>
+
+              <div className="hero-live-row">
+                <span>Sales</span>
+                <b>ACTIVE</b>
+              </div>
+              <div className="hero-live-row">
+                <span>Customers</span>
+                <b>CONNECTED</b>
+              </div>
+              <div className="hero-live-row">
+                <span>Inventory</span>
+                <b>MONITORING</b>
+              </div>
+
+              <div className="hero-signal-chart" aria-hidden="true">
+                <i /><i /><i /><i /><i /><i /><i /><i />
+              </div>
+            </aside>
+
+            {/* Floating system telemetry */}
+            <div className="hero-telemetry telemetry-one">
+              <span>01</span>
+              <b>SECURE CORE</b>
+              <small>CONNECTED</small>
+            </div>
+
+            <div className="hero-telemetry telemetry-two">
+              <span>02</span>
+              <b>AI READY</b>
+              <small>EVOLUTION LAYER</small>
+            </div>
+
+            <div className="hero-telemetry telemetry-three">
+              <span>03</span>
+              <b>ONE CONTEXT</b>
+              <small>ALL OPERATIONS</small>
+            </div>
           </div>
         </section>
 
         {/* =========================
             SYSTEM PHILOSOPHY
         ========================== */}
-        <section className="philosophy-section">
+        <section className="philosophy-section reveal-on-scroll">
           <div className="philosophy-copy">
             <div className="section-eyebrow">
               <span className="eyebrow-line" />
@@ -293,7 +414,7 @@ function Home() {
         ========================== */}
         <section
           id="intelligence"
-          className="intelligence-section"
+          className="intelligence-section reveal-on-scroll"
         >
           <div className="section-heading">
             <div className="section-eyebrow">
@@ -346,7 +467,7 @@ function Home() {
         {/* =========================
             BUSINESS MODULES
         ========================== */}
-        <section className="modules-section">
+        <section className="modules-section reveal-on-scroll">
           <div className="section-heading modules-heading">
             <div className="section-eyebrow">
               <span className="eyebrow-line" />
@@ -393,7 +514,7 @@ function Home() {
         {/* =========================
             CONNECTION ARCHITECTURE
         ========================== */}
-        <section className="architecture-section">
+        <section className="architecture-section reveal-on-scroll">
           <div className="architecture-header">
             <div>
               <div className="section-eyebrow">
@@ -451,7 +572,7 @@ function Home() {
         {/* =========================
             AI SECTION
         ========================== */}
-        <section className="ai-section">
+        <section className="ai-section reveal-on-scroll">
           <div className="ai-panel">
             <div className="ai-panel-content">
               <div className="section-eyebrow">
@@ -495,6 +616,37 @@ function Home() {
             </div>
 
             <div className="ai-visual">
+              <div className="ai-console-topbar">
+                <span>BusinessOS</span>
+                <i />
+                <i />
+                <i />
+              </div>
+
+              <div className="ai-console-metrics">
+                <div>
+                  <small>Total activity</small>
+                  <strong>CONNECTED</strong>
+                </div>
+                <div>
+                  <small>Operational flow</small>
+                  <strong>LIVE</strong>
+                </div>
+                <div>
+                  <small>Intelligence</small>
+                  <strong>READY</strong>
+                </div>
+              </div>
+
+              <div className="ai-console-chart">
+                <span className="chart-line" />
+                <span className="chart-bar bar-one" />
+                <span className="chart-bar bar-two" />
+                <span className="chart-bar bar-three" />
+                <span className="chart-bar bar-four" />
+                <span className="chart-bar bar-five" />
+              </div>
+
               <div className="ai-visual-grid" />
 
               <div className="ai-circle ai-circle-one" />
@@ -518,7 +670,7 @@ function Home() {
         {/* =========================
             FINAL STATEMENT
         ========================== */}
-        <section className="statement-section">
+        <section className="statement-section reveal-on-scroll">
           <div className="statement-line" />
 
           <p className="statement-label">
@@ -549,7 +701,7 @@ function Home() {
         {/* =========================
             TRUST STRIP
         ========================== */}
-        <section className="trust-strip">
+        <section className="trust-strip reveal-on-scroll">
           <div className="trust-item">
             <span className="trust-dot" />
             ONE BUSINESS

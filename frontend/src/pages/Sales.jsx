@@ -9,7 +9,24 @@ import {
 } from "../services/sales";
 
 function Sales() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(() => {
+    try {
+        const stored = sessionStorage.getItem("ai_agent_draft");
+        if (!stored) {
+            return false;
+        }
+
+        const draft = JSON.parse(stored);
+
+        return (
+            draft?.intent === "sale" &&
+            Array.isArray(draft?.items) &&
+            draft.items.length > 0
+        );
+    } catch {
+        return false;
+    }
+});
     const [sales, setSales] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
 

@@ -129,7 +129,7 @@ function getApprovedTool(toolName) {
 ------------------------------------------------------- */
 
 async function processBusinessQuestion(
-  { question, questionId, context },
+  { question, questionId, responseLanguage, context },
   dependencies = {}
 ) {
   const normalizedQuestion = normalizeQuestion(question);
@@ -209,7 +209,11 @@ async function processBusinessQuestion(
     }
 
     const reasoner = dependencies.reasoner || reasonAboutBusiness;
-    const reasoningResult = await reasoner({ question: normalizedQuestion, businessData });
+    const reasoningResult = await reasoner({
+      question: normalizedQuestion,
+      businessData,
+      responseLanguage,
+    });
 
     if (!reasoningResult?.success) {
       return { success: false, status: 503, code: "AI_PROVIDER_UNAVAILABLE", message: "The AI service is temporarily unavailable." };

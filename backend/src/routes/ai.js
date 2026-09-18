@@ -35,6 +35,9 @@ function createAiRouter(dependencies = {}) {
       const gatewayResult = await processQuestion({
         question: requestValidation.question,
         questionId: requestValidation.questionId,
+        ...(requestValidation.responseLanguage !== undefined
+          ? { responseLanguage: requestValidation.responseLanguage }
+          : {}),
         context: {
           userId: req.user.id,
           businessId: req.businessId,

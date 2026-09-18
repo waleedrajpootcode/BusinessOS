@@ -479,3 +479,122 @@
 .ai-assistant-widget ::-webkit-scrollbar-thumb:hover {
   background: rgba(199, 166, 106, 0.34);
 }
+/* ---------------------------------------------------------
+   MESSAGE RENDERING STABILITY
+   Prevent visual typing/transition artifacts in AI responses.
+   --------------------------------------------------------- */
+
+.ai-assistant-widget .ai-message {
+  animation: none !important;
+  transition: none !important;
+}
+
+.ai-assistant-widget .ai-message > div {
+  animation: none !important;
+  transition: none !important;
+}
+
+.ai-assistant-widget .ai-message .whitespace-pre-wrap {
+  animation: none !important;
+  transition: none !important;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* =========================================================
+   BUSINESSOS AI WIDGET — CHAT LAYOUT POLISH
+   Layout-only patch. No behavior changes.
+   ========================================================= */
+
+.ai-assistant-widget {
+  isolation: isolate;
+}
+
+.ai-assistant-widget .whitespace-pre-wrap {
+  width: 100%;
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-height: 1.65;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Keep long AI answers readable without collapsing the chat */
+.ai-assistant-widget .space-y-5 > div {
+  min-width: 0;
+}
+
+/* Prevent long product/customer names from breaking the card */
+.ai-assistant-widget button,
+.ai-assistant-widget span,
+.ai-assistant-widget div {
+  min-width: 0;
+}
+
+/* Stable message rendering */
+.ai-assistant-widget [style*="animation: none"] {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Better mobile message width */
+@media (max-width: 639px) {
+  .ai-assistant-widget .whitespace-pre-wrap {
+    line-height: 1.6;
+  }
+}
+/* =========================================================
+AI WIDGET — CHAT LAYOUT ORDER / OVERLAP FIX
+Visual/layout only — do not change AI logic
+========================================================= */
+
+.ai-assistant-widget {
+position: relative;
+}
+
+.ai-assistant-widget > div {
+box-sizing: border-box;
+}
+
+/* Keep the widget itself as a strict vertical layout */
+.ai-assistant-widget .ai-widget-panel {
+display: flex;
+flex-direction: column;
+min-height: 0;
+}
+
+/* Conversation area must own the scrolling */
+.ai-assistant-widget .ai-messages {
+min-height: 0;
+flex: 1 1 auto;
+overflow-y: auto;
+overflow-x: hidden;
+}
+
+/* Keep every chat exchange in normal document order */
+.ai-assistant-widget .ai-messages > div {
+min-width: 0;
+}
+
+/* Prevent message content from escaping its message bubble */
+.ai-assistant-widget .ai-message,
+.ai-assistant-widget .assistant-message,
+.ai-assistant-widget .user-message {
+min-width: 0;
+max-width: 100%;
+overflow-wrap: anywhere;
+}
+
+/* Composer stays below the conversation */
+.ai-assistant-widget .ai-composer,
+.ai-assistant-widget .composer {
+flex: 0 0 auto;
+}
+
+/* Mobile: never allow the header/content to force horizontal overflow */
+@media (max-width: 639px) {
+.ai-assistant-widget .ai-messages {
+min-width: 0;
+}
+}

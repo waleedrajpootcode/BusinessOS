@@ -156,12 +156,12 @@ function containsKeyword(text, keywords) {
 }
 
 function detectIntent(text) {
-  if (containsKeyword(text, SALE_KEYWORDS)) {
-    return "sale";
-  }
-
   if (containsKeyword(text, PURCHASE_KEYWORDS)) {
     return "purchase";
+  }
+
+  if (containsKeyword(text, SALE_KEYWORDS)) {
+    return "sale";
   }
 
   if (containsKeyword(text, CUSTOMER_KEYWORDS)) {
@@ -300,16 +300,24 @@ function cleanProductText(value) {
       /\b(?:kiya|ki|hui|ho\s+gayi|kar\s+diya|kar\s+dia)\b/gi,
       "",
     )
-.replace(
+    .replace(
       /\b(?:li|liye|liya|liay|le\s+li|le\s+liye)\b/gi,
-    "",
-  )
+      "",
+    )
+    .replace(
+      /\b(?:hai|hain|tha|thi|the)\b\s*$/i,
+      "",
+    )
     .replace(
       /\b(?:deni|dena|de\s+deni)\s+(?:hain|hai)?\b/gi,
       "",
     )
     .replace(
-      /\b(?:hai|hain|tha|thi|the)\b/gi,
+      /\b(?:per\s+piece|per\s+pcs?|each|har\s+piece|har\s+pcs?)\b/gi,
+      "",
+    )
+    .replace(
+      /\b(?:mein|me)\b/gi,
       "",
     )
     .replace(
@@ -432,6 +440,13 @@ function parseSaleOrPurchaseItems(text, intent) {
     );
   }
 
+  if (intent === "purchase") {
+    workingText = workingText.replace(
+      /^(?:maine|main\s+ne)\s+(.+?)\s+se\s+(?=\d+(?:\.\d+)?\s+)/i,
+      "",
+    );
+  }
+
   // Payment phrases are not separate sale items.
   // Example:
   // "aur paisay bhi diye hain"
@@ -476,7 +491,7 @@ function extractCustomerName(text) {
    * "Rana ko 2 coca cola deni hain"
    */
   const naturalMatch = text.match(
-    /^([a-z][a-z\s'-]{1,40}?)\s+(?:ne|na|ko)\s+/i,
+    /^(?:(?:maine|main\s+ne)\s+)?([a-z][a-z\s'-]{1,40}?)\s+(?:ne|na|ko)\s+/i,
   );
 
   if (naturalMatch?.[1]) {
@@ -506,7 +521,9 @@ function cleanPersonName(value) {
       "",
     )
     .replace(/\s+/g, " ")
+    .replace(/\b(?:hai|hain|tha|thi|the)\b/gi, "")
     .trim();
+
 }
 
 function extractSupplierName(text) {
@@ -520,6 +537,17 @@ function extractSupplierName(text) {
     if (match?.[1]) {
       return cleanPersonName(match[1]);
     }
+  }
+
+  // Natural purchase pattern:
+  // "Maine Ahmed se 3 Coca Cola..."
+  // "Main ne Ahmed se 3 Coca Cola..."
+  const naturalMatch = text.match(
+    /^(?:maine|main\s+ne)\s+(.+?)\s+se\s+(?=\d+(?:\.\d+)?\s+)/i,
+  );
+
+  if (naturalMatch?.[1]) {
+    return cleanPersonName(naturalMatch[1]);
   }
 
   return null;
@@ -595,9 +623,9 @@ function extractSearchTerm(text) {
       "",
     )
     .replace(
-  /\s+(?:product|products|item|items|maal)\s+(?=(?:dikhao|batao|btao|dhoondo|dhundo|show|find|search|check|dekho)\b)/i,
-  " ",
-)
+      /\s+(?:product|products|item|items|maal)\s+(?=(?:dikhao|batao|btao|dhoondo|dhundo|show|find|search|check|dekho)\b)/i,
+      " ",
+    )
     .replace(
       /\s+(?:product|products|item|items|maal)\s*$/i,
       "",
@@ -682,10 +710,10 @@ export function parseAgentRequest(input) {
     intent === "purchase"
   ) {
     const items =
-  parseSaleOrPurchaseItems(
-    normalizedText,
-    intent,
-  );
+      parseSaleOrPurchaseItems(
+        normalizedText,
+        intent,
+      );
 
     result.entities.items = items;
     result.requiresConfirmation = true;
